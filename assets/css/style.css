@@ -620,19 +620,3 @@ footer{
 
 }
 
-/* ----- MEDIA QUERY == 540px / RESPONSIVE ----- */
-
-@media only screen and (max-width: 540px){
-	.featured-name{
-		font-size: 40px;
-	}
-	.project-box{
-		width: 100%;
-	}
-	.form-inputs{
-		flex-direction: column;
-	}
-	.input-field{
-		width: 100%;
-	}
-}
