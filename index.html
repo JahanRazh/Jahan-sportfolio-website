@@ -14,8 +14,30 @@
     <link rel="shortcut icon" href="assets/images/me.jpg" type="image/x-icon">
 
     <title>| Jahan's | Portfolio | </title>
+    <style>
+        body {
+          transition: background-color 0.3s, color 0.3s;
+        }
+        body.light {
+          background-color: white;
+          color: black;
+        }
+        body.dark {
+          background-color: black;
+          color: white;
+        }
+        .toggle-button {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 24px;
+        }
+      </style>
 </head>
-<body>
+<body class="light">
    <div class="container">
     <!-- --------------- HEADER --------------- -->
       <nav id="header">
@@ -45,10 +67,24 @@
         </div>
         <div class="nav-button">
             <button class="btn">Download CV <i class="uil uil-file-alt"></i></button>
+            <button  id="toggle-switch" class="toggle-button">🌞</button>
         </div>
         <div class="nav-menu-btn">
             <i class="uil uil-bars" onclick="myMenuFunction()"></i>
         </div>
+        
+            
+            <!--for drak mode and light mode-->
+            <script>
+              const body = document.querySelector("body"),
+                    toggleSwitch = document.getElementById("toggle-switch");
+          
+              toggleSwitch.addEventListener('click', () => {
+                body.classList.toggle("dark");
+                body.classList.toggle("light");
+                toggleSwitch.textContent = body.classList.contains("dark") ? '🌙' : '🌞';
+              });
+            </script>
       </nav>
 
 
@@ -114,10 +150,11 @@
             <div class="col">
                 <div class="about-info">
                     <h3>My introduction</h3>
-                    <p>I am well-versed in HTML, CSS and JavaScript , and other cutting edge
-                       frameworks and libraries,which allows me to implement interactive features.
-                       Additionally, I have experirence working with content management systems (CMS) like
-                       WordPress.
+                    <p>I am Software Engineering undergraduate student at SLIIT University. 
+                        Passionate about coding, software development, and continuously learning new technologies and methodologies in the field. Skilled in programming languages such as Java, Python, and C++. Experienced in web development, 
+                        mobile app development, and database management. Actively involved in university projects and extracurricular activities related to technology. 
+                        Aspiring to build a successful career in software engineering and 
+                        contribute to innovative and impactful projects in the tech industry.
                     </p>
                     
                     <div class="about-btn">
@@ -182,17 +219,17 @@
             <div class="project-box">
                 <i class="uil uil-briefcase-alt"></i>
                 <h3>Completed</h3>
-                <label>15+ Finished Projects</label>
+                <label>5+ Finished Projects</label>
             </div>
             <div class="project-box">
                 <i class="uil uil-users-alt"></i>
                 <h3>Clients</h3>
-                <label>25+ Happy Clients</label>
+                <label> Happy Clients</label>
             </div>
             <div class="project-box">
                 <i class="uil uil-award"></i>
                 <h3>Experience</h3>
-                <label>7+ Years in the field</label>
+                <label> </label>
             </div>
           </div>
        </section>
@@ -235,7 +272,7 @@
     <!-- --------------- FOOTER --------------- -->
     <footer>
         <div class="top-footer">
-            <p>Jahan Ramesh .</p>
+            <p>Jahan Ramesh </p>
         </div>
         <div class="middle-footer">
             <ul class="footer-menu">
