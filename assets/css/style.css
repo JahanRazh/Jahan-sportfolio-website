@@ -501,7 +501,7 @@ footer{
 	align-items: center;
 	flex-direction: column;
 	row-gap: 30px;
-	background: #F8F8F8;
+	/*background: #F8F8F8; footer background colour Razh*/ 
 	padding-block: 40px 60px;
 }
 .top-footer p{
@@ -635,4 +635,49 @@ footer{
 	.input-field{
 		width: 100%;
 	}
+}
+
+.box{
+    background: var(--bg-color);
+    padding: 35px 10px;
+    border-radius: 8px;
+    transition: all 0.45s ease;
+    text-align: start;
+}
+.s-icons i{
+    font-size: 35px;
+    color: var(--main-color);
+    margin-bottom: 15px;
+}
+.box h3{
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 15px;
+}
+.box p{
+    color: var(--second-color);
+    font-size: 1rem;
+    line-height: 1.8;
+    margin-bottom: 25px;
+    
+}
+.read{
+    display: inline-block;
+    padding: 8px 18px;
+    background: #333333;
+    color: var(--second-color);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 5px;
+    transition: all 0.45s ease;
+}
+.read:hover{
+    letter-spacing: 1px ;
+    background: var(--main-color);
+    color: var(--text-color);
+}
+.box:hover{
+    transform: translateY(-8px);
+    cursor: pointer;
 }
