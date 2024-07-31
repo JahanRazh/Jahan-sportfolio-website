@@ -56,7 +56,7 @@
       }
     </style>
   </head>
-  <body class="light">
+  <body class="dark">
     <div class="container">
       <!-- --------------- HEADER --------------- -->
       <nav id="header">
@@ -106,7 +106,11 @@
               ? "🌙"
               : "🌞";
           });
+
+          // Initialize the toggle switch text based on the default mode
+        toggleSwitch.textContent = body.classList.contains("dark") ? "🌙" : "🌞";
         </script>
+        
       </nav>
       <br>
       <!-- -------------- MAIN ---------------- -->
