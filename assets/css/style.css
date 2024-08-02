@@ -82,7 +82,7 @@ body{
 	position: relative;
 }
 
-/* ----- NAVIGATION BAR ----- */
+/* ----- NAVIGATION BAR -----  header */
 nav{
 	position: fixed;
 	display: flex;
