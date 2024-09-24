@@ -116,7 +116,7 @@ sections.forEach(current =>{
 
 window.addEventListener('scroll', scrollActive)
 
-// circle skill /////////
+// circle skill /////////////
 
 const circles = document.querySelectorAll(".circle");
 circles.forEach((elem) => {
