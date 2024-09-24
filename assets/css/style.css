@@ -357,7 +357,64 @@ h3{
 	padding: 2px 10px;
 	border-radius: 5px;
 }
+/*service section*/
 
+.services {
+	padding: 50px 0;
+  }
+  
+  .main-text {
+	text-align: center;
+	margin-bottom: 30px;
+  }
+  
+  .main-text h2 {
+	font-size: 32px;
+	margin-bottom: 10px;
+  }
+  
+  .main-text h2 span {
+	color: #007bff;
+  }
+  
+  .services-content {
+	display: flex;
+	justify-content: space-around;
+	flex-wrap: wrap;
+  }
+  
+  .box {
+	width: 300px;
+	padding: 20px;
+	background-color: #f8f9fa;
+	border-radius: 10px;
+	margin: 20px;
+	text-align: center;
+	transition: all 0.3s ease;
+	
+	
+  }
+  
+  .box:hover {
+	transform: translateY(-10px);
+	box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .s-icons {
+	font-size: 40px;
+	margin-bottom: 20px;
+	color: #007bff;
+  }
+  
+  .box h3 {
+	font-size: 24px;
+	margin-bottom: 15px;
+  }
+  
+  .box p {
+	font-size: 14px;
+	line-height: 1.6;
+  }
 /* ----- PROJECTS BOX ----- */
 .project-container{
 	display: flex;
