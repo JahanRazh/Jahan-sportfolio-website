@@ -58,6 +58,20 @@
     </style>
   </head>
   <body class="dark">
+     <!-- Audio Element -->
+  <audio id="background-audio" autoplay>
+      <source src="assets\Music\Ogryzek - GLORY (Slowed).mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+  </audio>
+
+  <!-- Optional JavaScript for Control -->
+  <script>
+      // If you want to control the audio via JavaScript (for autoplay)
+      window.onload = function() {
+          var audio = document.getElementById("background-audio");
+          audio.play();  // This will auto-play the audio when the page loads
+      };
+  </script>
     <div class="container">
       <!-- --------------- HEADER --------------- -->
       <nav id="header">
