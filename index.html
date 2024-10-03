@@ -1,743 +1,717 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- --------- UNICONS ------------>
-    <link
-      rel="stylesheet"
-      href="https://unicons.iconscout.com/release/v4.0.8/css/line.css"
-    />
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- --------- CSS ---------- -->
-    <link rel="stylesheet" href="assets/css/style.css" />
-    <!-- custom css link -->
+  <!-- --------- UNICONS ------------>
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" />
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-    <link rel="stylesheet" type="text/css" href="assets/css/card.css">
+  <!-- --------- CSS ---------- -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <!-- custom css link -->
 
-    <!-- --------- FAVICON ---------- -->
-    <link rel="shortcut icon" href="assets/images/me.jpg" type="image/x-icon" />
+  <link rel="stylesheet" type="text/css" href="assets/css/card.css">
 
-    <script
-      type="text/javascript"
-      src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"
-    ></script>
-    <script type="text/javascript">
-      (function () {
-        emailjs.init({
-          publicKey: "L7O7hK_anwCZk9qP7",
-        });
-      })();
-    </script>
+  <!-- --------- FAVICON ---------- -->
+  <link rel="shortcut icon" href="assets/images/me.jpg" type="image/x-icon" />
 
-    <title>| Jahan's | Portfolio |</title>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function () {
+      emailjs.init({
+        publicKey: "L7O7hK_anwCZk9qP7",
+      });
+    })();
+  </script>
 
-    <style>
-      body {
-        transition: background-color 0.3s, color 0.3s;
-      }
-      body.light {
-        background-color: white;
-        color: black;
-      }
-      body.dark {
-        background-color: black;
-        color: white;
-      }
-      .toggle-button {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 24px;
-      }
-    </style>
-  </head>
-  <body class="dark">
-     <!-- Audio Element -->
+  <title>| Jahan's | Portfolio |</title>
+
+  <style>
+    body {
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.light {
+      background-color: white;
+      color: black;
+    }
+
+    body.dark {
+      background-color: black;
+      color: white;
+    }
+
+    .toggle-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+    }
+  </style>
+</head>
+
+<body class="dark">
+  <!-- Audio Element -->
   <audio id="background-audio" autoplay>
-      <source src="assets\Music\Ogryzek - GLORY (Slowed).mp3" type="audio/mpeg">
-      Your browser does not support the audio element.
+    <source src="assets\Music\Ogryzek - GLORY (Slowed).mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
   </audio>
 
   <!-- Optional JavaScript for Control -->
   <script>
-      // If you want to control the audio via JavaScript (for autoplay)
-      window.onload = function() {
-          var audio = document.getElementById("background-audio");
-          audio.play();  // This will auto-play the audio when the page loads
-      };
+    // If you want to control the audio via JavaScript (for autoplay)
+    window.onload = function () {
+      var audio = document.getElementById("background-audio");
+      audio.play();  // This will auto-play the audio when the page loads
+    };
   </script>
-    <div class="container">
-      <!-- --------------- HEADER --------------- -->
-      <nav id="header">
-        <div class="nav-logo">
-          <p class="nav-name">Razh</p>
-          <span>.</span>
-        </div>
-        <div class="nav-menu" id="myNavMenu">
-          <ul class="nav_menu_list">
-            <li class="nav_list">
-              <a href="#home" class="nav-link active-link">Home</a>
-              <div class="circle"></div>
-            </li>
-            <li class="nav_list">
-              <a href="#about" class="nav-link">About</a>
-              <div class="circle"></div>
-            </li>
-            <li class="nav_list">
-              <a href="#projects" class="nav-link">Projects</a>
-              <div class="circle"></div>
-            </li>
-            <li class="nav_list"></li>
-              <a href="#skills" class="nav-link">Skills</a>
-              <div class="circle"></div>
-            </li>
-            <li class="nav_list">
-              <a href="#contact" class="nav-link">Contact</a>
-              <div class="circle"></div>
-            </li>
-          </ul>
-        </div>
-        <div class="nav-button">
-          <button class="btn" onclick="downloadFile()">
-            Download CV <i class="uil uil-file-alt"></i> 
-          </button>
-          <button id="toggle-switch" class="toggle-button">🌞</button>
-        </div>
-        <div class="nav-menu-btn">
-          <i class="uil uil-bars" onclick="myMenuFunction()"></i>
-        </div>
+  <div class="container">
+    <!-- --------------- HEADER --------------- -->
+    <nav id="header">
+      <div class="nav-logo">
+        <p class="nav-name">Razh</p>
+        <span>.</span>
+      </div>
+      <div class="nav-menu" id="myNavMenu">
+        <ul class="nav_menu_list">
+          <li class="nav_list">
+            <a href="#home" class="nav-link active-link">Home</a>
+            <div class="circle"></div>
+          </li>
+          <li class="nav_list">
+            <a href="#about" class="nav-link">About</a>
+            <div class="circle"></div>
+          </li>
+          <li class="nav_list">
+            <a href="#projects" class="nav-link">Projects</a>
+            <div class="circle"></div>
+          </li>
+          <li class="nav_list"></li>
+          <a href="#skills" class="nav-link">Skills</a>
+          <div class="circle"></div>
+          </li>
+          <li class="nav_list">
+            <a href="#contact" class="nav-link">Contact</a>
+            <div class="circle"></div>
+          </li>
+        </ul>
+      </div>
+      <div class="nav-button">
+        <button class="btn" onclick="downloadFile()">
+          Download CV <i class="uil uil-file-alt"></i>
+        </button>
+        <button id="toggle-switch" class="toggle-button">🌞</button>
+      </div>
+      <div class="nav-menu-btn">
+        <i class="uil uil-bars" onclick="myMenuFunction()"></i>
+      </div>
 
-        <!--for drak mode and light mode-->
-        <script>
-          const body = document.querySelector("body"),
-            toggleSwitch = document.getElementById("toggle-switch");
+      <!--for drak mode and light mode-->
+      <script>
+        const body = document.querySelector("body"),
+          toggleSwitch = document.getElementById("toggle-switch");
 
-          toggleSwitch.addEventListener("click", () => {
-            body.classList.toggle("dark");
-            body.classList.toggle("light");
-            toggleSwitch.textContent = body.classList.contains("dark")
-              ? "🌙"
-              : "🌞";
-          });
+        toggleSwitch.addEventListener("click", () => {
+          body.classList.toggle("dark");
+          body.classList.toggle("light");
+          toggleSwitch.textContent = body.classList.contains("dark")
+            ? "🌙"
+            : "🌞";
+        });
 
-          // Initialize the toggle switch text based on the default mode
+        // Initialize the toggle switch text based on the default mode
         toggleSwitch.textContent = body.classList.contains("dark") ? "🌙" : "🌞";
-        </script>
-        
-      </nav>
-      <br>
-      <!-- -------------- MAIN ---------------- -->
-      <main class="wrapper">
-        <!-- -------------- FEATURED BOX ---------------- -->
-        <section class="featured-box" id="home">
-          <div class="featured-text">
-            <div class="featured-text-card">
-              <span>Software Engineer</span>
-            </div>
-            <div class="featured-name">
-              <p>I'm <span class="typedText"></span></p>
-            </div>
-            <div class="featured-text-info">
+      </script>
+
+    </nav>
+    <br>
+    <!-- -------------- MAIN ---------------- -->
+    <main class="wrapper">
+      <!-- -------------- FEATURED BOX ---------------- -->
+      <section class="featured-box" id="home">
+        <div class="featured-text">
+          <div class="featured-text-card">
+            <span>Software Engineer</span>
+          </div>
+          <div class="featured-name">
+            <p>I'm <span class="typedText"></span></p>
+          </div>
+          <div class="featured-text-info">
+            <p>
+              I am Software Engineering undergraduate student at SLIIT
+              University. Passionate about coding, software development, and
+              continuously learning new technologies and methodologies in the
+              field. Skilled in programming languages such as Java, Python,
+              and C++. Experienced in web development, mobile app development,
+              and database management. Actively involved in university
+              projects and extracurricular activities related to technology.
+              Aspiring to build a successful career in software engineering
+              and contribute to innovative and impactful projects in the tech
+              industry.
+            </p>
+          </div>
+          <div class="featured-text-btn">
+            <a href="#contact" class="nav-link"><button class="btn blue-btn">Hire Me</button></a>
+            <button class="btn" onclick="downloadFile()">
+              Download CV <i class="uil uil-file-alt"></i>
+            </button>
+          </div>
+          <div class="social_icons">
+            <p align="left">
+              <a href="https://fb.com/rjahan.razh" target="blank"><img align="center"
+                  src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/facebook.svg"
+                  alt="rjahan.razh" height="30" width="40" /></a>
+              <a href="https://github.com/JahanRazh" target="blank"><img align="center"
+                  src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/github.svg"
+                  alt="jahanrazh" height="30" width="40" /></a>
+              <a href="https://instagram.com/_jahan_razh_" target="blank"><img align="center"
+                  src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/instagram.svg"
+                  alt="_jahan_razh_" height="30" width="40" /></a>
+              <a href="https://www.youtube.com/channel/UC_4OKBZ0RYHTDxKYHwFFojw" target="blank"><img align="center"
+                  src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/youtube.svg"
+                  alt="gaming covernet" height="30" width="40" /></a>
+              <a href="https://twitter.com/jahan3165" target="blank"><img align="center"
+                  src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg"
+                  alt="jahan3165" height="30" width="40" /></a>
+              <a href="https://linkedin.com/in/jahanrazh" target="blank"><img align="center"
+                  src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg"
+                  alt="jahanrazh" height="30" width="40" /></a>
+              <a href="https://discord.gg/jahanramesh" target="blank"><img align="center"
+                  src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/discord.svg"
+                  alt="jahanramesh" height="30" width="40" /></a>
+              <a href="https://stackoverflow.com/users/jahan-ramesh" target="blank"><img align="center"
+                  src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/stack-overflow.svg"
+                  alt="jahan-ramesh" height="30" width="40" /></a>
+              <a href="https://www.hackerrank.com/jahanrazh" target="blank"><img align="center"
+                  src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/hackerrank.svg"
+                  alt="jahanrazh" height="30" width="40" /></a>
+            </p>
+          </div>
+        </div>
+        <div class="featured-image">
+          <div class="image">
+            <img src="assets/images/me.jpg" alt="avatar" />
+          </div>
+        </div>
+        <div class="scroll-icon-box">
+          <a href="#about" class="scroll-btn">
+            <i class="uil uil-mouse-alt"></i>
+            <p>Scroll Down</p>
+          </a>
+        </div>
+      </section>
+      <!-- -------------- ABOUT BOX ---------------- -->
+      <section class="section" id="about">
+        <div class="top-header">
+          <h1>About Me</h1>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div class="about-info">
+              <h3>My introduction</h3>
               <p>
                 I am Software Engineering undergraduate student at SLIIT
                 University. Passionate about coding, software development, and
-                continuously learning new technologies and methodologies in the
-                field. Skilled in programming languages such as Java, Python,
-                and C++. Experienced in web development, mobile app development,
-                and database management. Actively involved in university
-                projects and extracurricular activities related to technology.
-                Aspiring to build a successful career in software engineering
-                and contribute to innovative and impactful projects in the tech
-                industry.
+                continuously learning new technologies and methodologies in
+                the field. Skilled in programming languages such as Java,
+                Python, and C++. Experienced in web development, mobile app
+                development, and database management. Actively involved in
+                university projects and extracurricular activities related to
+                technology. Aspiring to build a successful career in software
+                engineering and contribute to innovative and impactful
+                projects in the tech industry.
               </p>
-            </div>
-            <div class="featured-text-btn">
-              <a href="#contact" class="nav-link"><button class="btn blue-btn">Hire Me</button></a>
-              <button class="btn" onclick="downloadFile()">
-                Download CV <i class="uil uil-file-alt"></i>
-              </button>
-            </div>
-            <div class="social_icons">
-              <p align="left">
-                <a href="https://fb.com/rjahan.razh" target="blank"
-                  ><img
-                    align="center"
-                    src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/facebook.svg"
-                    alt="rjahan.razh"
-                    height="30"
-                    width="40"
-                /></a>
-                <a href="https://github.com/JahanRazh" target="blank"
-                  ><img
-                    align="center"
-                    src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/github.svg"
-                    alt="jahanrazh"
-                    height="30"
-                    width="40"
-                /></a>
-                <a href="https://instagram.com/_jahan_razh_" target="blank"
-                  ><img
-                    align="center"
-                    src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/instagram.svg"
-                    alt="_jahan_razh_"
-                    height="30"
-                    width="40"
-                /></a>
-                <a
-                  href="https://www.youtube.com/channel/UC_4OKBZ0RYHTDxKYHwFFojw"
-                  target="blank"
-                  ><img
-                    align="center"
-                    src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/youtube.svg"
-                    alt="gaming covernet"
-                    height="30"
-                    width="40"
-                /></a>
-                <a href="https://twitter.com/jahan3165" target="blank"
-                  ><img
-                    align="center"
-                    src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg"
-                    alt="jahan3165"
-                    height="30"
-                    width="40"
-                /></a>
-                <a href="https://linkedin.com/in/jahanrazh" target="blank"
-                  ><img
-                    align="center"
-                    src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg"
-                    alt="jahanrazh"
-                    height="30"
-                    width="40"
-                /></a>
-                <a href="https://discord.gg/jahanramesh" target="blank"
-                  ><img
-                    align="center"
-                    src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/discord.svg"
-                    alt="jahanramesh"
-                    height="30"
-                    width="40"
-                /></a>
-                <a
-                  href="https://stackoverflow.com/users/jahan-ramesh"
-                  target="blank"
-                  ><img
-                    align="center"
-                    src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/stack-overflow.svg"
-                    alt="jahan-ramesh"
-                    height="30"
-                    width="40"
-                /></a>
-                <a href="https://www.hackerrank.com/jahanrazh" target="blank"
-                  ><img
-                    align="center"
-                    src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/hackerrank.svg"
-                    alt="jahanrazh"
-                    height="30"
-                    width="40"
-                /></a>
-              </p>
-            </div>
-          </div>
-          <div class="featured-image">
-            <div class="image">
-              <img src="assets/images/me.jpg" alt="avatar" />
-            </div>
-          </div>
-          <div class="scroll-icon-box">
-            <a href="#about" class="scroll-btn">
-              <i class="uil uil-mouse-alt"></i>
-              <p>Scroll Down</p>
-            </a>
-          </div>
-        </section>
-        <!-- -------------- ABOUT BOX ---------------- -->
-        <section class="section" id="about">
-          <div class="top-header">
-            <h1>About Me</h1>
-          </div>
-          <div class="row">
-            <div class="col">
-              <div class="about-info">
-                <h3>My introduction</h3>
-                <p>
-                  I am Software Engineering undergraduate student at SLIIT
-                  University. Passionate about coding, software development, and
-                  continuously learning new technologies and methodologies in
-                  the field. Skilled in programming languages such as Java,
-                  Python, and C++. Experienced in web development, mobile app
-                  development, and database management. Actively involved in
-                  university projects and extracurricular activities related to
-                  technology. Aspiring to build a successful career in software
-                  engineering and contribute to innovative and impactful
-                  projects in the tech industry.
-                </p>
 
-                <div class="about-btn">
-                  <button class="btn" onclick="downloadFile()">
-                    Download CV <i class="uil uil-import"></i>
-                  </button>
-                </div>
+              <div class="about-btn">
+                <button class="btn" onclick="downloadFile()">
+                  Download CV <i class="uil uil-import"></i>
+                </button>
+              </div>
 
-                <script>
-                  function downloadFile() {
-                    window.location.href = "assets/images/Jahan's CV Resume.pdf";
-                  }
-                </script>
+              <script>
+                function downloadFile() {
+                  window.location.href = "assets/images/Jahan's CV Resume.pdf";
+                }
+              </script>
+            </div>
+          </div>
+          <div class="col">
+            <div class="skills-box">
+              <div class="skills-header">
+                <h3>Frontend</h3>
+              </div>
+              <div class="skills-list">
+                <span>HTML</span>
+                <span>CSS</span>
+                <span>Bootstrap</span>
+                <span>JavaScript</span>
+                <span>React</span>
               </div>
             </div>
-            <div class="col">
-              <div class="skills-box">
-                <div class="skills-header">
-                  <h3>Frontend</h3>
-                </div>
-                <div class="skills-list">
-                  <span>HTML</span>
-                  <span>CSS</span>
-                  <span>Bootstrap</span>
-                  <span>JavaScript</span>
-                  <span>React</span>
-                </div>
+            <div class="skills-box">
+              <div class="skills-header">
+                <h3>Backend</h3>
               </div>
-              <div class="skills-box">
-                <div class="skills-header">
-                  <h3>Backend</h3>
-                </div>
-                <div class="skills-list">
-                  <span>PHP</span>
-                  <span>JAVA</span>
-                  <span>Python</span>
-                  <span>C++</span>
-                  <span>NodeJS</span>
-                  <span>ExpressJS</span>
-                </div>
+              <div class="skills-list">
+                <span>PHP</span>
+                <span>JAVA</span>
+                <span>Python</span>
+                <span>C++</span>
+                <span>NodeJS</span>
+                <span>ExpressJS</span>
               </div>
-              <div class="skills-box">
-                <div class="skills-header">
-                  <h3>Database</h3>
-                </div>
-                <div class="skills-list">
-                  <span>MySQL</span>
-                  <span>SQLite</span>
-                  <span>MongoDB</span>
-                </div>
+            </div>
+            <div class="skills-box">
+              <div class="skills-header">
+                <h3>Database</h3>
+              </div>
+              <div class="skills-list">
+                <span>MySQL</span>
+                <span>SQLite</span>
+                <span>MongoDB</span>
               </div>
             </div>
           </div>
-        </section>
-        <!-- Services section  -->
+        </div>
+      </section>
+      <!-- Services section  -->
       <section class="services" id="services">
-      <div class="main-text"> 
+        <div class="main-text">
           <p>What I Expert In</p>
           <h2>My <span>Services</span></h2>
           <div class="services-content">
-              <div class="box">
-                  <div class="s-icons">
-                      <i class='bx bx-code-alt' ></i>
-                  </div>
-                  <h3>Web Development</h3>
-                  <p>I'm a static and dynamic web developer with a knack for turning ideas into interactive online experiences. Proficient in MERN Stack, HTML, PHP, CSS, and JavaScript, I bring websites to life with sleek designs and smooth functionality. My goal is to create user-friendly, visually appealing web solutions that leave a lasting impression. Let's build the web together!</p>
-                  <!--<a href="#" class="read">Read More</a>-->
+            <div class="box">
+              <div class="s-icons">
+                <i class='bx bx-code-alt'></i>
               </div>
+              <h3>Web Development</h3>
+              <p>I'm a static and dynamic web developer with a knack for turning ideas into interactive online
+                experiences. Proficient in MERN Stack, HTML, PHP, CSS, and JavaScript, I bring websites to life with
+                sleek designs and smooth functionality. My goal is to create user-friendly, visually appealing web
+                solutions that leave a lasting impression. Let's build the web together!</p>
+              <!--<a href="#" class="read">Read More</a>-->
+            </div>
 
-              <div class="box">
-                  <div class="s-icons">
-                      <i class='bx bx-mobile-alt'></i>
-                  </div>
-                  <h3>Mobile App Development</h3>
-                  <p>I'm a mobile app developer with a passion for crafting dynamic and user-friendly applications. Proficient in Flutter framework, I specialize in creating cross-platform apps that seamlessly run on Android. From concept to deployment, I'm dedicated to delivering innovative mobile solutions that captivate users and solve real-world problems.</p>
-                  <!--<a href="#" class="read">Read More</a>-->
+            <div class="box">
+              <div class="s-icons">
+                <i class='bx bx-mobile-alt'></i>
               </div>
+              <h3>Mobile App Development</h3>
+              <p>I'm a mobile app developer with a passion for crafting dynamic and user-friendly applications.
+                Proficient in Flutter framework, I specialize in creating cross-platform apps that seamlessly run on
+                Android. From concept to deployment, I'm dedicated to delivering innovative mobile solutions that
+                captivate users and solve real-world problems.</p>
+              <!--<a href="#" class="read">Read More</a>-->
+            </div>
 
-              <div class="box">
-                  <div class="s-icons">
-                      <i class='bx bxs-credit-card-front'></i>
-                  </div>
-                  <h3>UI/UX Designing </h3>
-                  <p>I'm a UI/UX designer passionate about crafting intuitive and visually appealing digital experiences. Proficient in Figma, I transform concepts into user-centric designs that enhance usability and engagement. Committed to creating designs that captivate and streamline user interactions. Let's shape the future of user experiences!</p>
-                  <!--<a href="#" class="read">Read More</a> -->
+            <div class="box">
+              <div class="s-icons">
+                <i class='bx bxs-credit-card-front'></i>
               </div>
+              <h3>UI/UX Designing </h3>
+              <p>I'm a UI/UX designer passionate about crafting intuitive and visually appealing digital experiences.
+                Proficient in Figma, I transform concepts into user-centric designs that enhance usability and
+                engagement. Committed to creating designs that captivate and streamline user interactions. Let's shape
+                the future of user experiences!</p>
+              <!--<a href="#" class="read">Read More</a> -->
+            </div>
 
           </div>
-      </div>
-    </section>  
-    <!-- -------------- PROJECT BOX ---------------- -->
+        </div>
+      </section>
+      <!-- -------------- PROJECT BOX ---------------- -->
 
-    <section class="section" id="projects">
-      <div class="top-header">
-        <h1>Projects</h1>
-      </div>
-      <!-- Portfolio section  -->
-    <section class="portfolio" id="portfolio">
-      <div class="main-text" style="padding-bottom: 50;"> 
-          
-          <h2>Latest <span>Project</span></h2>
-      </div>
-      
-      <div class="portfolio-content">
-          <div class="row-card">
-              <!-- First Column (Card) -->
-              <div class="card column-md-3">
-                  <img src="assets/images/card1.gif" class="card-img" alt="">
-                  <div class="card-body">
-                      <h1 class="card-title">Web Site</h1>
-                      <p class="card-sub-title">STELLAR-BUILD-ERP System</p>
-                      <p class="card-info">STELLAR-BUILD-ERP Management Management System web application developed using the MERN (MongoDB, Express.js, React, Node.js) stack.</p>
-                      <a href="https://github.com/Ushara-B/Stellar-build-ERP.git" target="_blank"><button class="card-btn">Read More</button></a>
-                  </div>
-              </div>
+      <section class="section" id="projects">
+        <div class="top-header">
+          <h1>Projects</h1>
+        </div>
+        <!-- Portfolio section  -->
+        <section class="portfolio" id="portfolio">
+          <div class="main-text" style="padding-bottom: 50;">
 
-              <!-- First Column (Card) -->
-              <div class="card column-md-3">
-                  <img src="assets/images/card2.gif" class="card-img" alt="">
-                  <div class="card-body">
-                      <h1 class="card-title">Mobile Application</h1>
-                      <p class="card-sub-title">Note Maker</p>
-                      <p class="card-info">"Notes Maker offers the capability to add note titles and relevant content, as well as the functionality to insert, update, and delete notes with ease. The app also includes a specific data search feature "
-                          </p>
-                      <a href="https://github.com/JahanRazh/Notes-Maker_Mobile_App.git" target="_blank"> <button class="card-btn">Read More</button></a>
-                  </div>
-              </div>
-              <!-- First Column (Card) -->
-              <div class="card column-md-3">
-                  <img src="assets/images/card3.gif" class="card-img" alt="">
-                  <div class="card-body">
-                      <h1 class="card-title">Fiesta Burgers </h1>
-                      <p class="card-sub-title">Food_Ordering_Mobile_App</p>
-                      <p class="card-info">Customers can Browse our menu, pick your burger or Customize Your Burger to Your Tastes. bun, Burger slide option and toppings, add any special requests.</p>
-                      <a href="https://github.com/JahanRazh/Food_Ordering_Mobile_App.git" target="_blank"><button class="card-btn">Read More</button></a>
-                  </div>
-              </div>
-              <!-- First Column (Card) -->
+            <h2>Latest <span>Project</span></h2>
           </div>
-          <!-- ........................................................................................ -->
 
-          <div class="row-card">
+          <div class="portfolio-content">
+            <div class="row-card">
               <!-- First Column (Card) -->
               <div class="card column-md-3">
-                  <img src="assets/images/card4.png" class="card-img" alt="">
-                  <div class="card-body">
-                      <h1 class="card-title">Web Application</h1>
-                      <p class="card-sub-title">School-Information-Management-System</p>
-                      <p class="card-info">A School Management System (SIMS) is an integrated software application that facilitates the efficient management of school operations.</p>
-                      <a href="https://github.com/JahanRazh/Online-School-Information-Management-System.git" target="_blank"><button class="card-btn">Read More</button></a>
-                  </div>
+                <img src="assets/images/card1.gif" class="card-img" alt="">
+                <div class="card-body">
+                  <h1 class="card-title">Web Site</h1>
+                  <p class="card-sub-title">STELLAR-BUILD-ERP System</p>
+                  <p class="card-info">STELLAR-BUILD-ERP Management Management System web application developed using
+                    the MERN (MongoDB, Express.js, React, Node.js) stack.</p>
+                  <a href="https://github.com/Ushara-B/Stellar-build-ERP.git" target="_blank"><button
+                      class="card-btn">Read More</button></a>
+                </div>
+              </div>
+
+              <!-- First Column (Card) -->
+              <div class="card column-md-3">
+                <img src="assets/images/card2.gif" class="card-img" alt="">
+                <div class="card-body">
+                  <h1 class="card-title">Mobile Application</h1>
+                  <p class="card-sub-title">Note Maker</p>
+                  <p class="card-info">"Notes Maker offers the capability to add note titles and relevant content, as
+                    well as the functionality to insert, update, and delete notes with ease. The app also includes a
+                    specific data search feature "
+                  </p>
+                  <a href="https://github.com/JahanRazh/Notes-Maker_Mobile_App.git" target="_blank"> <button
+                      class="card-btn">Read More</button></a>
+                </div>
+              </div>
+              <!-- First Column (Card) -->
+              <div class="card column-md-3">
+                <img src="assets/images/card3.gif" class="card-img" alt="">
+                <div class="card-body">
+                  <h1 class="card-title">Fiesta Burgers </h1>
+                  <p class="card-sub-title">Food_Ordering_Mobile_App</p>
+                  <p class="card-info">Customers can Browse our menu, pick your burger or Customize Your Burger to Your
+                    Tastes. bun, Burger slide option and toppings, add any special requests.</p>
+                  <a href="https://github.com/JahanRazh/Food_Ordering_Mobile_App.git" target="_blank"><button
+                      class="card-btn">Read More</button></a>
+                </div>
+              </div>
+              <!-- First Column (Card) -->
+            </div>
+            <!-- ........................................................................................ -->
+
+            <div class="row-card">
+              <!-- First Column (Card) -->
+              <div class="card column-md-3">
+                <img src="assets/images/card4.png" class="card-img" alt="">
+                <div class="card-body">
+                  <h1 class="card-title">Web Application</h1>
+                  <p class="card-sub-title">School-Information-Management-System</p>
+                  <p class="card-info">A School Management System (SIMS) is an integrated software application that
+                    facilitates the efficient management of school operations.</p>
+                  <a href="https://github.com/JahanRazh/Online-School-Information-Management-System.git"
+                    target="_blank"><button class="card-btn">Read More</button></a>
+                </div>
               </div>
 
               <!-- Second Column (Card) -->
               <div class="card column-md-3">
-                  <img src="assets/images/card5.gif" class="card-img" alt="">
-                  <div class="card-body">
-                      <h1 class="card-title">Mobile Game</h1>
-                      <p class="card-sub-title">Gem Snake </p>
-                      <p class="card-info">"In this snake mobile game, players earn points by consuming gems, with each gem adding one point to their score. 
-                        The game keeps track of the highest score attained across multiple sessions.</p>
-                      <a href="https://github.com/JahanRazh/Snake_Mobile_Game.git" target="_blank"><button class="card-btn">Read More</button></a>
-                  </div>
+                <img src="assets/images/card5.gif" class="card-img" alt="">
+                <div class="card-body">
+                  <h1 class="card-title">Mobile Game</h1>
+                  <p class="card-sub-title">Gem Snake </p>
+                  <p class="card-info">"In this snake mobile game, players earn points by consuming gems, with each gem
+                    adding one point to their score.
+                    The game keeps track of the highest score attained across multiple sessions.</p>
+                  <a href="https://github.com/JahanRazh/Snake_Mobile_Game.git" target="_blank"><button
+                      class="card-btn">Read More</button></a>
+                </div>
               </div>
-              
+
               <!-- Second Column (Card) -->
               <div class="card column-md-3">
-                  <img src="assets/images/card7.png" class="card-img" alt="">
-                  <div class="card-body">
-                      <h1 class="card-title">Web Site</h1>
-                      <p class="card-sub-title">Diet Planning & Health Check up System</p>
-                      <p class="card-info">This is an online app store about diet plans and health screenings.</p>
-                      <a href="https://github.com/JahanRazh/Diet_Plan_and_Health_Check-up_System..git" target="_blank"><button class="card-btn">Read More</button></a>
-                  </div>
+                <img src="assets/images/card7.png" class="card-img" alt="">
+                <div class="card-body">
+                  <h1 class="card-title">Web Site</h1>
+                  <p class="card-sub-title">Diet Planning & Health Check up System</p>
+                  <p class="card-info">This is an online app store about diet plans and health screenings.</p>
+                  <a href="https://github.com/JahanRazh/Diet_Plan_and_Health_Check-up_System..git"
+                    target="_blank"><button class="card-btn">Read More</button></a>
+                </div>
               </div>
               <!-- First Column (Card) -->
 
+            </div>
           </div>
-      </div>
-    
-  
 
-   </section>
-        
+
+
         </section>
 
-  <!-- Skill Section -->
+      </section>
 
-  <section id="skills" class="skills">
-    <div class="main-text scroll-scale">
-      <span>technical and professional</span>
-      <h2>My Skills</h2>
-    </div>
+      <!-- Skill Section -->
 
-    <div class="skill-main ">
-      <div class="skill-left scroll-scale">
-        <h3>Technical Skills</h3>
-        <div class="skill-bar">
-          <div class="info">
-            <p>HTML</p>
-            <p>80%</p>
-          </div>
-
-          <div class="bar">
-            <span class="html"></span>
-          </div>
+      <section id="skills" class="skills">
+        <div class="main-text scroll-scale">
+          <span>technical and professional</span>
+          <h2>My Skills</h2>
         </div>
 
-        <div class="skill-bar">
-          <div class="info">
-            <p>Figma</p>
-            <p>90%</p>
-          </div>
+        <div class="skill-main ">
+          <div class="skill-left scroll-scale">
+            <h3>Technical Skills</h3>
+            <div class="skill-bar">
+              <div class="info">
+                <p>HTML</p>
+                <p>80%</p>
+              </div>
 
-          <div class="bar">
-            <span class="figma"></span>
-          </div>
-        </div>
-
-        <div class="skill-bar">
-          <div class="info">
-            <p>JavaScript</p>
-            <p>70%</p>
-          </div>
-
-          <div class="bar">
-            <span class="javascript"></span>
-          </div>
-        </div>
-
-        <div class="skill-bar">
-          <div class="info">
-            <p>CSS</p>
-            <p>90%</p>
-          </div>
-
-          <div class="bar">
-            <span class="css"></span>
-          </div>
-        </div>
-
-        <div class="skill-bar">
-          <div class="info">
-            <p>PHP</p>
-            <p>70%</p>
-          </div>
-
-          <div class="bar">
-            <span class="php"></span>
-          </div>
-        </div>
-
-        <div class="skill-bar">
-          <div class="info">
-            <p>Java</p>
-            <p>75%</p>
-          </div>
-
-          <div class="bar">
-            <span class="java"></span>
-          </div>
-        </div>
-
-        <div class="skill-bar">
-          <div class="info">
-            <p>React</p>
-            <p>80%</p>
-          </div>
-
-          <div class="bar">
-            <span class="react"></span>
-          </div>
-        </div>
-
-        <div class="skill-bar">
-          <div class="info">
-            <p>Nodejs</p>
-            <p>75%</p>
-          </div>
-
-          <div class="bar">
-            <span class="node"></span>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="skill-right scroll-scale">
-        <h3>Professional Skills</h3>
-        <div class="professional">
-          <div class="box">
-            <div class="circle" data-dots="80" data-percent="90"></div>
-            <div class="text" class="info">
-              <big>90%</big>
-              <small>Team Work</small>
-            </div>
-          </div>
-
-          <div class="box">
-            <div class="circle" data-dots="80" data-percent="85"></div>
-            <div class="text">
-              <big>85%</big>
-              <small>Creativity</small>
-            </div>
-          </div>
-
-          <div class="box">
-            <div class="circle" data-dots="80" data-percent="80"></div>
-            <div class="text">
-              <big>80%</big>
-              <small>Project Management</small>
-            </div>
-          </div>
-
-          <div class="box">
-            <div class="circle" data-dots="80" data-percent="83"></div>
-            <div class="text">
-              <big>83%</big>
-              <small>communication</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-  </section>
-
-        <!-- -------------- CONTACT BOX ---------------- -->
-
-        <section class="section" id="contact">
-          <div class="top-header">
-            <h1>Get in touch</h1>
-            <span>Do you have a project in your mind, contact me here</span>
-          </div>
-          <div class="row">
-            <div class="col">
-              <div class="contact-info">
-                <h2>Find Me <i class="uil uil-corner-right-down"></i></h2>
-                <p>
-                  <i class="uil uil-envelope"></i><a href="mailto:jahanrazh@gmail.com"></a> Email: jahanrazh@gmail.com
-                </p>
-                <p><i class="uil uil-phone"></i><a href="tel:+94767221436"></a>Tel: +94 76-722 14 36</p>
-                
+              <div class="bar">
+                <span class="html"></span>
               </div>
             </div>
-            <div class="col">
-              <div class="form-control">
-                <div class="form-inputs">
-                  <form id="contactForm">
-                    <div class="form-group">
-                      <label for="name">Name:</label>
-                      <input type="text" id="name" style="color: #acacac;" class="input-field" name="name" required />
-                    </div>
-                    <div class="form-group">
-                      <label for="email">Email:</label>
-                      <input type="email" id="email" style="color: #acacac;" class="input-field" name="email" required />
-                    </div>
-                    <div class="form-group">
-                      <label for="subject">Subject:</label>
-                      <input type="text" id="subject" style="color: #acacac;" class="input-field" name="subject" required />
-                    <div class="form-group">
-                      <label for="message">Message:</label>
-                      <textarea id="message" name="message" style="color: #acacac;" placeholder="Message" required></textarea>
-                    </div>
-                </br>
-                    <div class="form-button">
-                        <button type="submit" class="btn">
-                          Send <i class="uil uil-message"></i>
-                        </button>
-                    </div>
-                  </form>
-              
+
+            <div class="skill-bar">
+              <div class="info">
+                <p>Figma</p>
+                <p>90%</p>
+              </div>
+
+              <div class="bar">
+                <span class="figma"></span>
+              </div>
+            </div>
+
+            <div class="skill-bar">
+              <div class="info">
+                <p>JavaScript</p>
+                <p>70%</p>
+              </div>
+
+              <div class="bar">
+                <span class="javascript"></span>
+              </div>
+            </div>
+
+            <div class="skill-bar">
+              <div class="info">
+                <p>CSS</p>
+                <p>90%</p>
+              </div>
+
+              <div class="bar">
+                <span class="css"></span>
+              </div>
+            </div>
+
+            <div class="skill-bar">
+              <div class="info">
+                <p>PHP</p>
+                <p>70%</p>
+              </div>
+
+              <div class="bar">
+                <span class="php"></span>
+              </div>
+            </div>
+
+            <div class="skill-bar">
+              <div class="info">
+                <p>Java</p>
+                <p>75%</p>
+              </div>
+
+              <div class="bar">
+                <span class="java"></span>
+              </div>
+            </div>
+
+            <div class="skill-bar">
+              <div class="info">
+                <p>React</p>
+                <p>80%</p>
+              </div>
+
+              <div class="bar">
+                <span class="react"></span>
+              </div>
+            </div>
+
+            <div class="skill-bar">
+              <div class="info">
+                <p>Nodejs</p>
+                <p>75%</p>
+              </div>
+
+              <div class="bar">
+                <span class="node"></span>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="skill-right scroll-scale">
+            <h3>Professional Skills</h3>
+            <div class="professional">
+              <div class="box">
+                <div class="circle" data-dots="80" data-percent="90"></div>
+                <div class="text" class="info">
+                  <big>90%</big>
+                  <small>Team Work</small>
+                </div>
+              </div>
+
+              <div class="box">
+                <div class="circle" data-dots="80" data-percent="85"></div>
+                <div class="text">
+                  <big>85%</big>
+                  <small>Creativity</small>
+                </div>
+              </div>
+
+              <div class="box">
+                <div class="circle" data-dots="80" data-percent="80"></div>
+                <div class="text">
+                  <big>80%</big>
+                  <small>Project Management</small>
+                </div>
+              </div>
+
+              <div class="box">
+                <div class="circle" data-dots="80" data-percent="83"></div>
+                <div class="text">
+                  <big>83%</big>
+                  <small>communication</small>
                 </div>
               </div>
             </div>
           </div>
-        </section>
-      </main>
-
-      <!-- --------------- FOOTER --------------- -->
-      <footer>
-        <div class="top-footer">
-          <p>Jahan Ramesh</p>
         </div>
-        <div class="middle-footer">
-          <ul class="footer-menu">
-            <li class="footer_menu_list">
-              <a href="#home">Home</a>
-            </li>
-            <li class="footer_menu_list">
-              <a href="#about">About</a>
-            </li>
-            <li class="footer_menu_list">
-              <a href="#projects">Projects</a>
-            </li>
-            <li class="footer_menu_list">
-              <a href="#contact">Contact</a>
-            </li>
-          </ul>
+
+
+      </section>
+
+      <!-- -------------- CONTACT BOX ---------------- -->
+
+      <section class="section" id="contact">
+        <div class="top-header">
+          <h1>Get in touch</h1>
+          <span>Do you have a project in your mind, contact me here</span>
         </div>
-        <!-- Social Icons -->  
-        <div class="footer-social-icons">
-          <div class="icon">
-            <a href="https://www.instagram.com/_jahan_razh_" target="_blank">
-              <i class="uil uil-instagram"></i>
-            </a>
+        <div class="row">
+          <div class="col">
+            <div class="contact-info">
+              <h2>Find Me <i class="uil uil-corner-right-down"></i></h2>
+              <p>
+                <i class="uil uil-envelope"></i><a href="mailto:jahanrazh@gmail.com"></a> Email: jahanrazh@gmail.com
+              </p>
+              <p><i class="uil uil-phone"></i><a href="tel:+94767221436"></a>Tel: +94 76-722 14 36</p>
+
+            </div>
           </div>
-          <div class="icon">
-            <a href="https://www.linkedin.com/in/jahanrazh" target="_blank">
-              <i class="uil uil-linkedin-alt"></i>
-            </a>
-          </div>
-          <div class="icon">
-            <a href="https://youtube.com/channel/UC_4OKBZ0RYHTDxKYHwFFojw" target="_blank">
-              <i class="uil uil-youtube"></i>
-            </a>
-          </div>
-          <div class="icon">
-            <a href="https://github.com/JahanRazh" target="_blank">
-              <i class="uil uil-github-alt"></i>
-            </a>
+          <div class="col">
+            <div class="form-control">
+              <div class="form-inputs">
+                <form id="contactForm">
+                  <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" style="color: #acacac;" class="input-field" name="name" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" style="color: #acacac;" class="input-field" name="email" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="subject">Subject:</label>
+                    <input type="text" id="subject" style="color: #acacac;" class="input-field" name="subject"
+                      required />
+                    <div class="form-group">
+                      <label for="message">Message:</label>
+                      <textarea id="message" name="message" style="color: #acacac;" placeholder="Message"
+                        required></textarea>
+                    </div>
+                    </br>
+                    <div class="form-button">
+                      <button type="submit" class="btn">
+                        Send <i class="uil uil-message"></i>
+                      </button>
+                    </div>
+                </form>
+
+              </div>
+            </div>
           </div>
         </div>
-        
-        <div class="bottom-footer">
-          <p>
-            Copyright &copy;
-            <a href="#home" style="text-decoration: none">Jahan Ramesh</a> - All
-            rights reserved
-          </p>
+      </section>
+    </main>
+
+    <!-- --------------- FOOTER --------------- -->
+    <footer>
+      <div class="top-footer">
+        <p>Jahan Ramesh</p>
+      </div>
+      <div class="middle-footer">
+        <ul class="footer-menu">
+          <li class="footer_menu_list">
+            <a href="#home">Home</a>
+          </li>
+          <li class="footer_menu_list">
+            <a href="#about">About</a>
+          </li>
+          <li class="footer_menu_list">
+            <a href="#projects">Projects</a>
+          </li>
+          <li class="footer_menu_list">
+            <a href="#contact">Contact</a>
+          </li>
+        </ul>
+      </div>
+      <!-- Social Icons -->
+      <div class="footer-social-icons">
+        <div class="icon">
+          <a href="https://www.instagram.com/_jahan_razh_" target="_blank">
+            <i class="uil uil-instagram"></i>
+          </a>
         </div>
-      </footer>
-    </div>
+        <div class="icon">
+          <a href="https://www.linkedin.com/in/jahanrazh" target="_blank">
+            <i class="uil uil-linkedin-alt"></i>
+          </a>
+        </div>
+        <div class="icon">
+          <a href="https://youtube.com/channel/UC_4OKBZ0RYHTDxKYHwFFojw" target="_blank">
+            <i class="uil uil-youtube"></i>
+          </a>
+        </div>
+        <div class="icon">
+          <a href="https://github.com/JahanRazh" target="_blank">
+            <i class="uil uil-github-alt"></i>
+          </a>
+        </div>
+      </div>
 
-    <!-- ----- TYPING JS Link ----- -->
-    <script src="https://unpkg.com/typed.js@2.0.16/dist/typed.umd.js"></script>
+      <div class="bottom-footer">
+        <p>
+          Copyright &copy;
+          <a href="#home" style="text-decoration: none">Jahan Ramesh</a> - All
+          rights reserved
+        </p>
+      </div>
+    </footer>
+  </div>
 
-    <!-- ----- SCROLL REVEAL JS Link----- -->
-    <script src="https://unpkg.com/scrollreveal"></script>
+  <!-- ----- TYPING JS Link ----- -->
+  <script src="https://unpkg.com/typed.js@2.0.16/dist/typed.umd.js"></script>
 
-    <!-- ----- MAIN JS ----- -->
-    <script src="assets/js/main.js"></script>
+  <!-- ----- SCROLL REVEAL JS Link----- -->
+  <script src="https://unpkg.com/scrollreveal"></script>
 
-    
-    <script>
-        document.getElementById("contactForm").addEventListener("submit", function (event) {
-          event.preventDefault(); // Prevent default form submission
+  <!-- ----- MAIN JS ----- -->
+  <script src="assets/js/main.js"></script>
 
-          emailjs
-            .sendForm("service_oq3htjl", "template_zkhwbhp", this)
-            .then(
-              function (response) {
-                console.log("SUCCESS!", response.status, response.text);
-                alert("Message sent successfully!");
-              },
-              function (error) {
-                console.log("FAILED...", error);
-                alert("Message failed to send. Please try again.");
-              }
-            );
-        });
-      </script>
-  </body>
+
+  <script>
+    document.getElementById("contactForm").addEventListener("submit", function (event) {
+      event.preventDefault(); // Prevent default form submission
+
+      emailjs
+        .sendForm("service_oq3htjl", "template_zkhwbhp", this)
+        .then(
+          function (response) {
+            console.log("SUCCESS!", response.status, response.text);
+            alert("Message sent successfully!");
+          },
+          function (error) {
+            console.log("FAILED...", error);
+            alert("Message failed to send. Please try again.");
+          }
+        );
+    });
+  </script>
+</body>
+
 </html>
