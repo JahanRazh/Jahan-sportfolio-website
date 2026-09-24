@@ -1,0 +1,24 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function for authentication check
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Projects images folder
+    match /projects/{allPaths=**} {
+      // Anyone can read project images
+      allow read: if true;
+      
+      // Only authenticated admin can upload, modify, or delete
+      // Must be an image and under 10MB
+      allow write: if isAuthenticated()
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+        
+      allow delete: if isAuthenticated();
+    }
+  }
+}
