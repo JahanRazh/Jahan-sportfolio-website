@@ -106,3 +106,19 @@ export async function deleteProjectImage(publicId) {
     console.warn('Could not delete Cloudinary image:', error.message);
   }
 }
+
+/**
+ * Extract Cloudinary publicId from a secure_url
+ */
+export function extractCloudinaryPublicId(url) {
+  if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return null;
+  try {
+    const match = url.match(/\/upload\/(?:v\d+\/)?([^\.]+)/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  } catch (e) {
+    console.warn('Error extracting Cloudinary publicId:', e);
+  }
+  return null;
+}

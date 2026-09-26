@@ -39,7 +39,7 @@ import {
   subscribeToAllSkills,
   subscribeToProfile,
 } from '../../../lib/firestore';
-import { deleteProjectImage } from '../../../lib/storage';
+import { deleteProjectImage, extractCloudinaryPublicId } from '../../../lib/storage';
 import { deleteCertificateFile } from '../../../lib/certificateStorage';
 
 export default function AdminDashboardPage() {
@@ -182,10 +182,11 @@ export default function AdminDashboardPage() {
     setIsDeleting(true);
     try {
       await deleteProject(projectToDelete.id);
-      if (projectToDelete.imagePath) {
-        await deleteProjectImage(projectToDelete.imagePath);
+      const publicId = projectToDelete.imagePath || extractCloudinaryPublicId(projectToDelete.imageUrl);
+      if (publicId) {
+        await deleteProjectImage(publicId);
       }
-      addToast('Project deleted successfully', 'success');
+      addToast('Project and image deleted successfully', 'success');
       setIsDeleteModalOpen(false);
       setProjectToDelete(null);
     } catch (error) {
@@ -251,12 +252,12 @@ export default function AdminDashboardPage() {
     setIsDeletingCert(true);
     try {
       await deleteCertificate(certToDelete.id);
-      // Delete the file from Cloudinary
-      if (certToDelete.filePath) {
-        const resourceType = certToDelete.fileType === 'pdf' ? 'raw' : 'image';
-        await deleteCertificateFile(certToDelete.filePath, resourceType);
+      // Automatically delete the file from Cloudinary (both image and PDF)
+      const publicId = certToDelete.filePath || extractCloudinaryPublicId(certToDelete.fileUrl);
+      if (publicId) {
+        await deleteCertificateFile(publicId, 'image');
       }
-      addToast('Certificate deleted', 'success');
+      addToast('Certificate and Cloudinary file deleted', 'success');
       setIsCertDeleteOpen(false);
       setCertToDelete(null);
     } catch (error) {

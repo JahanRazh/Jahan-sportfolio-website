@@ -109,31 +109,55 @@ export async function DELETE(req) {
       return NextResponse.json({ error: 'No publicId provided.' }, { status: 400 });
     }
 
-    const timestamp = Math.floor(Date.now() / 1000);
-    const paramsToSign = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
-    const signature = crypto.createHash('sha1').update(paramsToSign).digest('hex');
+    // Helper to destroy a target asset in Cloudinary
+    async function attemptDestroy(id, resType) {
+      const timestamp = Math.floor(Date.now() / 1000);
+      const paramsToSign = `public_id=${id}&timestamp=${timestamp}${apiSecret}`;
+      const signature = crypto.createHash('sha1').update(paramsToSign).digest('hex');
 
-    const destroyFormData = new FormData();
-    destroyFormData.append('public_id', publicId);
-    destroyFormData.append('api_key', apiKey);
-    destroyFormData.append('timestamp', timestamp.toString());
-    destroyFormData.append('signature', signature);
+      const destroyFormData = new FormData();
+      destroyFormData.append('public_id', id);
+      destroyFormData.append('api_key', apiKey);
+      destroyFormData.append('timestamp', timestamp.toString());
+      destroyFormData.append('signature', signature);
 
-    const destroyRes = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/destroy`,
-      {
-        method: 'POST',
-        body: destroyFormData,
+      const destroyRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/${resType}/destroy`,
+        {
+          method: 'POST',
+          body: destroyFormData,
+        }
+      );
+      return destroyRes.json();
+    }
+
+    // 1. Strip file extension if any (Cloudinary image public_ids do not have extensions)
+    const cleanId = publicId.replace(/\.[^/.]+$/, '');
+
+    // Attempt 1: using clean ID with requested resource type
+    let result = await attemptDestroy(cleanId, resourceType);
+
+    // Attempt 2: if not found and original had extension, try with original ID
+    if (result?.result === 'not found' && cleanId !== publicId) {
+      result = await attemptDestroy(publicId, resourceType);
+    }
+
+    // Attempt 3: if not found, try the alternate resource type (e.g. image <-> raw for PDFs)
+    if (result?.result === 'not found') {
+      const altType = resourceType === 'image' ? 'raw' : 'image';
+      result = await attemptDestroy(cleanId, altType);
+      if (result?.result === 'not found' && cleanId !== publicId) {
+        result = await attemptDestroy(publicId, altType);
       }
-    );
+    }
 
-    const data = await destroyRes.json();
-    return NextResponse.json({ success: true, result: data });
+    console.log(`[Cloudinary Destroy] Deleted publicId="${publicId}":`, result);
+    return NextResponse.json({ success: true, result });
   } catch (error) {
     console.error('Cloudinary API delete error:', error);
     return NextResponse.json(
       { error: error.message || 'Deletion failed.' },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }
