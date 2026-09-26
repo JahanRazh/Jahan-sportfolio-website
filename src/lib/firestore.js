@@ -562,8 +562,10 @@ const PROFILE_COLLECTION = 'profile';
 const PROFILE_DOC_ID = 'main';
 
 export const INITIAL_PROFILE = {
-  title: 'My introduction',
-  bio: `I am a Software Engineering undergraduate student at SLIIT University. Passionate about coding, software development, and continuously learning new technologies and methodologies in the field. Skilled in programming languages such as Java, Python, and C++. Experienced in web development, mobile app development, and database management. Actively involved in university projects and extracurricular activities related to technology. Aspiring to build a successful career in software engineering and contribute to innovative and impactful projects in the tech industry.`,
+  title: 'About Ramesh Jahan Jayalath',
+  bio: `Hello! I am Ramesh Jahan Jayalath (professionally known as Jahan Jayalath, Jahan Ramesh, or Jahan Razh). I am a Software Engineering undergraduate student at SLIIT University and a dedicated IT professional.
+
+Passionate about coding, software development, and modern technologies, I specialize in full-stack web development, mobile application engineering, and scalable database management. Skilled in Java, Python, C++, JavaScript, React, and Next.js, I continuously build innovative, reliable, and impactful software solutions.`,
   profileImageUrl: 'https://res.cloudinary.com/dplnxifrx/image/upload/v1790421293/portfolio-profile/u07nkpxlnoijrgezkyur.jpg',
   cvUrl: '/assets/cv/Jahan_Jayalath-CV.pdf',
   cvFileName: 'Jahan_Jayalath_CV.pdf',

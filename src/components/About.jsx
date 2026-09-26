@@ -43,10 +43,13 @@ export default function About() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Left Column: Intro Card */}
           <div className="lg:col-span-6 bg-white dark:bg-[#161f30] rounded-3xl p-8 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/40 relative">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-              {profile.title || 'My introduction'}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#6e57e0]/10 text-[#6e57e0] dark:bg-[#12f7ff]/10 dark:text-[#12f7ff] text-xs font-semibold uppercase tracking-wider mb-3">
+              <span>SLIIT Software Engineering Undergraduate</span>
+            </div>
+            <h3 suppressHydrationWarning className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              {profile.title || 'About Ramesh Jahan Jayalath'}
             </h3>
-            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base sm:text-lg mb-8 whitespace-pre-line">
+            <p suppressHydrationWarning className="text-slate-600 dark:text-slate-300 leading-relaxed text-base sm:text-lg mb-8 whitespace-pre-line">
               {profile.bio || INITIAL_PROFILE.bio}
             </p>
 

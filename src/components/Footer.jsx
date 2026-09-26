@@ -51,9 +51,12 @@ export default function Footer() {
     <footer className="py-16 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0a0e17] transition-colors">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 flex flex-col items-center justify-center text-center">
         {/* Brand Name */}
-        <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-6">
-          Jahan Ramesh
+        <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-1">
+          Ramesh Jahan Jayalath
         </h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
+          IT Professional &amp; Software Developer · Jahan Jayalath (Jahan Razh)
+        </p>
 
         {/* Menu */}
         <ul className="flex flex-wrap justify-center items-center gap-6 sm:gap-8 mb-8">
@@ -113,10 +116,10 @@ export default function Footer() {
         )}
 
         {/* Copyright */}
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-500">
+        <p suppressHydrationWarning className="text-xs sm:text-sm text-slate-500 dark:text-slate-500">
           Copyright &copy; {new Date().getFullYear()}{' '}
           <a href="#home" className="text-slate-700 dark:text-slate-300 font-semibold hover:underline">
-            Jahan Ramesh
+            Ramesh Jahan Jayalath
           </a>{' '}
           - All rights reserved.
         </p>

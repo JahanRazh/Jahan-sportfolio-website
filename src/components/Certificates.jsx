@@ -548,13 +548,13 @@ export default function Certificates() {
                 Certifications
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">
-                My{' '}
+                Credentials &amp;{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">
-                  Certificates
+                  Certifications
                 </span>
               </h2>
               <p className="mt-3 text-slate-400 text-sm sm:text-base max-w-xl">
-                Professional certifications, credentials, and course completions that validate my expertise across multiple domains.
+                Professional certifications and industry credentials earned by Ramesh Jahan Jayalath validating expertise in software engineering, development, and IT solutions.
               </p>
             </div>
             <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold self-start sm:self-auto">

@@ -28,7 +28,7 @@ export default function ProjectCard({ project }) {
         {imageUrl ? (
           <img
             src={imageUrl}
-            alt={imageAlt || `${name} preview`}
+            alt={imageAlt || `${name} - Project by Ramesh Jahan Jayalath`}
             loading="lazy"
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           />

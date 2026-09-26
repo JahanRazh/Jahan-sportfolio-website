@@ -41,10 +41,10 @@ export default function Projects() {
         {/* Header */}
         <div className="text-center mb-12">
           <p className="text-sm font-semibold tracking-wider uppercase text-[#1e9fab] dark:text-[#12f7ff] mb-2">
-            My Portfolio
+            Ramesh Jahan Jayalath Portfolio
           </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Recent <span className="text-[#6e57e0] dark:text-[#12f7ff]">Projects</span>
+            Featured Software &amp; IT <span className="text-[#6e57e0] dark:text-[#12f7ff]">Projects</span>
           </h2>
           <div className="w-16 h-1 bg-[#6e57e0] dark:bg-[#12f7ff] rounded-full mx-auto mt-3" />
         </div>
