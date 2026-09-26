@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Download, Code2, Server, Database, Layers } from 'lucide-react';
-import { subscribeToProfile, INITIAL_PROFILE } from '../lib/firestore';
+import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
 
 function getCategoryIcon(title = '') {
   const t = title.toLowerCase();
@@ -13,7 +13,7 @@ function getCategoryIcon(title = '') {
 }
 
 export default function About() {
-  const [profile, setProfile] = useState(INITIAL_PROFILE);
+  const [profile, setProfile] = useState(getCachedProfile);
 
   useEffect(() => {
     const unsub = subscribeToProfile((data) => {

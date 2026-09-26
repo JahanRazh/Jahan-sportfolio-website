@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FileText, MousePointer2 } from 'lucide-react';
-import { subscribeToProfile, INITIAL_PROFILE } from '../lib/firestore';
+import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
 
 const TYPED_STRINGS = ['Jahan', 'Full Stack Developer', 'Designer', 'Youtuber'];
 
 export default function Hero() {
-  const [profile, setProfile] = useState(INITIAL_PROFILE);
+  const [profile, setProfile] = useState(getCachedProfile);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
 
   useEffect(() => {
@@ -181,9 +181,10 @@ export default function Hero() {
               
               <div className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-[55%_45%_55%_45%] overflow-hidden border-4 border-white/60 dark:border-slate-700/60 shadow-2xl animate-imgFloat bg-slate-900">
                 <img
-                  src={profile.profileImageUrl || '/assets/images/me.jpg'}
+                  src={profile.profileImageUrl || INITIAL_PROFILE.profileImageUrl}
                   alt="Jahan Ramesh - Software Engineer"
                   className="w-full h-full object-cover select-none"
+                  loading="eager"
                 />
               </div>
             </div>

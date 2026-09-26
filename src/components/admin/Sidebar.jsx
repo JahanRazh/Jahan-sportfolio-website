@@ -14,6 +14,7 @@ import {
   User,
   X 
 } from 'lucide-react';
+import { INITIAL_PROFILE } from '../../lib/firestore';
 
 export default function Sidebar({
   activeTab,
@@ -70,7 +71,7 @@ export default function Sidebar({
         >
           <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-500/50 group-hover:border-cyan-400 shrink-0 bg-slate-950 transition">
             <img
-              src={profileImageUrl || '/assets/images/me.jpg'}
+              src={profileImageUrl || INITIAL_PROFILE.profileImageUrl}
               alt="Admin Profile"
               className="w-full h-full object-cover select-none"
             />

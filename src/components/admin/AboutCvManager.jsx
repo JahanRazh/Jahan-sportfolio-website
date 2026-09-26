@@ -246,7 +246,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
     try {
       setSelectedPhotoFile(null);
       setPhotoPreview('');
-      const defaultUrl = '/assets/images/me.jpg';
+      const defaultUrl = INITIAL_PROFILE.profileImageUrl;
       setCustomPhotoUrl('');
       const updated = {
         ...formData,
@@ -262,7 +262,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
   };
 
   const handleCopyPhotoUrl = () => {
-    const url = formData.profileImageUrl || '/assets/images/me.jpg';
+    const url = formData.profileImageUrl || INITIAL_PROFILE.profileImageUrl;
     const full = url.startsWith('http') ? url : `${window.location.origin}${url}`;
     navigator.clipboard.writeText(full);
     setCopiedPhotoUrl(true);
@@ -426,7 +426,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
     }));
   };
 
-  const activePhoto = photoPreview || formData.profileImageUrl || '/assets/images/me.jpg';
+  const activePhoto = photoPreview || formData.profileImageUrl || INITIAL_PROFILE.profileImageUrl;
 
   return (
     <div className="space-y-8">
@@ -701,7 +701,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
               <div className="flex items-center gap-2 text-slate-400 text-[11px] min-w-0">
                 <span className="font-semibold text-slate-300 shrink-0">Current Asset:</span>
                 <span className="truncate max-w-[200px] sm:max-w-xs text-slate-400 font-mono">
-                  {formData.profileImageUrl || '/assets/images/me.jpg'}
+                  {formData.profileImageUrl || INITIAL_PROFILE.profileImageUrl}
                 </span>
               </div>
 

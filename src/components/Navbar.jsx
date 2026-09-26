@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, FileText } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
-import { subscribeToProfile, INITIAL_PROFILE } from '../lib/firestore';
+import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
-  const [profile, setProfile] = useState(INITIAL_PROFILE);
+  const [profile, setProfile] = useState(getCachedProfile);
 
   useEffect(() => {
     const unsub = subscribeToProfile((data) => {

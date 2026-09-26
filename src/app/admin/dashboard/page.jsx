@@ -38,6 +38,8 @@ import {
   deleteCertificate,
   subscribeToAllSkills,
   subscribeToProfile,
+  getCachedProfile,
+  INITIAL_PROFILE,
 } from '../../../lib/firestore';
 import { deleteProjectImage, extractCloudinaryPublicId } from '../../../lib/storage';
 import { deleteCertificateFile } from '../../../lib/certificateStorage';
@@ -75,8 +77,8 @@ export default function AdminDashboardPage() {
   const [loadingSkills, setLoadingSkills] = useState(true);
 
   // ── Profile & CV ──────────────────────────────────────────────
-  const [profileData, setProfileData] = useState(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profileData, setProfileData] = useState(getCachedProfile);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   // ── Auth ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -410,7 +412,7 @@ export default function AdminDashboardPage() {
                     <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Profile & CV</p>
                     <div className="w-7 h-7 rounded-full overflow-hidden border border-emerald-500/40 bg-slate-950">
                       <img
-                        src={profileData?.profileImageUrl || '/assets/images/me.jpg'}
+                        src={profileData?.profileImageUrl || INITIAL_PROFILE.profileImageUrl}
                         alt="Profile avatar"
                         className="w-full h-full object-cover"
                       />

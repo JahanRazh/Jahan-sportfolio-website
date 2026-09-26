@@ -28,7 +28,7 @@ export const metadata = {
     siteName: "Jahan's Portfolio",
     images: [
       {
-        url: '/assets/images/me.jpg',
+        url: 'https://res.cloudinary.com/dplnxifrx/image/upload/v1790421293/portfolio-profile/u07nkpxlnoijrgezkyur.jpg',
         width: 800,
         height: 800,
         alt: 'Jahan Ramesh',
@@ -42,13 +42,13 @@ export const metadata = {
     title: 'Jahan Ramesh | Software Engineer Portfolio',
     description:
       'Software Engineer undergraduate student at SLIIT University. Passionate about coding and modern digital solutions.',
-    images: ['/assets/images/me.jpg'],
+    images: ['https://res.cloudinary.com/dplnxifrx/image/upload/v1790421293/portfolio-profile/u07nkpxlnoijrgezkyur.jpg'],
     creator: '@jahan3165',
   },
   icons: {
     icon: '/favicon.ico',
-    shortcut: '/assets/images/me.jpg',
-    apple: '/assets/images/me.jpg',
+    shortcut: 'https://res.cloudinary.com/dplnxifrx/image/upload/v1790421293/portfolio-profile/u07nkpxlnoijrgezkyur.jpg',
+    apple: 'https://res.cloudinary.com/dplnxifrx/image/upload/v1790421293/portfolio-profile/u07nkpxlnoijrgezkyur.jpg',
   },
 };
 

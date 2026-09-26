@@ -562,14 +562,14 @@ const PROFILE_DOC_ID = 'main';
 export const INITIAL_PROFILE = {
   title: 'My introduction',
   bio: `I am a Software Engineering undergraduate student at SLIIT University. Passionate about coding, software development, and continuously learning new technologies and methodologies in the field. Skilled in programming languages such as Java, Python, and C++. Experienced in web development, mobile app development, and database management. Actively involved in university projects and extracurricular activities related to technology. Aspiring to build a successful career in software engineering and contribute to innovative and impactful projects in the tech industry.`,
-  profileImageUrl: '/assets/images/me.jpg',
+  profileImageUrl: 'https://res.cloudinary.com/dplnxifrx/image/upload/v1790421293/portfolio-profile/u07nkpxlnoijrgezkyur.jpg',
   cvUrl: '/assets/cv/Jahan_Jayalath-CV.pdf',
   cvFileName: 'Jahan_Jayalath_CV.pdf',
   cvUpdatedAt: null,
   skillStacks: [
     {
       title: 'Frontend',
-      skills: ['HTML', 'CSS', 'Bootstrap', 'JavaScript', 'React'],
+      skills: ['HTML', 'CSS', 'Bootstrap', 'JavaScript', 'React', 'Next.js'],
     },
     {
       title: 'Backend',
@@ -583,34 +583,62 @@ export const INITIAL_PROFILE = {
 };
 
 /**
+ * Retrieve cached profile from localStorage if available, avoiding any flash of old local image
+ */
+export function getCachedProfile() {
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem('jahan_profile_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.profileImageUrl) {
+          return { ...INITIAL_PROFILE, ...parsed };
+        }
+      }
+    } catch (e) {
+      // ignore JSON parse or storage errors
+    }
+  }
+  return INITIAL_PROFILE;
+}
+
+/**
  * Fetch profile and CV data
  */
 export async function getProfileData() {
   if (!isFirebaseConfigured || !db) {
-    return INITIAL_PROFILE;
+    return getCachedProfile();
   }
 
   try {
-    const docRef = doc(db, PROFILE_COLLECTION, PROFILE_DOC_ID);
     const docSnap = await getDocs(query(collection(db, PROFILE_COLLECTION)));
     if (docSnap.empty) {
-      return INITIAL_PROFILE;
+      return getCachedProfile();
     }
     const mainDoc = docSnap.docs.find((d) => d.id === PROFILE_DOC_ID);
-    if (!mainDoc) return INITIAL_PROFILE;
-    return { ...INITIAL_PROFILE, ...mainDoc.data() };
+    if (!mainDoc) return getCachedProfile();
+    const data = { ...INITIAL_PROFILE, ...mainDoc.data() };
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('jahan_profile_cache', JSON.stringify(data));
+      } catch (e) {}
+    }
+    return data;
   } catch (error) {
     console.warn('Profile fetch fallback:', error.message);
-    return INITIAL_PROFILE;
+    return getCachedProfile();
   }
 }
 
 /**
- * Realtime subscription to profile and CV data
+ * Realtime subscription to profile and CV data with instant local cache
  */
 export function subscribeToProfile(callback) {
+  // 1. Instantly deliver cached/Cloudinary data to eliminate initial flash
+  const initial = getCachedProfile();
+  callback(initial);
+
   if (!isFirebaseConfigured || !db) {
-    callback(INITIAL_PROFILE);
     return () => {};
   }
 
@@ -623,16 +651,20 @@ export function subscribeToProfile(callback) {
           callback(INITIAL_PROFILE);
           return;
         }
-        callback({ ...INITIAL_PROFILE, ...docSnap.data() });
+        const data = { ...INITIAL_PROFILE, ...docSnap.data() };
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('jahan_profile_cache', JSON.stringify(data));
+          } catch (e) {}
+        }
+        callback(data);
       },
       (error) => {
         console.warn('Profile subscription error:', error);
-        callback(INITIAL_PROFILE);
       }
     );
   } catch (err) {
     console.error('Failed to set up profile listener:', err);
-    callback(INITIAL_PROFILE);
     return () => {};
   }
 }
@@ -658,5 +690,12 @@ export async function updateProfile(profileData) {
   };
 
   await setDoc(docRef, cleanData, { merge: true });
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('jahan_profile_cache', JSON.stringify({ ...INITIAL_PROFILE, ...cleanData }));
+    } catch (e) {}
+  }
+
   return cleanData;
 }
