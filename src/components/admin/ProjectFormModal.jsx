@@ -8,7 +8,14 @@ import {
   Loader2, 
   Plus, 
   Check, 
-  Image as ImageIcon 
+  Image as ImageIcon,
+  Github,
+  Sparkles,
+  ExternalLink,
+  Search,
+  RefreshCw,
+  FolderGit2,
+  Star,
 } from 'lucide-react';
 import { uploadProjectImage } from '../../lib/storage';
 import { useToast } from '../Toast';
@@ -44,6 +51,110 @@ export default function ProjectFormModal({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExtractingGh, setIsExtractingGh] = useState(false);
+  const [githubInputBar, setGithubInputBar] = useState('');
+  const [githubUsername, setGithubUsername] = useState('JahanRazh');
+  const [userRepos, setUserRepos] = useState([]);
+  const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+  const [repoSearchQuery, setRepoSearchQuery] = useState('');
+  const [ghTab, setGhTab] = useState('select'); // 'select' | 'url'
+  const [selectedRepoUrl, setSelectedRepoUrl] = useState('');
+
+  const fetchUserRepositories = async (usernameToFetch) => {
+    const user = (usernameToFetch || githubUsername || 'JahanRazh').trim();
+    if (!user) return;
+    setIsLoadingRepos(true);
+
+    try {
+      const res = await fetch(`/api/github-repos?username=${encodeURIComponent(user)}`);
+      const result = await res.json();
+      if (res.ok && result.success && Array.isArray(result.repos)) {
+        setUserRepos(result.repos);
+      } else {
+        console.warn('Could not fetch repos:', result.error);
+        addToast(result.error || 'Failed to fetch repositories', 'warning');
+      }
+    } catch (err) {
+      console.error('Error fetching repos:', err);
+      addToast('Error loading GitHub repositories: ' + err.message, 'error');
+    } finally {
+      setIsLoadingRepos(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && userRepos.length === 0) {
+      fetchUserRepositories('JahanRazh');
+    }
+  }, [isOpen]);
+
+  const handleAutoFillFromGitHub = async (overrideUrl) => {
+    const targetUrl = (overrideUrl || selectedRepoUrl || githubInputBar || formData.githubUrl || '').trim();
+
+    if (!targetUrl) {
+      addToast('Please select a repository or enter a GitHub URL', 'error');
+      return;
+    }
+
+    if (!targetUrl.includes('github.com')) {
+      addToast('Please provide a valid GitHub link (e.g. https://github.com/owner/repo)', 'error');
+      return;
+    }
+
+    setSelectedRepoUrl(targetUrl);
+    setGithubInputBar(targetUrl);
+    setIsExtractingGh(true);
+    addToast('✨ Fetching repository & analyzing README...', 'info');
+
+    try {
+      const res = await fetch('/api/extract-github-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ githubUrl: targetUrl }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok && result.success && result.data) {
+        const {
+          name,
+          category,
+          shortDescription,
+          description,
+          technologies,
+          githubUrl,
+          liveUrl,
+          imageUrl,
+        } = result.data;
+
+        setFormData((prev) => ({
+          ...prev,
+          name: name || prev.name,
+          category: category || prev.category,
+          shortDescription: shortDescription || prev.shortDescription,
+          description: description || prev.description,
+          technologies: Array.isArray(technologies) && technologies.length > 0 ? technologies : prev.technologies,
+          githubUrl: githubUrl || targetUrl,
+          liveUrl: liveUrl || prev.liveUrl,
+          imageUrl: imageUrl || prev.imageUrl,
+        }));
+
+        if (imageUrl) {
+          setImagePreview(imageUrl);
+        }
+
+        addToast('✨ Project details & README images auto-filled!', 'success');
+      } else {
+        console.warn('GitHub extraction returned error:', result.error);
+        addToast(result.error || 'Could not auto-fill details from GitHub repository', 'warning');
+      }
+    } catch (err) {
+      console.error('Error auto-filling from GitHub:', err);
+      addToast('GitHub auto-fill failed: ' + err.message, 'error');
+    } finally {
+      setIsExtractingGh(false);
+    }
+  };
 
   useEffect(() => {
     if (initialProject) {
@@ -223,6 +334,246 @@ export default function ProjectFormModal({
 
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6 max-h-[75vh] overflow-y-auto">
+          {/* Quick Auto-Fill with GitHub bar */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-indigo-500/30 shadow-xl space-y-4">
+            {/* Header with user info */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center shrink-0 text-indigo-300">
+                  <Github className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white flex items-center gap-2">
+                    <span>Connect GitHub & Auto-Fill</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
+                      <Sparkles className="w-3 h-3 text-amber-400" />
+                      Gemini AI
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Select a repository from your GitHub to auto-fill title, descriptions, tags, demo URL & README images.
+                  </p>
+                </div>
+              </div>
+
+              {/* GitHub Username input & refresh */}
+              <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 rounded-xl p-1 self-start sm:self-auto">
+                <div className="flex items-center pl-2.5 text-xs text-slate-400 font-mono">
+                  @
+                </div>
+                <input
+                  type="text"
+                  value={githubUsername}
+                  onChange={(e) => setGithubUsername(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      fetchUserRepositories(githubUsername);
+                    }
+                  }}
+                  placeholder="GitHub username"
+                  className="bg-transparent px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none w-28 sm:w-32 font-medium"
+                />
+                <button
+                  type="button"
+                  disabled={isLoadingRepos}
+                  onClick={() => fetchUserRepositories(githubUsername)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition disabled:opacity-50"
+                  title="Fetch user repositories"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingRepos ? 'animate-spin text-indigo-400' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Mode switch tabs */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setGhTab('select')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                  ghTab === 'select'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                }`}
+              >
+                <FolderGit2 className="w-3.5 h-3.5" />
+                <span>My Repositories ({userRepos.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setGhTab('url')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                  ghTab === 'url'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                }`}
+              >
+                <Github className="w-3.5 h-3.5" />
+                <span>Direct Repo URL</span>
+              </button>
+            </div>
+
+            {/* Tab 1: Pick from My Repositories */}
+            {ghTab === 'select' && (
+              <div className="space-y-2.5">
+                {isLoadingRepos ? (
+                  <div className="flex items-center justify-center gap-2 p-6 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 text-xs">
+                    <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                    <span>Loading repositories for @{githubUsername}...</span>
+                  </div>
+                ) : userRepos.length > 0 ? (
+                  <div className="space-y-2">
+                    {/* Search & dropdown select */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <div className="relative flex-1">
+                        <select
+                          value={selectedRepoUrl}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSelectedRepoUrl(val);
+                            if (val) handleAutoFillFromGitHub(val);
+                          }}
+                          disabled={isExtractingGh}
+                          className="w-full pl-3 pr-8 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500 transition cursor-pointer disabled:opacity-50"
+                        >
+                          <option value="">-- Click to choose a repository to auto-fill --</option>
+                          {userRepos.map((repo) => (
+                            <option key={repo.id} value={repo.htmlUrl}>
+                              {repo.name} {repo.language ? `[${repo.language}]` : ''} {repo.stars > 0 ? `(★ ${repo.stars})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {selectedRepoUrl && (
+                        <button
+                          type="button"
+                          disabled={isExtractingGh}
+                          onClick={() => handleAutoFillFromGitHub(selectedRepoUrl)}
+                          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-500/25 transition disabled:opacity-50 shrink-0"
+                        >
+                          {isExtractingGh ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                          )}
+                          <span>{isExtractingGh ? 'Reading...' : 'Auto-Fill Details'}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Quick-click Top 4 Recent Repos */}
+                    <div className="pt-1">
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                        Recent Repositories:
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {userRepos.slice(0, 4).map((repo) => (
+                          <button
+                            key={repo.id}
+                            type="button"
+                            disabled={isExtractingGh}
+                            onClick={() => {
+                              setSelectedRepoUrl(repo.htmlUrl);
+                              handleAutoFillFromGitHub(repo.htmlUrl);
+                            }}
+                            className={`p-2.5 rounded-xl border text-left transition flex items-center justify-between gap-2 group ${
+                              selectedRepoUrl === repo.htmlUrl
+                                ? 'bg-indigo-600/20 border-indigo-500 text-white'
+                                : 'bg-slate-900/60 hover:bg-slate-800/80 border-slate-800 hover:border-slate-700 text-slate-300'
+                            }`}
+                          >
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold truncate group-hover:text-indigo-300 transition">
+                                {repo.name}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
+                                {repo.language && (
+                                  <span className="px-1.5 py-0.2 rounded bg-slate-800 border border-slate-700 font-mono text-cyan-300">
+                                    {repo.language}
+                                  </span>
+                                )}
+                                {repo.stars > 0 && (
+                                  <span className="flex items-center gap-0.5 text-amber-400">
+                                    <Star className="w-2.5 h-2.5 fill-current" />
+                                    {repo.stars}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-[11px] text-indigo-400 font-semibold group-hover:translate-x-0.5 transition shrink-0">
+                              Select →
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-center">
+                    <p className="text-xs text-slate-400">No public repositories found for @{githubUsername}.</p>
+                    <button
+                      type="button"
+                      onClick={() => fetchUserRepositories(githubUsername)}
+                      className="mt-2 text-xs text-indigo-400 hover:underline font-semibold"
+                    >
+                      Try refreshing
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 2: Direct Repo URL */}
+            {ghTab === 'url' && (
+              <div className="flex flex-col sm:flex-row items-center gap-2">
+                <div className="relative flex-1 w-full">
+                  <Github className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="url"
+                    value={githubInputBar}
+                    onChange={(e) => {
+                      setGithubInputBar(e.target.value);
+                      setFormData((prev) => ({ ...prev, githubUrl: e.target.value }));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAutoFillFromGitHub(githubInputBar);
+                      }
+                    }}
+                    placeholder="https://github.com/owner/repository"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-indigo-500 transition"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  disabled={isExtractingGh}
+                  onClick={() => handleAutoFillFromGitHub(githubInputBar)}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-500/25 transition disabled:opacity-50 shrink-0"
+                >
+                  {isExtractingGh ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  )}
+                  <span>{isExtractingGh ? 'Reading Repository...' : 'Auto-Fill with AI'}</span>
+                </button>
+              </div>
+            )}
+
+            {/* Progress status while extracting */}
+            {isExtractingGh && (
+              <div className="pt-2 border-t border-indigo-500/20 flex items-center gap-2 text-xs text-indigo-300 animate-pulse">
+                <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-amber-400" />
+                <span>Fetching repository metadata, parsing README.md and extracting preview images with Gemini AI...</span>
+              </div>
+            )}
+          </div>
+
           {/* Row 1: Name and Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
@@ -336,46 +687,68 @@ export default function ProjectFormModal({
           {/* Row 5: URLs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                GitHub / Repository URL
-              </label>
-              <input
-                type="url"
-                name="githubUrl"
-                value={formData.githubUrl}
-                onChange={handleInputChange}
-                placeholder="https://github.com/..."
-                className="w-full px-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition"
-              />
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                  GitHub / Repository URL
+                </label>
+                {formData.githubUrl && formData.githubUrl.includes('github.com') && (
+                  <button
+                    type="button"
+                    disabled={isExtractingGh}
+                    onClick={() => handleAutoFillFromGitHub(formData.githubUrl)}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
+                  >
+                    <Sparkles className="w-3 h-3 text-amber-400" />
+                    <span>Auto-Fill from URL</span>
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Github className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="url"
+                  name="githubUrl"
+                  value={formData.githubUrl}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    setGithubInputBar(e.target.value);
+                  }}
+                  placeholder="https://github.com/owner/repository"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition"
+                />
+              </div>
             </div>
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
                 Live Demo URL
               </label>
-              <input
-                type="url"
-                name="liveUrl"
-                value={formData.liveUrl}
-                onChange={handleInputChange}
-                placeholder="https://your-demo-url.com"
-                className="w-full px-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition"
-              />
+              <div className="relative">
+                <ExternalLink className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="url"
+                  name="liveUrl"
+                  value={formData.liveUrl}
+                  onChange={handleInputChange}
+                  placeholder="https://your-demo-url.com"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Row 6: Image Upload to Cloudinary */}
+          {/* Row 6: Image Upload to Cloudinary / README */}
           <div className="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/80 space-y-4">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Project Image (Cloudinary)
+                Project Image
               </label>
               <span className="text-xs text-slate-400">JPG, PNG, GIF, WEBP up to 10MB</span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-5">
               {/* Preview Box */}
-              <div className="relative w-36 h-24 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0">
+              <div className="relative w-40 h-28 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0 shadow-inner">
                 {imagePreview ? (
                   <img
                     src={imagePreview}
@@ -392,10 +765,17 @@ export default function ProjectFormModal({
 
               {/* Upload Input & Actions */}
               <div className="flex-1 w-full space-y-2">
-                <div className="flex items-center gap-3">
+                {formData.imageUrl && !imageFile && (
+                  <div className="flex items-center gap-1.5 text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg w-fit">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="truncate max-w-xs">Using README preview image</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 flex-wrap">
                   <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-semibold transition">
                     <Upload className="w-4 h-4" />
-                    <span>Upload Image</span>
+                    <span>Upload Custom Image</span>
                     <input
                       type="file"
                       accept="image/*"
