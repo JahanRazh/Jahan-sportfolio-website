@@ -7,10 +7,12 @@ import Skills from '../components/Skills';
 import Certificates from '../components/Certificates';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
+import VisitorTracker from '../components/VisitorTracker';
 
 export default function HomePage() {
   return (
     <main className="min-h-screen relative flex flex-col">
+      <VisitorTracker />
       <Navbar />
       <div className="flex-1">
         <Hero />

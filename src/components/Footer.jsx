@@ -1,9 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Users, Eye } from 'lucide-react';
+import { subscribeToVisitorStats } from '../lib/firestore';
 
 export default function Footer() {
+  const [visitorStats, setVisitorStats] = useState({ totalViews: 0, uniqueVisitors: 0 });
+
+  useEffect(() => {
+    const unsubscribe = subscribeToVisitorStats((data) => {
+      if (data) {
+        setVisitorStats(data);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const footerLinks = [
     { label: 'Home', href: '#home' },
     { label: 'About', href: '#about' },
@@ -77,6 +90,27 @@ export default function Footer() {
             </a>
           ))}
         </div>
+ 
+        {/* Live Visitor Counter Pill */}
+        {visitorStats.totalViews > 0 && (
+          <div className="mb-6 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-xs text-slate-600 dark:text-slate-300 shadow-sm backdrop-blur-sm transition-all hover:scale-105">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="flex items-center gap-1 font-semibold text-slate-900 dark:text-white">
+              <Users className="w-3.5 h-3.5 text-indigo-500 dark:text-cyan-400" />
+              <span>{visitorStats.uniqueVisitors.toLocaleString()}</span>
+            </span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Visitors</span>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span className="flex items-center gap-1 font-semibold text-slate-900 dark:text-white">
+              <Eye className="w-3.5 h-3.5 text-indigo-500 dark:text-cyan-400" />
+              <span>{visitorStats.totalViews.toLocaleString()}</span>
+            </span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Views</span>
+          </div>
+        )}
 
         {/* Copyright */}
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-500">

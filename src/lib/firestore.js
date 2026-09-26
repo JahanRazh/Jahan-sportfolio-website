@@ -11,6 +11,8 @@ import {
   onSnapshot,
   serverTimestamp,
   setDoc,
+  increment,
+  limit,
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import { INITIAL_PROJECTS } from './initialProjects';
@@ -699,3 +701,206 @@ export async function updateProfile(profileData) {
 
   return cleanData;
 }
+
+// ══════════════════════════════════════════════════════════════════════════
+// VISITOR & TRAFFIC ANALYTICS
+// ══════════════════════════════════════════════════════════════════════════
+
+const ANALYTICS_COLLECTION = 'analytics';
+const VISITORS_DOC_ID = 'visitors';
+const VISITOR_LOGS_COLLECTION = 'logs';
+
+export const INITIAL_VISITOR_STATS = {
+  totalViews: 0,
+  uniqueVisitors: 0,
+  totalSessions: 0,
+  lastVisitedAt: null,
+  dailyViews: {},
+};
+
+/**
+ * Record a portfolio visit with unique visitor & session detection
+ */
+export async function recordPortfolioVisit() {
+  if (typeof window === 'undefined') return;
+  if (!isFirebaseConfigured || !db) return;
+
+  // Don't track admin pages
+  const pathname = window.location.pathname || '';
+  if (pathname.startsWith('/admin')) return;
+
+  // Throttle rapidly repeated reloads (e.g. fast refreshes within 2 seconds)
+  const now = Date.now();
+  const lastTracked = Number(sessionStorage.getItem('jahan_last_visit_time') || 0);
+  if (now - lastTracked < 2000) return;
+  try {
+    sessionStorage.setItem('jahan_last_visit_time', String(now));
+  } catch (e) {}
+
+  // 1. Unique visitor identification (stored permanently in localStorage)
+  let isUnique = false;
+  let visitorId = null;
+  try {
+    visitorId = localStorage.getItem('jahan_visitor_id');
+    if (!visitorId) {
+      visitorId = 'v_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now().toString(36);
+      localStorage.setItem('jahan_visitor_id', visitorId);
+      isUnique = true;
+    }
+  } catch (e) {
+    visitorId = 'anon_' + Date.now();
+  }
+
+  // 2. Session identification (stored per browser tab/session in sessionStorage)
+  let isNewSession = false;
+  try {
+    const sessionActive = sessionStorage.getItem('jahan_session_visited');
+    if (!sessionActive) {
+      sessionStorage.setItem('jahan_session_visited', '1');
+      isNewSession = true;
+    }
+  } catch (e) {
+    isNewSession = true;
+  }
+
+  // 3. Client details
+  const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '') || '';
+  let deviceType = 'Desktop';
+  if (/mobile|android|iphone/i.test(ua)) deviceType = 'Mobile';
+  else if (/tablet|ipad/i.test(ua)) deviceType = 'Tablet';
+
+  let browser = 'Other';
+  if (/edg/i.test(ua)) browser = 'Edge';
+  else if (/chrome/i.test(ua)) browser = 'Chrome';
+  else if (/firefox/i.test(ua)) browser = 'Firefox';
+  else if (/safari/i.test(ua)) browser = 'Safari';
+  else if (/opera|opr/i.test(ua)) browser = 'Opera';
+
+  let referrer = 'Direct';
+  try {
+    if (document.referrer) {
+      const refHost = new URL(document.referrer).hostname;
+      if (refHost && refHost !== window.location.hostname) {
+        referrer = refHost;
+      }
+    }
+  } catch (e) {}
+
+  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+  try {
+    const docRef = doc(db, ANALYTICS_COLLECTION, VISITORS_DOC_ID);
+    
+    const updatePayload = {
+      totalViews: increment(1),
+      lastVisitedAt: serverTimestamp(),
+      [`dailyViews.${todayStr}`]: increment(1),
+    };
+
+    if (isUnique) {
+      updatePayload.uniqueVisitors = increment(1);
+    }
+    if (isNewSession) {
+      updatePayload.totalSessions = increment(1);
+    }
+
+    await setDoc(docRef, updatePayload, { merge: true });
+
+    // Store a light visit log for recent visits overview in Admin Dashboard
+    const logsRef = collection(db, ANALYTICS_COLLECTION, VISITORS_DOC_ID, VISITOR_LOGS_COLLECTION);
+    await addDoc(logsRef, {
+      visitorId,
+      isUnique,
+      isNewSession,
+      device: deviceType,
+      browser,
+      referrer,
+      path: pathname || '/',
+      language: (typeof navigator !== 'undefined' ? navigator.language : 'en') || 'en',
+      visitedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.warn('Visitor tracking error:', err?.message || err);
+  }
+}
+
+/**
+ * Realtime subscription to overall visitor counters
+ */
+export function subscribeToVisitorStats(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_VISITOR_STATS);
+    return () => {};
+  }
+
+  try {
+    const docRef = doc(db, ANALYTICS_COLLECTION, VISITORS_DOC_ID);
+    return onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (!docSnap.exists()) {
+          callback(INITIAL_VISITOR_STATS);
+          return;
+        }
+        const data = docSnap.data();
+        const dailyViews = typeof data.dailyViews === 'object' && data.dailyViews ? { ...data.dailyViews } : {};
+        Object.keys(data).forEach((key) => {
+          if (key.startsWith('dailyViews.')) {
+            const date = key.replace('dailyViews.', '');
+            dailyViews[date] = Number(data[key]) || 0;
+          }
+        });
+
+        callback({
+          totalViews: Number(data.totalViews) || 0,
+          uniqueVisitors: Number(data.uniqueVisitors) || 0,
+          totalSessions: Number(data.totalSessions) || 0,
+          lastVisitedAt: data.lastVisitedAt || null,
+          dailyViews,
+        });
+      },
+      (err) => {
+        console.warn('Visitor stats subscription error:', err?.message || err);
+        callback(INITIAL_VISITOR_STATS);
+      }
+    );
+  } catch (err) {
+    console.warn('Failed to listen to visitor stats:', err);
+    callback(INITIAL_VISITOR_STATS);
+    return () => {};
+  }
+}
+
+/**
+ * Realtime subscription to recent visitor logs (up to maxCount)
+ */
+export function subscribeToRecentVisitors(callback, maxCount = 15) {
+  if (!isFirebaseConfigured || !db) {
+    callback([]);
+    return () => {};
+  }
+
+  try {
+    const logsRef = collection(db, ANALYTICS_COLLECTION, VISITORS_DOC_ID, VISITOR_LOGS_COLLECTION);
+    const q = query(logsRef, orderBy('visitedAt', 'desc'), limit(maxCount));
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const logs = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        callback(logs);
+      },
+      (err) => {
+        console.warn('Visitor logs subscription error:', err?.message || err);
+        callback([]);
+      }
+    );
+  } catch (err) {
+    console.warn('Failed to listen to visitor logs:', err);
+    callback([]);
+    return () => {};
+  }
+}
+

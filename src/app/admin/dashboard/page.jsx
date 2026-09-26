@@ -20,6 +20,7 @@ import CertificateTable from '../../../components/admin/CertificateTable';
 import CertificateFormModal from '../../../components/admin/CertificateFormModal';
 import SkillsManager from '../../../components/admin/SkillsManager';
 import AboutCvManager from '../../../components/admin/AboutCvManager';
+import VisitorAnalyticsCard from '../../../components/admin/VisitorAnalyticsCard';
 import ThemeToggle from '../../../components/ThemeToggle';
 import { useToast } from '../../../components/Toast';
 import { 
@@ -40,6 +41,7 @@ import {
   subscribeToProfile,
   getCachedProfile,
   INITIAL_PROFILE,
+  subscribeToVisitorStats,
 } from '../../../lib/firestore';
 import { deleteProjectImage, extractCloudinaryPublicId } from '../../../lib/storage';
 import { deleteCertificateFile } from '../../../lib/certificateStorage';
@@ -79,6 +81,15 @@ export default function AdminDashboardPage() {
   // ── Profile & CV ──────────────────────────────────────────────
   const [profileData, setProfileData] = useState(getCachedProfile);
   const [loadingProfile, setLoadingProfile] = useState(false);
+
+  // ── Visitor Analytics ─────────────────────────────────────────
+  const [visitorStats, setVisitorStats] = useState({
+    totalViews: 0,
+    uniqueVisitors: 0,
+    totalSessions: 0,
+    lastVisitedAt: null,
+    dailyViews: {},
+  });
 
   // ── Auth ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -133,6 +144,15 @@ export default function AdminDashboardPage() {
     const unsubscribe = subscribeToProfile((data) => {
       setProfileData(data);
       setLoadingProfile(false);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  // ── Realtime visitor analytics ────────────────────────────────
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsubscribe = subscribeToVisitorStats((data) => {
+      if (data) setVisitorStats(data);
     });
     return () => unsubscribe();
   }, [currentUser]);
@@ -369,12 +389,18 @@ export default function AdminDashboardPage() {
         <main className="p-6 sm:p-10 space-y-8 flex-1">
           {/* Top Statistics Cards (shown on dashboard & projects tabs) */}
           {(activeTab === 'dashboard' || activeTab === 'projects') && (
-            <DashboardStats projects={projects} />
+            <DashboardStats 
+              projects={projects} 
+              visitorStats={activeTab === 'dashboard' ? visitorStats : null} 
+            />
           )}
 
           {/* ── DASHBOARD OVERVIEW TAB ──────────────────────────────── */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
+              {/* Live Visitor Analytics Card */}
+              <VisitorAnalyticsCard visitorStats={visitorStats} />
+
               {/* Quick Jump Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <button
