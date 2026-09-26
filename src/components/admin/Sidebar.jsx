@@ -9,6 +9,7 @@ import {
   Globe, 
   LogOut, 
   DatabaseBackup,
+  Award,
   X 
 } from 'lucide-react';
 
@@ -25,6 +26,7 @@ export default function Sidebar({
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'projects', label: 'Projects Management', icon: FolderGit2 },
+    { id: 'certificates', label: 'Certificates', icon: Award },
   ];
 
   const handleNavClick = (tabId) => {

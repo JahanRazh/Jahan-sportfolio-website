@@ -9,5 +9,14 @@ service cloud.firestore {
       // Only authenticated admin can create, update, or delete projects
       allow write: if request.auth != null;
     }
+
+    // Certificates collection
+    match /certificates/{certId} {
+      // Anyone can read certificates on your public portfolio
+      allow read: if true;
+
+      // Only authenticated admin can create, update, or delete
+      allow write: if request.auth != null;
+    }
   }
 }

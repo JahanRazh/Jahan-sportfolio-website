@@ -198,3 +198,182 @@ export async function seedInitialProjects() {
     throw error;
   }
 }
+
+// ============================================================
+// CERTIFICATES
+// ============================================================
+
+const CERTIFICATES_COLLECTION = 'certificates';
+
+/**
+ * Fetch all published certificates for the public portfolio
+ */
+export async function getPublishedCertificates() {
+  if (!isFirebaseConfigured || !db) return [];
+
+  try {
+    const q = query(
+      collection(db, CERTIFICATES_COLLECTION),
+      where('published', '==', true)
+    );
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return [];
+
+    const certs = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+    return certs.sort((a, b) => (a.order || 0) - (b.order || 0));
+  } catch (error) {
+    console.warn('Certificates fetch error:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Subscribe to published certificates in real-time (for the public site)
+ */
+export function subscribeToPublishedCertificates(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback([]);
+    return () => {};
+  }
+
+  try {
+    const q = query(
+      collection(db, CERTIFICATES_COLLECTION),
+      where('published', '==', true)
+    );
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const certs = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        certs.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(certs);
+      },
+      (error) => {
+        console.warn('Certificates realtime error:', error);
+        callback([]);
+      }
+    );
+  } catch {
+    callback([]);
+    return () => {};
+  }
+}
+
+/**
+ * Subscribe to ALL certificates (admin panel — includes unpublished)
+ */
+export function subscribeToAllCertificates(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback([]);
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(db, CERTIFICATES_COLLECTION));
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const certs = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        certs.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(certs);
+      },
+      (error) => {
+        console.warn('Admin certificates realtime error:', error);
+        callback([]);
+      }
+    );
+  } catch {
+    callback([]);
+    return () => {};
+  }
+}
+
+/**
+ * Create a new certificate document
+ */
+export async function createCertificate(data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  const cleanData = {
+    title: data.title || '',
+    issuer: data.issuer || '',
+    issuedDate: data.issuedDate || '',
+    expiryDate: data.expiryDate || '',
+    credentialId: data.credentialId || '',
+    credentialUrl: data.credentialUrl || '',
+    description: data.description || '',
+    category: data.category || 'General',
+    fileUrl: data.fileUrl || '',
+    filePath: data.filePath || '',
+    fileType: data.fileType || 'image',
+    thumbnailUrl: data.thumbnailUrl || '',
+    featured: Boolean(data.featured),
+    published: data.published !== undefined ? Boolean(data.published) : true,
+    order: Number(data.order) || 1,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  try {
+    const docRef = await addDoc(collection(db, CERTIFICATES_COLLECTION), cleanData);
+    return { id: docRef.id, ...cleanData };
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Update your Firestore Security Rules to allow writes.');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update an existing certificate
+ */
+export async function updateCertificate(id, data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, CERTIFICATES_COLLECTION, id);
+
+  const cleanData = {
+    ...data,
+    order: Number(data.order) || 1,
+    featured: Boolean(data.featured),
+    published: Boolean(data.published),
+    updatedAt: serverTimestamp(),
+  };
+  delete cleanData.id;
+
+  try {
+    await updateDoc(docRef, cleanData);
+    return { id, ...cleanData };
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Update your Firestore Security Rules to allow writes.');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Delete a certificate document
+ */
+export async function deleteCertificate(id) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, CERTIFICATES_COLLECTION, id);
+  try {
+    await deleteDoc(docRef);
+    return id;
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Update your Firestore Security Rules to allow writes.');
+    }
+    throw error;
+  }
+}
