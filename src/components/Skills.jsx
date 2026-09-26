@@ -1,25 +1,30 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+  subscribeToAllSkills,
+  INITIAL_TECHNICAL_SKILLS,
+  INITIAL_PROFESSIONAL_SKILLS,
+} from '../lib/firestore';
 
 export default function Skills() {
-  const technicalSkills = [
-    { name: 'HTML', percent: 80 },
-    { name: 'Figma', percent: 90 },
-    { name: 'JavaScript', percent: 70 },
-    { name: 'CSS', percent: 90 },
-    { name: 'PHP', percent: 70 },
-    { name: 'Java', percent: 75 },
-    { name: 'React', percent: 80 },
-    { name: 'Nodejs', percent: 75 },
-  ];
+  const [skillsList, setSkillsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const professionalSkills = [
-    { name: 'Team Work', percent: 90 },
-    { name: 'Creativity', percent: 85 },
-    { name: 'Project Management', percent: 80 },
-    { name: 'Communication', percent: 83 },
-  ];
+  useEffect(() => {
+    const unsub = subscribeToAllSkills((data) => {
+      setSkillsList(data);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const published = skillsList.filter((s) => s.published !== false);
+  const techFiltered = published.filter((s) => s.type === 'technical');
+  const proFiltered = published.filter((s) => s.type === 'professional');
+
+  const technicalSkills = techFiltered.length > 0 ? techFiltered : INITIAL_TECHNICAL_SKILLS;
+  const professionalSkills = proFiltered.length > 0 ? proFiltered : INITIAL_PROFESSIONAL_SKILLS;
 
   return (
     <section id="skills" className="py-24 relative overflow-hidden">

@@ -18,6 +18,8 @@ import ProjectFormModal from '../../../components/admin/ProjectFormModal';
 import DeleteConfirmModal from '../../../components/admin/DeleteConfirmModal';
 import CertificateTable from '../../../components/admin/CertificateTable';
 import CertificateFormModal from '../../../components/admin/CertificateFormModal';
+import SkillsManager from '../../../components/admin/SkillsManager';
+import AboutCvManager from '../../../components/admin/AboutCvManager';
 import ThemeToggle from '../../../components/ThemeToggle';
 import { useToast } from '../../../components/Toast';
 import { 
@@ -34,6 +36,8 @@ import {
   createCertificate,
   updateCertificate,
   deleteCertificate,
+  subscribeToAllSkills,
+  subscribeToProfile,
 } from '../../../lib/firestore';
 import { deleteProjectImage } from '../../../lib/storage';
 import { deleteCertificateFile } from '../../../lib/certificateStorage';
@@ -66,6 +70,14 @@ export default function AdminDashboardPage() {
   const [certToDelete, setCertToDelete] = useState(null);
   const [isDeletingCert, setIsDeletingCert] = useState(false);
 
+  // ── Skills ────────────────────────────────────────────────────
+  const [skills, setSkills] = useState([]);
+  const [loadingSkills, setLoadingSkills] = useState(true);
+
+  // ── Profile & CV ──────────────────────────────────────────────
+  const [profileData, setProfileData] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
   // ── Auth ──────────────────────────────────────────────────────
   useEffect(() => {
     const unsubscribe = subscribeToAuthState((user) => {
@@ -97,6 +109,28 @@ export default function AdminDashboardPage() {
     const unsubscribe = subscribeToAllCertificates((data) => {
       setCertificates(data);
       setLoadingCerts(false);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  // ── Realtime skills ───────────────────────────────────────────
+  useEffect(() => {
+    if (!currentUser) return;
+    setLoadingSkills(true);
+    const unsubscribe = subscribeToAllSkills((data) => {
+      setSkills(data);
+      setLoadingSkills(false);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  // ── Realtime profile & CV ─────────────────────────────────────
+  useEffect(() => {
+    if (!currentUser) return;
+    setLoadingProfile(true);
+    const unsubscribe = subscribeToProfile((data) => {
+      setProfileData(data);
+      setLoadingProfile(false);
     });
     return () => unsubscribe();
   }, [currentUser]);
@@ -264,6 +298,7 @@ export default function AdminDashboardPage() {
         mobileOpen={mobileSidebarOpen}
         setMobileOpen={setMobileSidebarOpen}
         userEmail={currentUser?.email}
+        profileImageUrl={profileData?.profileImageUrl}
       />
 
       {/* Main Content Area */}
@@ -283,6 +318,10 @@ export default function AdminDashboardPage() {
                 ? 'Dashboard Overview'
                 : activeTab === 'certificates'
                 ? 'Certificates Management'
+                : activeTab === 'skills'
+                ? 'Technical & Professional Skills'
+                : activeTab === 'about'
+                ? 'Profile Picture, About Me & CV'
                 : 'Project Management CMS'}
             </h1>
           </div>
@@ -298,33 +337,110 @@ export default function AdminDashboardPage() {
               <span>Live Site</span>
             </a>
 
-            <button
-              onClick={isCertTab ? handleOpenAddCert : handleOpenAddModal}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-md transition ${
-                isCertTab
-                  ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-600/30 text-slate-950'
-                  : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30'
-              }`}
-            >
-              {isCertTab ? (
-                <>
-                  <Award className="w-4 h-4" />
-                  <span className="hidden sm:inline">Add Certificate</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">New Project</span>
-                </>
-              )}
-            </button>
+            {(activeTab === 'projects' || activeTab === 'certificates') && (
+              <button
+                onClick={isCertTab ? handleOpenAddCert : handleOpenAddModal}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-md transition ${
+                  isCertTab
+                    ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-600/30 text-slate-950'
+                    : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30'
+                }`}
+              >
+                {isCertTab ? (
+                  <>
+                    <Award className="w-4 h-4" />
+                    <span className="hidden sm:inline">Add Certificate</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">New Project</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </header>
 
         {/* Page Content */}
         <main className="p-6 sm:p-10 space-y-8 flex-1">
-          {/* Top Statistics Cards */}
-          <DashboardStats projects={projects} />
+          {/* Top Statistics Cards (shown on dashboard & projects tabs) */}
+          {(activeTab === 'dashboard' || activeTab === 'projects') && (
+            <DashboardStats projects={projects} />
+          )}
+
+          {/* ── DASHBOARD OVERVIEW TAB ──────────────────────────────── */}
+          {activeTab === 'dashboard' && (
+            <div className="space-y-8">
+              {/* Quick Jump Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button
+                  onClick={() => setActiveTab('projects')}
+                  className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-500/40 text-left transition group"
+                >
+                  <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">Projects</p>
+                  <h3 className="text-lg font-bold text-white group-hover:text-indigo-200">{projects.length} Total</h3>
+                  <p className="text-xs text-slate-400 mt-2">Manage live portfolio projects & tags</p>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('certificates')}
+                  className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/40 text-left transition group"
+                >
+                  <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">Certificates</p>
+                  <h3 className="text-lg font-bold text-white group-hover:text-amber-200">{certificates.length} Total</h3>
+                  <p className="text-xs text-slate-400 mt-2">Manage credentials, PDFs & pictures</p>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('skills')}
+                  className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-left transition group"
+                >
+                  <p className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-1">Skills</p>
+                  <h3 className="text-lg font-bold text-white group-hover:text-cyan-200">{skills.length} Total</h3>
+                  <p className="text-xs text-slate-400 mt-2">Technical & Professional proficiency</p>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('about')}
+                  className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-left transition group"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Profile & CV</p>
+                    <div className="w-7 h-7 rounded-full overflow-hidden border border-emerald-500/40 bg-slate-950">
+                      <img
+                        src={profileData?.profileImageUrl || '/assets/images/me.jpg'}
+                        alt="Profile avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-bold text-white group-hover:text-emerald-200">Profile & CV</h3>
+                  <p className="text-xs text-slate-400 mt-1">Update profile photo, CV & bio</p>
+                </button>
+              </div>
+
+              {/* Recent projects preview */}
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-bold text-white">Recent Projects</h2>
+                  <button
+                    onClick={() => setActiveTab('projects')}
+                    className="text-xs font-semibold text-cyan-400 hover:text-cyan-300"
+                  >
+                    View all projects →
+                  </button>
+                </div>
+                <ProjectTable
+                  projects={projects.slice(0, 4)}
+                  onEdit={handleOpenEditModal}
+                  onDelete={handleOpenDeleteModal}
+                  onTogglePublish={handleTogglePublish}
+                  onAddNew={handleOpenAddModal}
+                />
+              </section>
+            </div>
+          )}
 
           {/* ── PROJECTS TAB ────────────────────────────────────────── */}
           {activeTab === 'projects' && (
@@ -413,6 +529,16 @@ export default function AdminDashboardPage() {
                 />
               )}
             </section>
+          )}
+
+          {/* ── SKILLS TAB ────────────────────────────────────────────── */}
+          {activeTab === 'skills' && (
+            <SkillsManager skills={skills} loading={loadingSkills} />
+          )}
+
+          {/* ── ABOUT ME & CV TAB ─────────────────────────────────────── */}
+          {activeTab === 'about' && (
+            <AboutCvManager profileData={profileData} />
           )}
         </main>
       </div>

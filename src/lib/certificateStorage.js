@@ -26,13 +26,17 @@ export function validateCertificateFile(file) {
  * Upload a certificate image or PDF to Cloudinary via the /api/cloudinary endpoint.
  * Returns { downloadUrl, storagePath, resourceType }
  */
-export function uploadCertificateFile(file, onProgress) {
+import { compressImageIfNeeded } from './imageCompressor';
+
+export async function uploadCertificateFile(file, onProgress) {
+  const processedFile = await compressImageIfNeeded(file);
+
   return new Promise((resolve, reject) => {
     try {
-      validateCertificateFile(file);
+      validateCertificateFile(processedFile);
 
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', processedFile);
       formData.append('folder', 'portfolio-certificates');
 
       const xhr = new XMLHttpRequest();

@@ -4,11 +4,23 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, FileText } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import { subscribeToProfile, INITIAL_PROFILE } from '../lib/firestore';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const [profile, setProfile] = useState(INITIAL_PROFILE);
+
+  useEffect(() => {
+    const unsub = subscribeToProfile((data) => {
+      if (data) setProfile(data);
+    });
+    return () => unsub();
+  }, []);
+
+  const cvDownloadUrl = profile.cvUrl || '/assets/cv/Jahan_Jayalath-CV.pdf';
+  const cvDownloadName = profile.cvFileName || 'Jahan_Jayalath_CV.pdf';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -85,8 +97,10 @@ export default function Navbar() {
         {/* Desktop Right Actions */}
         <div className="hidden md:flex items-center gap-4">
           <a
-            href="/assets/cv/Jahan_Jayalath-CV.pdf"
-            download="Jahan_Jayalath_CV.pdf"
+            href={cvDownloadUrl}
+            download={cvDownloadName}
+            target={cvDownloadUrl.startsWith('http') ? '_blank' : undefined}
+            rel={cvDownloadUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
             id="nav-download-cv-btn"
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-[#00c9ff] hover:text-white dark:hover:bg-[#00c9ff] dark:hover:text-slate-900 shadow-sm hover:shadow-[0_0_15px_rgba(0,201,255,0.4)]"
           >
@@ -131,8 +145,10 @@ export default function Navbar() {
 
           <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
             <a
-              href="/assets/cv/Jahan_Jayalath-CV.pdf"
-              download="Jahan_Jayalath_CV.pdf"
+              href={cvDownloadUrl}
+              download={cvDownloadName}
+              target={cvDownloadUrl.startsWith('http') ? '_blank' : undefined}
+              rel={cvDownloadUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-medium text-base bg-[#6e57e0] text-white hover:bg-[#285bd4] transition shadow-lg shadow-indigo-500/25"
             >

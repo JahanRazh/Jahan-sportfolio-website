@@ -3,11 +3,23 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FileText, MousePointer2 } from 'lucide-react';
+import { subscribeToProfile, INITIAL_PROFILE } from '../lib/firestore';
 
 const TYPED_STRINGS = ['Jahan', 'Full Stack Developer', 'Designer', 'Youtuber'];
 
 export default function Hero() {
+  const [profile, setProfile] = useState(INITIAL_PROFILE);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
+
+  useEffect(() => {
+    const unsub = subscribeToProfile((data) => {
+      if (data) setProfile(data);
+    });
+    return () => unsub();
+  }, []);
+
+  const cvDownloadUrl = profile.cvUrl || '/assets/cv/Jahan_Jayalath-CV.pdf';
+  const cvDownloadName = profile.cvFileName || 'Jahan_Jayalath_CV.pdf';
   const [currentText, setCurrentText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -127,8 +139,10 @@ export default function Hero() {
                 Hire Me
               </a>
               <a
-                href="/assets/cv/Jahan_Jayalath-CV.pdf"
-                download="Jahan_Jayalath_CV.pdf"
+                href={cvDownloadUrl}
+                download={cvDownloadName}
+                target={cvDownloadUrl.startsWith('http') ? '_blank' : undefined}
+                rel={cvDownloadUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
                 className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-base text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:bg-[#00c9ff] hover:text-white dark:hover:bg-[#00c9ff] dark:hover:text-slate-900 transition-all duration-300 shadow-sm hover:shadow-[0_0_20px_rgba(0,201,255,0.4)] hover:-translate-y-0.5"
               >
                 <span>Download CV</span>
@@ -167,7 +181,7 @@ export default function Hero() {
               
               <div className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-[55%_45%_55%_45%] overflow-hidden border-4 border-white/60 dark:border-slate-700/60 shadow-2xl animate-imgFloat bg-slate-900">
                 <img
-                  src="/assets/images/me.jpg"
+                  src={profile.profileImageUrl || '/assets/images/me.jpg'}
                   alt="Jahan Ramesh - Software Engineer"
                   className="w-full h-full object-cover select-none"
                 />

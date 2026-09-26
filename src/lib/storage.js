@@ -24,13 +24,17 @@ export function validateImageFile(file) {
  * Upload image to Cloudinary via Next.js backend API (/api/cloudinary)
  * using the CLOUDINARY_URL configured in .env
  */
-export function uploadProjectImage(file, onProgress) {
+import { compressImageIfNeeded } from './imageCompressor';
+
+export async function uploadProjectImage(file, onProgress) {
+  const processedFile = await compressImageIfNeeded(file);
+
   return new Promise((resolve, reject) => {
     try {
-      validateImageFile(file);
+      validateImageFile(processedFile);
 
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', processedFile);
 
       const xhr = new XMLHttpRequest();
       xhr.open('POST', '/api/cloudinary');

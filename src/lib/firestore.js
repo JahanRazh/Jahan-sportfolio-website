@@ -377,3 +377,286 @@ export async function deleteCertificate(id) {
     throw error;
   }
 }
+
+// ══════════════════════════════════════════════════════════════════════════
+// SKILLS MANAGEMENT (Technical & Professional)
+// ══════════════════════════════════════════════════════════════════════════
+
+const SKILLS_COLLECTION = 'skills';
+
+export const INITIAL_TECHNICAL_SKILLS = [
+  { name: 'HTML', percent: 80, type: 'technical', order: 1 },
+  { name: 'Figma', percent: 90, type: 'technical', order: 2 },
+  { name: 'JavaScript', percent: 70, type: 'technical', order: 3 },
+  { name: 'CSS', percent: 90, type: 'technical', order: 4 },
+  { name: 'PHP', percent: 70, type: 'technical', order: 5 },
+  { name: 'Java', percent: 75, type: 'technical', order: 6 },
+  { name: 'React', percent: 80, type: 'technical', order: 7 },
+  { name: 'Nodejs', percent: 75, type: 'technical', order: 8 },
+];
+
+export const INITIAL_PROFESSIONAL_SKILLS = [
+  { name: 'Team Work', percent: 90, type: 'professional', order: 1 },
+  { name: 'Creativity', percent: 85, type: 'professional', order: 2 },
+  { name: 'Project Management', percent: 80, type: 'professional', order: 3 },
+  { name: 'Communication', percent: 83, type: 'professional', order: 4 },
+];
+
+export const ALL_INITIAL_SKILLS = [
+  ...INITIAL_TECHNICAL_SKILLS,
+  ...INITIAL_PROFESSIONAL_SKILLS,
+];
+
+/**
+ * Fetch published skills for the public website
+ */
+export async function getPublishedSkills() {
+  if (!isFirebaseConfigured || !db) {
+    return {
+      technical: INITIAL_TECHNICAL_SKILLS,
+      professional: INITIAL_PROFESSIONAL_SKILLS,
+    };
+  }
+
+  try {
+    const q = query(collection(db, SKILLS_COLLECTION));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      return {
+        technical: INITIAL_TECHNICAL_SKILLS,
+        professional: INITIAL_PROFESSIONAL_SKILLS,
+      };
+    }
+
+    const allSkills = snapshot.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .filter((s) => s.published !== false);
+
+    const technical = allSkills
+      .filter((s) => s.type === 'technical')
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    const professional = allSkills
+      .filter((s) => s.type === 'professional')
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    return { technical, professional };
+  } catch (error) {
+    console.warn('Skills fetch fallback notice:', error.message);
+    return {
+      technical: INITIAL_TECHNICAL_SKILLS,
+      professional: INITIAL_PROFESSIONAL_SKILLS,
+    };
+  }
+}
+
+/**
+ * Realtime subscription to all skills for the admin panel and public site
+ */
+export function subscribeToAllSkills(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(ALL_INITIAL_SKILLS);
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(db, SKILLS_COLLECTION));
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          callback(ALL_INITIAL_SKILLS);
+          return;
+        }
+        const skills = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        skills.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(skills);
+      },
+      (error) => {
+        console.warn('Skills subscription error:', error);
+        callback(ALL_INITIAL_SKILLS);
+      }
+    );
+  } catch (err) {
+    console.error('Failed to set up skills listener:', err);
+    callback(ALL_INITIAL_SKILLS);
+    return () => {};
+  }
+}
+
+/**
+ * Create a new skill
+ */
+export async function createSkill(skillData) {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  const cleanData = {
+    name: skillData.name || '',
+    percent: Math.min(100, Math.max(1, Number(skillData.percent) || 50)),
+    type: skillData.type === 'professional' ? 'professional' : 'technical',
+    order: Number(skillData.order) || 1,
+    published: skillData.published !== undefined ? Boolean(skillData.published) : true,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  const docRef = await addDoc(collection(db, SKILLS_COLLECTION), cleanData);
+  return { id: docRef.id, ...cleanData };
+}
+
+/**
+ * Update an existing skill
+ */
+export async function updateSkill(id, skillData) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SKILLS_COLLECTION, id);
+
+  const cleanData = {
+    ...skillData,
+    percent: Math.min(100, Math.max(1, Number(skillData.percent) || 50)),
+    updatedAt: serverTimestamp(),
+  };
+  delete cleanData.id;
+
+  await updateDoc(docRef, cleanData);
+  return { id, ...cleanData };
+}
+
+/**
+ * Delete a skill
+ */
+export async function deleteSkill(id) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SKILLS_COLLECTION, id);
+  await deleteDoc(docRef);
+  return id;
+}
+
+/**
+ * Seed initial skills into Firestore if empty
+ */
+export async function seedInitialSkills() {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  for (const skill of ALL_INITIAL_SKILLS) {
+    await addDoc(collection(db, SKILLS_COLLECTION), {
+      ...skill,
+      published: true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ABOUT ME & CV PROFILE MANAGEMENT
+// ══════════════════════════════════════════════════════════════════════════
+
+const PROFILE_COLLECTION = 'profile';
+const PROFILE_DOC_ID = 'main';
+
+export const INITIAL_PROFILE = {
+  title: 'My introduction',
+  bio: `I am a Software Engineering undergraduate student at SLIIT University. Passionate about coding, software development, and continuously learning new technologies and methodologies in the field. Skilled in programming languages such as Java, Python, and C++. Experienced in web development, mobile app development, and database management. Actively involved in university projects and extracurricular activities related to technology. Aspiring to build a successful career in software engineering and contribute to innovative and impactful projects in the tech industry.`,
+  profileImageUrl: '/assets/images/me.jpg',
+  cvUrl: '/assets/cv/Jahan_Jayalath-CV.pdf',
+  cvFileName: 'Jahan_Jayalath_CV.pdf',
+  cvUpdatedAt: null,
+  skillStacks: [
+    {
+      title: 'Frontend',
+      skills: ['HTML', 'CSS', 'Bootstrap', 'JavaScript', 'React'],
+    },
+    {
+      title: 'Backend',
+      skills: ['PHP', 'JAVA', 'Python', 'C++', 'NodeJS', 'ExpressJS'],
+    },
+    {
+      title: 'Database',
+      skills: ['MySQL', 'SQLite', 'MongoDB'],
+    },
+  ],
+};
+
+/**
+ * Fetch profile and CV data
+ */
+export async function getProfileData() {
+  if (!isFirebaseConfigured || !db) {
+    return INITIAL_PROFILE;
+  }
+
+  try {
+    const docRef = doc(db, PROFILE_COLLECTION, PROFILE_DOC_ID);
+    const docSnap = await getDocs(query(collection(db, PROFILE_COLLECTION)));
+    if (docSnap.empty) {
+      return INITIAL_PROFILE;
+    }
+    const mainDoc = docSnap.docs.find((d) => d.id === PROFILE_DOC_ID);
+    if (!mainDoc) return INITIAL_PROFILE;
+    return { ...INITIAL_PROFILE, ...mainDoc.data() };
+  } catch (error) {
+    console.warn('Profile fetch fallback:', error.message);
+    return INITIAL_PROFILE;
+  }
+}
+
+/**
+ * Realtime subscription to profile and CV data
+ */
+export function subscribeToProfile(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_PROFILE);
+    return () => {};
+  }
+
+  try {
+    const docRef = doc(db, PROFILE_COLLECTION, PROFILE_DOC_ID);
+    return onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (!docSnap.exists()) {
+          callback(INITIAL_PROFILE);
+          return;
+        }
+        callback({ ...INITIAL_PROFILE, ...docSnap.data() });
+      },
+      (error) => {
+        console.warn('Profile subscription error:', error);
+        callback(INITIAL_PROFILE);
+      }
+    );
+  } catch (err) {
+    console.error('Failed to set up profile listener:', err);
+    callback(INITIAL_PROFILE);
+    return () => {};
+  }
+}
+
+/**
+ * Save / Update Profile & CV data
+ */
+export async function updateProfile(profileData) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, PROFILE_COLLECTION, PROFILE_DOC_ID);
+
+  const cleanData = {
+    title: profileData.title || INITIAL_PROFILE.title,
+    bio: profileData.bio || INITIAL_PROFILE.bio,
+    profileImageUrl: profileData.profileImageUrl || INITIAL_PROFILE.profileImageUrl,
+    cvUrl: profileData.cvUrl || INITIAL_PROFILE.cvUrl,
+    cvFileName: profileData.cvFileName || INITIAL_PROFILE.cvFileName,
+    cvUpdatedAt: profileData.cvUrl ? serverTimestamp() : null,
+    skillStacks: Array.isArray(profileData.skillStacks)
+      ? profileData.skillStacks
+      : INITIAL_PROFILE.skillStacks,
+    updatedAt: serverTimestamp(),
+  };
+
+  await setDoc(docRef, cleanData, { merge: true });
+  return cleanData;
+}

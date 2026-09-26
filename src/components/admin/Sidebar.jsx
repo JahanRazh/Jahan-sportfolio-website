@@ -10,6 +10,8 @@ import {
   LogOut, 
   DatabaseBackup,
   Award,
+  Sliders,
+  User,
   X 
 } from 'lucide-react';
 
@@ -22,11 +24,14 @@ export default function Sidebar({
   mobileOpen,
   setMobileOpen,
   userEmail,
+  profileImageUrl,
 }) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'projects', label: 'Projects Management', icon: FolderGit2 },
     { id: 'certificates', label: 'Certificates', icon: Award },
+    { id: 'skills', label: 'Skills (Tech & Pro)', icon: Sliders },
+    { id: 'about', label: 'Profile Picture & CV', icon: User },
   ];
 
   const handleNavClick = (tabId) => {
@@ -57,16 +62,28 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* User Card */}
-        <div className="mb-6 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center font-bold text-white text-sm">
-            {userEmail ? userEmail.charAt(0).toUpperCase() : 'A'}
+        {/* User Card with Real Profile Picture */}
+        <button
+          onClick={() => handleNavClick('about')}
+          className="w-full mb-6 p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-indigo-500/40 flex items-center gap-3 transition group text-left"
+          title="Click to edit profile picture & details"
+        >
+          <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-500/50 group-hover:border-cyan-400 shrink-0 bg-slate-950 transition">
+            <img
+              src={profileImageUrl || '/assets/images/me.jpg'}
+              alt="Admin Profile"
+              className="w-full h-full object-cover select-none"
+            />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-900" />
           </div>
-          <div className="overflow-hidden">
-            <p className="text-xs font-medium text-slate-400">Signed in as</p>
+          <div className="overflow-hidden flex-1">
+            <p className="text-[11px] font-medium text-slate-400 flex items-center justify-between">
+              <span>Admin Profile</span>
+              <span className="text-[10px] text-cyan-400 group-hover:underline font-semibold">Edit</span>
+            </p>
             <p className="text-xs font-semibold text-slate-200 truncate">{userEmail || 'Admin'}</p>
           </div>
-        </div>
+        </button>
 
         {/* Add Project CTA Button */}
         <button

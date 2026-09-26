@@ -32,6 +32,17 @@ export async function POST(req) {
       return NextResponse.json({ error: 'No file provided.' }, { status: 400 });
     }
 
+    const MAX_CLOUDINARY_BYTES = 10485760; // 10MB limit on Cloudinary free plan
+    if (file.size > MAX_CLOUDINARY_BYTES) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      return NextResponse.json(
+        {
+          error: `File size too large (${sizeMb}MB). Cloudinary free tier allows maximum 10MB per file. Please choose an image or document under 10MB.`,
+        },
+        { status: 400 }
+      );
+    }
+
     const isPdf = file.type === 'application/pdf';
     const timestamp = Math.floor(Date.now() / 1000);
     const folder = folderParam;
@@ -60,7 +71,11 @@ export async function POST(req) {
     const data = await uploadRes.json();
 
     if (!uploadRes.ok) {
-      throw new Error(data.error?.message || 'Cloudinary upload failed.');
+      console.error('Cloudinary API upload rejected:', data.error);
+      return NextResponse.json(
+        { error: data.error?.message || 'Cloudinary upload failed.' },
+        { status: uploadRes.status >= 400 && uploadRes.status < 500 ? uploadRes.status : 400 }
+      );
     }
 
     // For PDFs uploaded as image assets, page 1 can be delivered as a JPG picture
@@ -77,10 +92,10 @@ export async function POST(req) {
       resourceType: 'image',
     });
   } catch (error) {
-    console.error('Cloudinary API upload error:', error);
+    console.error('Cloudinary API route error:', error);
     return NextResponse.json(
       { error: error.message || 'Upload failed.' },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }
