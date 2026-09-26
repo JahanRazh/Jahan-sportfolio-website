@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = 'https://jahanrazh.github.io/Jahan-sportfolio-website';
+  const baseUrl = 'https://jahanrazh.vercel.app';
   return [
     {
       url: `${baseUrl}/`,
