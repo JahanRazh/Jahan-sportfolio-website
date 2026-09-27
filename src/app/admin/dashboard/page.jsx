@@ -39,6 +39,7 @@ import {
   deleteCertificate,
   subscribeToAllSkills,
   subscribeToProfile,
+  getProfileData,
   getCachedProfile,
   INITIAL_PROFILE,
   subscribeToVisitorStats,
@@ -567,7 +568,20 @@ export default function AdminDashboardPage() {
 
           {/* ── ABOUT ME & CV TAB ─────────────────────────────────────── */}
           {activeTab === 'about' && (
-            <AboutCvManager profileData={profileData} />
+            <AboutCvManager
+              profileData={profileData}
+              onProfileUpdated={async (updatedData) => {
+                if (updatedData) {
+                  setProfileData((prev) => ({ ...prev, ...updatedData }));
+                }
+                try {
+                  const fresh = await getProfileData();
+                  if (fresh) setProfileData(fresh);
+                } catch (e) {
+                  console.warn('Failed to refresh profile:', e);
+                }
+              }}
+            />
           )}
         </main>
       </div>

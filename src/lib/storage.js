@@ -1,3 +1,5 @@
+import { compressImageIfNeeded } from './imageCompressor';
+
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
@@ -24,7 +26,6 @@ export function validateImageFile(file) {
  * Upload image to Cloudinary via Next.js backend API (/api/cloudinary)
  * using the CLOUDINARY_URL configured in .env
  */
-import { compressImageIfNeeded } from './imageCompressor';
 
 export async function uploadProjectImage(file, onProgress) {
   const processedFile = await compressImageIfNeeded(file);

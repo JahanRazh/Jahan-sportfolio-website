@@ -5,8 +5,6 @@ import Image from 'next/image';
 import { FileText, MousePointer2 } from 'lucide-react';
 import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
 
-const TYPED_STRINGS = ['Jahan', 'Full Stack Developer', 'Designer', 'Youtuber'];
-
 export default function Hero() {
   const [profile, setProfile] = useState(getCachedProfile);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
@@ -23,8 +21,13 @@ export default function Hero() {
   const [currentText, setCurrentText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const typedList = Array.isArray(profile.heroTitles) && profile.heroTitles.length > 0
+    ? profile.heroTitles
+    : INITIAL_PROFILE.heroTitles;
+
   useEffect(() => {
-    const fullText = TYPED_STRINGS[currentTextIndex];
+    if (!typedList || typedList.length === 0) return;
+    const fullText = typedList[currentTextIndex % typedList.length] || '';
     const speed = isDeleting ? 40 : 90;
 
     const timer = setTimeout(() => {
@@ -39,13 +42,13 @@ export default function Hero() {
           setCurrentText(fullText.substring(0, currentText.length - 1));
         } else {
           setIsDeleting(false);
-          setCurrentTextIndex((prev) => (prev + 1) % TYPED_STRINGS.length);
+          setCurrentTextIndex((prev) => (prev + 1) % typedList.length);
         }
       }
     }, speed);
 
     return () => clearTimeout(timer);
-  }, [currentText, isDeleting, currentTextIndex]);
+  }, [currentText, isDeleting, currentTextIndex, typedList]);
 
   const socialLinks = [
     {
@@ -110,7 +113,7 @@ export default function Hero() {
           <div className="w-full lg:w-7/12 flex flex-col items-start text-left z-10">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#c0a631]/15 border border-[#c0a631]/40 text-[#c0a631] font-semibold text-xs sm:text-sm mb-4">
-              <span>Software Engineer</span>
+              <span suppressHydrationWarning>{profile.heroBadge || INITIAL_PROFILE.heroBadge}</span>
             </div>
 
             {/* Title with typewriter */}
@@ -122,12 +125,8 @@ export default function Hero() {
             </h1>
 
             {/* Description */}
-            <p className="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
-              I am a Software Engineering undergraduate student at SLIIT University.
-              Passionate about coding, software development, and continuously learning
-              new technologies and methodologies in the field. Skilled in programming
-              languages such as Java, Python, and C++. Experienced in web development,
-              mobile app development, and database management.
+            <p suppressHydrationWarning className="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl whitespace-pre-line">
+              {profile.heroIntro || INITIAL_PROFILE.heroIntro}
             </p>
 
             {/* CTA Buttons */}

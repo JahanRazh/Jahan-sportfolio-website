@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FileText,
   Upload,
@@ -22,6 +22,8 @@ import {
   Copy,
   CheckCheck,
   Eye,
+  Save,
+  AlertCircle,
 } from 'lucide-react';
 import { useToast } from '../Toast';
 import { updateProfile, INITIAL_PROFILE } from '../../lib/firestore';
@@ -32,6 +34,13 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
 
   const [formData, setFormData] = useState(INITIAL_PROFILE);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingHero, setIsSavingHero] = useState(false);
+  const [isSavingIntro, setIsSavingIntro] = useState(false);
+  const [isSavingStacks, setIsSavingStacks] = useState(false);
+  const [newRoleInput, setNewRoleInput] = useState('');
+
+  // Track if user has made local changes so background snapshots don't overwrite active typing
+  const hasUserEditedRef = useRef(false);
 
   // Profile Photo state
   const [photoInputMode, setPhotoInputMode] = useState('file'); // 'file' | 'url'
@@ -55,16 +64,33 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
 
   useEffect(() => {
     if (profileData) {
-      setFormData({
-        title: profileData.title || INITIAL_PROFILE.title,
-        bio: profileData.bio || INITIAL_PROFILE.bio,
-        profileImageUrl: profileData.profileImageUrl || INITIAL_PROFILE.profileImageUrl,
-        cvUrl: profileData.cvUrl || INITIAL_PROFILE.cvUrl,
-        cvFileName: profileData.cvFileName || INITIAL_PROFILE.cvFileName,
-        skillStacks: Array.isArray(profileData.skillStacks) && profileData.skillStacks.length > 0
-          ? profileData.skillStacks
-          : INITIAL_PROFILE.skillStacks,
+      setFormData((prev) => {
+        // If the user has made unsaved edits, do not wipe out their active text inputs
+        if (hasUserEditedRef.current) {
+          return {
+            ...prev,
+            profileImageUrl: profileData.profileImageUrl || prev.profileImageUrl || INITIAL_PROFILE.profileImageUrl,
+            cvUrl: profileData.cvUrl || prev.cvUrl || INITIAL_PROFILE.cvUrl,
+            cvFileName: profileData.cvFileName || prev.cvFileName || INITIAL_PROFILE.cvFileName,
+          };
+        }
+        return {
+          heroBadge: profileData.heroBadge || INITIAL_PROFILE.heroBadge,
+          heroTitles: Array.isArray(profileData.heroTitles) && profileData.heroTitles.length > 0
+            ? profileData.heroTitles
+            : INITIAL_PROFILE.heroTitles,
+          heroIntro: profileData.heroIntro || INITIAL_PROFILE.heroIntro,
+          title: profileData.title || INITIAL_PROFILE.title,
+          bio: profileData.bio || INITIAL_PROFILE.bio,
+          profileImageUrl: profileData.profileImageUrl || INITIAL_PROFILE.profileImageUrl,
+          cvUrl: profileData.cvUrl || INITIAL_PROFILE.cvUrl,
+          cvFileName: profileData.cvFileName || INITIAL_PROFILE.cvFileName,
+          skillStacks: Array.isArray(profileData.skillStacks) && profileData.skillStacks.length > 0
+            ? profileData.skillStacks
+            : INITIAL_PROFILE.skillStacks,
+        };
       });
+
       if (profileData.profileImageUrl && !profileData.profileImageUrl.startsWith('/')) {
         setCustomPhotoUrl(profileData.profileImageUrl);
       }
@@ -192,8 +218,10 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
 
       // Auto-persist directly to Firestore so the update is immediate
       try {
-        await updateProfile(updated);
-        if (onProfileUpdated) onProfileUpdated();
+        const saved = await updateProfile(updated);
+        setFormData((prev) => ({ ...prev, ...saved }));
+        hasUserEditedRef.current = false;
+        if (onProfileUpdated) onProfileUpdated(saved);
         addToast('Profile picture uploaded and saved live to Firestore!', 'success');
       } catch (firestoreErr) {
         console.error('Firestore save error:', firestoreErr);
@@ -230,9 +258,10 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
         ...formData,
         profileImageUrl: cleanUrl,
       };
-      setFormData(updated);
-      await updateProfile(updated);
-      if (onProfileUpdated) onProfileUpdated();
+      const saved = await updateProfile(updated);
+      setFormData((prev) => ({ ...prev, ...saved }));
+      hasUserEditedRef.current = false;
+      if (onProfileUpdated) onProfileUpdated(saved);
       addToast('Profile picture URL updated and saved live!', 'success');
     } catch (err) {
       addToast(err.message || 'Failed to save photo URL', 'error');
@@ -252,9 +281,10 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
         ...formData,
         profileImageUrl: defaultUrl,
       };
-      setFormData(updated);
-      await updateProfile(updated);
-      if (onProfileUpdated) onProfileUpdated();
+      const saved = await updateProfile(updated);
+      setFormData((prev) => ({ ...prev, ...saved }));
+      hasUserEditedRef.current = false;
+      if (onProfileUpdated) onProfileUpdated(saved);
       addToast('Profile picture reset to default original and saved live!', 'info');
     } catch (err) {
       addToast(err.message || 'Failed to reset profile picture', 'error');
@@ -340,8 +370,10 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
 
       // Auto-persist directly to Firestore
       try {
-        await updateProfile(updated);
-        if (onProfileUpdated) onProfileUpdated();
+        const saved = await updateProfile(updated);
+        setFormData((prev) => ({ ...prev, ...saved }));
+        hasUserEditedRef.current = false;
+        if (onProfileUpdated) onProfileUpdated(saved);
         addToast('CV uploaded and updated live on all download buttons!', 'success');
       } catch (firestoreErr) {
         console.error('Firestore save error:', firestoreErr);
@@ -360,13 +392,158 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
     }
   };
 
+  const handleHeroBadgeChange = (e) => {
+    hasUserEditedRef.current = true;
+    setFormData((prev) => ({ ...prev, heroBadge: e.target.value }));
+  };
+
+  const handleHeroIntroChange = (e) => {
+    hasUserEditedRef.current = true;
+    setFormData((prev) => ({ ...prev, heroIntro: e.target.value }));
+  };
+
+  const handleAddHeroTitle = () => {
+    const text = newRoleInput.trim();
+    if (!text) return;
+    hasUserEditedRef.current = true;
+    setFormData((prev) => {
+      const currentTitles = Array.isArray(prev.heroTitles) ? prev.heroTitles : [...INITIAL_PROFILE.heroTitles];
+      if (!currentTitles.includes(text)) {
+        return { ...prev, heroTitles: [...currentTitles, text] };
+      }
+      return prev;
+    });
+    setNewRoleInput('');
+  };
+
+  const handleRemoveHeroTitle = (titleToRemove) => {
+    hasUserEditedRef.current = true;
+    setFormData((prev) => {
+      const currentTitles = Array.isArray(prev.heroTitles) ? prev.heroTitles : [...INITIAL_PROFILE.heroTitles];
+      return { ...prev, heroTitles: currentTitles.filter((t) => t !== titleToRemove) };
+    });
+  };
+
+  const savedHeroBadge = profileData?.heroBadge || INITIAL_PROFILE.heroBadge;
+  const savedHeroTitles = Array.isArray(profileData?.heroTitles) && profileData.heroTitles.length > 0
+    ? profileData.heroTitles
+    : INITIAL_PROFILE.heroTitles;
+  const savedHeroIntro = profileData?.heroIntro || INITIAL_PROFILE.heroIntro;
+
+  const isHeroDirty =
+    (formData.heroBadge || '') !== (savedHeroBadge || '') ||
+    (formData.heroIntro || '') !== (savedHeroIntro || '') ||
+    JSON.stringify(formData.heroTitles || []) !== JSON.stringify(savedHeroTitles);
+
+  const handleSaveHeroIntroduction = async (e) => {
+    if (e) e.preventDefault();
+    if (!formData.heroIntro?.trim()) {
+      addToast('Profile introduction summary text cannot be empty', 'warning');
+      return;
+    }
+
+    setIsSavingHero(true);
+    try {
+      const saved = await updateProfile(formData);
+      setFormData((prev) => ({ ...prev, ...saved }));
+      hasUserEditedRef.current = false;
+      addToast('Profile section introduction saved successfully! Changes are live on home hero.', 'success');
+      if (onProfileUpdated) onProfileUpdated(saved);
+    } catch (err) {
+      console.error('Save profile intro error:', err);
+      addToast(err.message || 'Failed to save profile introduction', 'error');
+    } finally {
+      setIsSavingHero(false);
+    }
+  };
+
+  const handleResetHeroIntroduction = () => {
+    setFormData((prev) => ({
+      ...prev,
+      heroBadge: savedHeroBadge,
+      heroTitles: savedHeroTitles,
+      heroIntro: savedHeroIntro,
+    }));
+    hasUserEditedRef.current = false;
+    addToast('Profile section introduction reverted to saved version', 'info');
+  };
+
+  const handleTitleChange = (e) => {
+    hasUserEditedRef.current = true;
+    setFormData((prev) => ({ ...prev, title: e.target.value }));
+  };
+
+  const handleBioChange = (e) => {
+    hasUserEditedRef.current = true;
+    setFormData((prev) => ({ ...prev, bio: e.target.value }));
+  };
+
+  const savedTitle = profileData?.title || INITIAL_PROFILE.title;
+  const savedBio = profileData?.bio || INITIAL_PROFILE.bio;
+  const isIntroDirty = formData.title !== savedTitle || formData.bio !== savedBio;
+
+  const handleSaveIntroduction = async (e) => {
+    if (e) e.preventDefault();
+    if (!formData.title?.trim()) {
+      addToast('Please provide a section title', 'warning');
+      return;
+    }
+    if (!formData.bio?.trim()) {
+      addToast('Please provide a biography text', 'warning');
+      return;
+    }
+
+    setIsSavingIntro(true);
+    try {
+      const saved = await updateProfile(formData);
+      setFormData((prev) => ({ ...prev, ...saved }));
+      hasUserEditedRef.current = false;
+      addToast('About Me introduction saved successfully! Changes are live on your portfolio.', 'success');
+      if (onProfileUpdated) onProfileUpdated(saved);
+    } catch (err) {
+      console.error('Save introduction error:', err);
+      addToast(err.message || 'Failed to save introduction', 'error');
+    } finally {
+      setIsSavingIntro(false);
+    }
+  };
+
+  const handleResetIntroduction = () => {
+    setFormData((prev) => ({
+      ...prev,
+      title: profileData?.title || INITIAL_PROFILE.title,
+      bio: profileData?.bio || INITIAL_PROFILE.bio,
+    }));
+    hasUserEditedRef.current = false;
+    addToast('Introduction reverted to last saved version', 'info');
+  };
+
+  const handleSaveSkillStacks = async (e) => {
+    if (e) e.preventDefault();
+    setIsSavingStacks(true);
+    try {
+      const saved = await updateProfile(formData);
+      setFormData((prev) => ({ ...prev, ...saved }));
+      hasUserEditedRef.current = false;
+      addToast('Skill stacks saved successfully! Changes are live on your portfolio.', 'success');
+      if (onProfileUpdated) onProfileUpdated(saved);
+    } catch (err) {
+      console.error('Save skill stacks error:', err);
+      addToast(err.message || 'Failed to save skill stacks', 'error');
+    } finally {
+      setIsSavingStacks(false);
+    }
+  };
+
   const handleSaveAll = async (e) => {
     if (e) e.preventDefault();
     setIsSaving(true);
     try {
-      await updateProfile(formData);
+      const saved = await updateProfile(formData);
+      setFormData((prev) => ({ ...prev, ...saved }));
+      hasUserEditedRef.current = false;
       addToast('All Profile, CV & About details saved successfully!', 'success');
-      if (onProfileUpdated) onProfileUpdated();
+      if (onProfileUpdated) onProfileUpdated(saved);
     } catch (err) {
       addToast(err.message || 'Failed to save changes', 'error');
     } finally {
@@ -379,6 +556,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
     const text = (newTagInputs[stackIndex] || '').trim();
     if (!text) return;
 
+    hasUserEditedRef.current = true;
     setFormData((prev) => {
       const updated = [...prev.skillStacks];
       if (!updated[stackIndex].skills.includes(text)) {
@@ -394,6 +572,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
   };
 
   const handleRemoveTag = (stackIndex, tagToRemove) => {
+    hasUserEditedRef.current = true;
     setFormData((prev) => {
       const updated = [...prev.skillStacks];
       updated[stackIndex] = {
@@ -408,6 +587,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
     const catName = newCategoryName.trim();
     if (!catName) return;
 
+    hasUserEditedRef.current = true;
     setFormData((prev) => ({
       ...prev,
       skillStacks: [
@@ -420,6 +600,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
 
   const handleRemoveStackCategory = (index) => {
     if (!window.confirm('Delete this stack category?')) return;
+    hasUserEditedRef.current = true;
     setFormData((prev) => ({
       ...prev,
       skillStacks: prev.skillStacks.filter((_, i) => i !== index),
@@ -437,9 +618,9 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
             <User className="w-5 h-5 text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Profile Picture, About Me & CV</h2>
+            <h2 className="text-lg font-bold text-white">Profile Picture, Hero Intro, About Me & CV</h2>
             <p className="text-xs text-slate-400">
-              Update your hero profile picture, CV document, biography, and skill stack tags.
+              Update your hero photo, profile section introduction, CV document, biography, and skill stacks.
             </p>
           </div>
         </div>
@@ -820,11 +1001,183 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
             </div>
           </div>
 
+          {/* ── PROFILE / HERO SECTION INTRODUCTION ──────────────── */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-7 space-y-5 shadow-lg shadow-black/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Profile / Hero Section Introduction</h3>
+                  <p className="text-xs text-slate-400">Header badge, animated role titles, and hero introduction</p>
+                </div>
+              </div>
+
+              {isHeroDirty ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  Unsaved Changes
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                  <Check className="w-3.5 h-3.5" />
+                  Saved & Synced
+                </span>
+              )}
+            </div>
+
+            {/* Profile Badge / Headline */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                Profile Badge / Headline
+              </label>
+              <input
+                type="text"
+                value={formData.heroBadge || ''}
+                onChange={handleHeroBadgeChange}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                placeholder="Software Engineer"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Pill badge displayed above your name on the home page hero section.
+              </p>
+            </div>
+
+            {/* Animated Typing Role Titles */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                Animated Role Titles (Typewriter)
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {(formData.heroTitles || INITIAL_PROFILE.heroTitles).map((title, idx) => (
+                  <span
+                    key={`${title}-${idx}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                  >
+                    <span>{title}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveHeroTitle(title)}
+                      className="hover:text-rose-400 ml-0.5"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Add role title (e.g. Full Stack Developer, AI Enthusiast)..."
+                  value={newRoleInput}
+                  onChange={(e) => setNewRoleInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddHeroTitle();
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddHeroTitle}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-300 border border-slate-700 transition"
+                >
+                  Add Title
+                </button>
+              </div>
+            </div>
+
+            {/* Hero Introduction Paragraph */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Profile Introduction Paragraph
+                </label>
+                <span className="text-[11px] text-slate-500 font-mono">
+                  {formData.heroIntro?.length || 0} characters
+                </span>
+              </div>
+              <textarea
+                rows={6}
+                value={formData.heroIntro || ''}
+                onChange={handleHeroIntroChange}
+                className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm leading-relaxed focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-y transition"
+                placeholder="Write your hero profile introduction here..."
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                This summary text appears directly beneath your name and animated title on the portfolio landing page.
+              </p>
+            </div>
+
+            {/* Save / Revert Actions */}
+            <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-slate-800">
+              <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Instantly updates hero landing section upon saving</span>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                {isHeroDirty && (
+                  <button
+                    type="button"
+                    onClick={handleResetHeroIntroduction}
+                    disabled={isSavingHero}
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Revert</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleSaveHeroIntroduction}
+                  disabled={isSavingHero}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/25 transition disabled:opacity-50"
+                >
+                  {isSavingHero ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                      <span>Saving Profile Intro...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 text-slate-950" />
+                      <span>Save Profile Intro</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* ── ABOUT ME BIO SECTION ─────────────────────────────── */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-7 space-y-5">
-            <div className="flex items-center gap-2.5 pb-4 border-b border-slate-800">
-              <User className="w-5 h-5 text-indigo-400" />
-              <h3 className="text-base font-bold text-white">About Me Introduction</h3>
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-7 space-y-5 shadow-lg shadow-black/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center">
+                  <User className="w-5 h-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">About Me Introduction</h3>
+                  <p className="text-xs text-slate-400">Public profile title & summary text</p>
+                </div>
+              </div>
+
+              {isIntroDirty ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  Unsaved Changes
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                  <Check className="w-3.5 h-3.5" />
+                  Saved & Synced
+                </span>
+              )}
             </div>
 
             <div>
@@ -834,10 +1187,13 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500"
-                placeholder="My introduction"
+                onChange={handleTitleChange}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                placeholder="About Ramesh Jahan Jayalath"
               />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Displayed as the main heading in your public "About Me" portfolio section.
+              </p>
             </div>
 
             <div>
@@ -850,24 +1206,78 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
                 </span>
               </div>
               <textarea
-                rows={7}
+                rows={8}
                 value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm leading-relaxed focus:outline-none focus:border-indigo-500 resize-y"
+                onChange={handleBioChange}
+                className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm leading-relaxed focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-y transition"
                 placeholder="Write your professional introduction here..."
               />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Line breaks and paragraphs are preserved on your public website.
+              </p>
+            </div>
+
+            {/* Save / Revert Actions */}
+            <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-slate-800">
+              <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Instantly updates on public home page upon saving</span>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                {isIntroDirty && (
+                  <button
+                    type="button"
+                    onClick={handleResetIntroduction}
+                    disabled={isSavingIntro}
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Revert</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleSaveIntroduction}
+                  disabled={isSavingIntro}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition disabled:opacity-50"
+                >
+                  {isSavingIntro ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving Introduction...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>Save Introduction</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Right Column: Skill Stacks inside About Me */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-7 space-y-5">
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-7 space-y-5 shadow-lg shadow-black/20">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
                 <Layers className="w-5 h-5 text-emerald-400" />
                 <h3 className="text-base font-bold text-white">About Me Skill Stacks</h3>
               </div>
+
+              <button
+                type="button"
+                onClick={handleSaveSkillStacks}
+                disabled={isSavingStacks}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition disabled:opacity-50 shadow-md shadow-emerald-600/20"
+              >
+                {isSavingStacks ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                <span>Save Stacks</span>
+              </button>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
               These skill tags are displayed in the right column of your public "About Me" section (e.g. Frontend, Backend, Database).
@@ -968,6 +1378,19 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
                   <span>Add Category</span>
                 </button>
               </div>
+            </div>
+
+            {/* Bottom Save Action for Skill Stacks */}
+            <div className="pt-3 border-t border-slate-800 flex justify-end">
+              <button
+                type="button"
+                onClick={handleSaveSkillStacks}
+                disabled={isSavingStacks}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition disabled:opacity-50"
+              >
+                {isSavingStacks ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>Save Skill Stacks</span>
+              </button>
             </div>
           </div>
         </div>

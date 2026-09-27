@@ -1,6 +1,7 @@
 import {
   collection,
   getDocs,
+  getDoc,
   doc,
   addDoc,
   updateDoc,
@@ -143,7 +144,7 @@ export async function updateProject(id, projectData) {
   delete cleanData.id;
 
   try {
-    await updateDoc(docRef, cleanData);
+    await setDoc(docRef, cleanData, { merge: true });
     return { id, ...cleanData };
   } catch (error) {
     if (error.code === 'permission-denied') {
@@ -353,7 +354,7 @@ export async function updateCertificate(id, data) {
   delete cleanData.id;
 
   try {
-    await updateDoc(docRef, cleanData);
+    await setDoc(docRef, cleanData, { merge: true });
     return { id, ...cleanData };
   } catch (error) {
     if (error.code === 'permission-denied') {
@@ -524,7 +525,7 @@ export async function updateSkill(id, skillData) {
   };
   delete cleanData.id;
 
-  await updateDoc(docRef, cleanData);
+  await setDoc(docRef, cleanData, { merge: true });
   return { id, ...cleanData };
 }
 
@@ -562,6 +563,12 @@ const PROFILE_COLLECTION = 'profile';
 const PROFILE_DOC_ID = 'main';
 
 export const INITIAL_PROFILE = {
+  // Hero / Profile section
+  heroBadge: 'Software Engineer',
+  heroTitles: ['Jahan', 'Full Stack Developer', 'Designer', 'Youtuber'],
+  heroIntro: 'I am a Software Engineering undergraduate student at SLIIT University. Passionate about coding, software development, and continuously learning new technologies and methodologies in the field. Skilled in programming languages such as Java, Python, and C++. Experienced in web development, mobile app development, and database management.',
+
+  // About Me section
   title: 'About Ramesh Jahan Jayalath',
   bio: `Hello! I am Ramesh Jahan Jayalath (professionally known as Jahan Jayalath, Jahan Ramesh, or Jahan Razh). I am a Software Engineering undergraduate student at SLIIT University and a dedicated IT professional.
 
@@ -595,8 +602,13 @@ export function getCachedProfile() {
       const cached = localStorage.getItem('jahan_profile_cache');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed && parsed.profileImageUrl) {
-          return { ...INITIAL_PROFILE, ...parsed };
+        if (parsed && typeof parsed === 'object') {
+          return {
+            ...INITIAL_PROFILE,
+            ...parsed,
+            heroTitles: Array.isArray(parsed.heroTitles) && parsed.heroTitles.length > 0 ? parsed.heroTitles : INITIAL_PROFILE.heroTitles,
+            skillStacks: Array.isArray(parsed.skillStacks) && parsed.skillStacks.length > 0 ? parsed.skillStacks : INITIAL_PROFILE.skillStacks,
+          };
         }
       }
     } catch (e) {
@@ -607,7 +619,32 @@ export function getCachedProfile() {
 }
 
 /**
- * Fetch profile and CV data
+ * Save profile to localStorage and dispatch custom/storage event for instant reactivity across components & tabs
+ */
+export function saveProfileCache(data) {
+  if (typeof window === 'undefined' || !data) return;
+  try {
+    const serializable = {
+      heroBadge: data.heroBadge !== undefined ? data.heroBadge : INITIAL_PROFILE.heroBadge,
+      heroTitles: Array.isArray(data.heroTitles) && data.heroTitles.length > 0 ? data.heroTitles : INITIAL_PROFILE.heroTitles,
+      heroIntro: data.heroIntro !== undefined ? data.heroIntro : INITIAL_PROFILE.heroIntro,
+      title: data.title !== undefined ? data.title : INITIAL_PROFILE.title,
+      bio: data.bio !== undefined ? data.bio : INITIAL_PROFILE.bio,
+      profileImageUrl: data.profileImageUrl || INITIAL_PROFILE.profileImageUrl,
+      cvUrl: data.cvUrl || INITIAL_PROFILE.cvUrl,
+      cvFileName: data.cvFileName || INITIAL_PROFILE.cvFileName,
+      skillStacks: Array.isArray(data.skillStacks) && data.skillStacks.length > 0 ? data.skillStacks : INITIAL_PROFILE.skillStacks,
+      updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem('jahan_profile_cache', JSON.stringify(serializable));
+    window.dispatchEvent(new CustomEvent('jahan_profile_updated', { detail: serializable }));
+  } catch (e) {
+    console.warn('saveProfileCache warning:', e);
+  }
+}
+
+/**
+ * Fetch profile and CV data directly
  */
 export async function getProfileData() {
   if (!isFirebaseConfigured || !db) {
@@ -615,18 +652,13 @@ export async function getProfileData() {
   }
 
   try {
-    const docSnap = await getDocs(query(collection(db, PROFILE_COLLECTION)));
-    if (docSnap.empty) {
+    const docRef = doc(db, PROFILE_COLLECTION, PROFILE_DOC_ID);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
       return getCachedProfile();
     }
-    const mainDoc = docSnap.docs.find((d) => d.id === PROFILE_DOC_ID);
-    if (!mainDoc) return getCachedProfile();
-    const data = { ...INITIAL_PROFILE, ...mainDoc.data() };
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('jahan_profile_cache', JSON.stringify(data));
-      } catch (e) {}
-    }
+    const data = { ...INITIAL_PROFILE, ...docSnap.data() };
+    saveProfileCache(data);
     return data;
   } catch (error) {
     console.warn('Profile fetch fallback:', error.message);
@@ -635,20 +667,59 @@ export async function getProfileData() {
 }
 
 /**
- * Realtime subscription to profile and CV data with instant local cache
+ * Realtime subscription to profile and CV data with instant local cache & cross-tab sync
  */
 export function subscribeToProfile(callback) {
   // 1. Instantly deliver cached/Cloudinary data to eliminate initial flash
   const initial = getCachedProfile();
   callback(initial);
 
-  if (!isFirebaseConfigured || !db) {
+  if (typeof window === 'undefined') {
     return () => {};
+  }
+
+  // 2. Cross-tab instant synchronization
+  const handleStorageChange = (e) => {
+    if (e.key === 'jahan_profile_cache' && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        callback({ ...INITIAL_PROFILE, ...parsed });
+      } catch (err) {}
+    }
+  };
+  window.addEventListener('storage', handleStorageChange);
+
+  // 3. Same-tab component synchronization
+  const handleCustomUpdate = (e) => {
+    if (e.detail) {
+      callback({ ...INITIAL_PROFILE, ...e.detail });
+    }
+  };
+  window.addEventListener('jahan_profile_updated', handleCustomUpdate);
+
+  if (!isFirebaseConfigured || !db) {
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jahan_profile_updated', handleCustomUpdate);
+    };
   }
 
   try {
     const docRef = doc(db, PROFILE_COLLECTION, PROFILE_DOC_ID);
-    return onSnapshot(
+
+    // 4. Immediate direct getDoc to guarantee freshest state without relying solely on listener initialization
+    getDoc(docRef).then((snap) => {
+      if (snap.exists()) {
+        const fresh = { ...INITIAL_PROFILE, ...snap.data() };
+        saveProfileCache(fresh);
+        callback(fresh);
+      }
+    }).catch((err) => {
+      console.warn('Direct profile getDoc notice:', err);
+    });
+
+    // 5. Active realtime snapshot listener
+    const unsubSnapshot = onSnapshot(
       docRef,
       (docSnap) => {
         if (!docSnap.exists()) {
@@ -656,20 +727,25 @@ export function subscribeToProfile(callback) {
           return;
         }
         const data = { ...INITIAL_PROFILE, ...docSnap.data() };
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('jahan_profile_cache', JSON.stringify(data));
-          } catch (e) {}
-        }
+        saveProfileCache(data);
         callback(data);
       },
       (error) => {
         console.warn('Profile subscription error:', error);
       }
     );
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jahan_profile_updated', handleCustomUpdate);
+      if (unsubSnapshot) unsubSnapshot();
+    };
   } catch (err) {
     console.error('Failed to set up profile listener:', err);
-    return () => {};
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jahan_profile_updated', handleCustomUpdate);
+    };
   }
 }
 
@@ -680,28 +756,70 @@ export async function updateProfile(profileData) {
   if (!db) throw new Error('Firestore is not initialized.');
   const docRef = doc(db, PROFILE_COLLECTION, PROFILE_DOC_ID);
 
-  const cleanData = {
-    title: profileData.title || INITIAL_PROFILE.title,
-    bio: profileData.bio || INITIAL_PROFILE.bio,
-    profileImageUrl: profileData.profileImageUrl || INITIAL_PROFILE.profileImageUrl,
-    cvUrl: profileData.cvUrl || INITIAL_PROFILE.cvUrl,
-    cvFileName: profileData.cvFileName || INITIAL_PROFILE.cvFileName,
-    cvUpdatedAt: profileData.cvUrl ? serverTimestamp() : null,
-    skillStacks: Array.isArray(profileData.skillStacks)
+  const cleanData = {};
+  if (profileData.heroBadge !== undefined) {
+    cleanData.heroBadge = String(profileData.heroBadge || '').trim() || INITIAL_PROFILE.heroBadge;
+  }
+  if (profileData.heroTitles !== undefined) {
+    cleanData.heroTitles = Array.isArray(profileData.heroTitles) && profileData.heroTitles.length > 0
+      ? profileData.heroTitles
+      : INITIAL_PROFILE.heroTitles;
+  }
+  if (profileData.heroIntro !== undefined) {
+    cleanData.heroIntro = String(profileData.heroIntro || '').trim() || INITIAL_PROFILE.heroIntro;
+  }
+  if (profileData.title !== undefined) {
+    cleanData.title = String(profileData.title || '').trim() || INITIAL_PROFILE.title;
+  }
+  if (profileData.bio !== undefined) {
+    cleanData.bio = String(profileData.bio || '').trim() || INITIAL_PROFILE.bio;
+  }
+  if (profileData.profileImageUrl !== undefined) {
+    cleanData.profileImageUrl = profileData.profileImageUrl || INITIAL_PROFILE.profileImageUrl;
+  }
+  if (profileData.cvUrl !== undefined) {
+    cleanData.cvUrl = profileData.cvUrl || INITIAL_PROFILE.cvUrl;
+    cleanData.cvUpdatedAt = serverTimestamp();
+  }
+  if (profileData.cvFileName !== undefined) {
+    cleanData.cvFileName = profileData.cvFileName || INITIAL_PROFILE.cvFileName;
+  }
+  if (profileData.skillStacks !== undefined) {
+    cleanData.skillStacks = Array.isArray(profileData.skillStacks) && profileData.skillStacks.length > 0
       ? profileData.skillStacks
-      : INITIAL_PROFILE.skillStacks,
-    updatedAt: serverTimestamp(),
-  };
+      : INITIAL_PROFILE.skillStacks;
+  }
+  cleanData.updatedAt = serverTimestamp();
 
-  await setDoc(docRef, cleanData, { merge: true });
-
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem('jahan_profile_cache', JSON.stringify({ ...INITIAL_PROFILE, ...cleanData }));
-    } catch (e) {}
+  try {
+    await setDoc(docRef, cleanData, { merge: true });
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error(
+        'Firestore Permission Denied: Please check Firestore Security Rules in Firebase Console to allow profile writes.'
+      );
+    }
+    throw error;
   }
 
-  return cleanData;
+  // Merge with existing cache and save
+  const currentCached = getCachedProfile();
+  const mergedResult = {
+    ...currentCached,
+    ...profileData,
+    heroBadge: cleanData.heroBadge !== undefined ? cleanData.heroBadge : currentCached.heroBadge,
+    heroTitles: cleanData.heroTitles !== undefined ? cleanData.heroTitles : currentCached.heroTitles,
+    heroIntro: cleanData.heroIntro !== undefined ? cleanData.heroIntro : currentCached.heroIntro,
+    title: cleanData.title !== undefined ? cleanData.title : currentCached.title,
+    bio: cleanData.bio !== undefined ? cleanData.bio : currentCached.bio,
+    profileImageUrl: cleanData.profileImageUrl !== undefined ? cleanData.profileImageUrl : currentCached.profileImageUrl,
+    cvUrl: cleanData.cvUrl !== undefined ? cleanData.cvUrl : currentCached.cvUrl,
+    cvFileName: cleanData.cvFileName !== undefined ? cleanData.cvFileName : currentCached.cvFileName,
+    skillStacks: cleanData.skillStacks !== undefined ? cleanData.skillStacks : currentCached.skillStacks,
+  };
+
+  saveProfileCache(mergedResult);
+  return mergedResult;
 }
 
 // ══════════════════════════════════════════════════════════════════════════
