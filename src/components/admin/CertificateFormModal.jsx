@@ -36,6 +36,7 @@ export default function CertificateFormModal({
   onClose,
   onSave,
   initialCertificate = null,
+  initialInputMode = 'file',
 }) {
   const { addToast } = useToast();
   const fileInputRef = useRef(null);
@@ -60,7 +61,9 @@ export default function CertificateFormModal({
   };
 
   const [formData, setFormData] = useState(defaultForm);
-  const [inputMode, setInputMode] = useState('file'); // 'file' | 'url'
+  const [inputMode, setInputMode] = useState(initialInputMode || 'file'); // 'file' | 'verification' | 'url'
+  const [verificationUrlInput, setVerificationUrlInput] = useState('');
+  const [isExtractingLink, setIsExtractingLink] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -89,6 +92,7 @@ export default function CertificateFormModal({
         order: initialCertificate.order !== undefined ? Number(initialCertificate.order) : 1,
       });
       setFilePreview(initialCertificate.thumbnailUrl || initialCertificate.fileUrl || '');
+      setVerificationUrlInput(initialCertificate.credentialUrl || '');
       if (initialCertificate.fileUrl && !initialCertificate.filePath && !initialCertificate.fileUrl.includes('cloudinary.com')) {
         setInputMode('url');
       } else {
@@ -97,13 +101,15 @@ export default function CertificateFormModal({
     } else {
       setFormData(defaultForm);
       setFilePreview('');
-      setInputMode('file');
+      setVerificationUrlInput('');
+      setInputMode(initialInputMode || 'file');
     }
     setSelectedFile(null);
     setIsDragging(false);
     setUploadProgress(0);
     setIsExtracting(false);
-  }, [initialCertificate, isOpen]);
+    setIsExtractingLink(false);
+  }, [initialCertificate, isOpen, initialInputMode]);
 
   if (!isOpen) return null;
 
@@ -193,6 +199,77 @@ export default function CertificateFormModal({
       addToast('AI auto-fill failed: ' + err.message, 'warning');
     } finally {
       setIsExtracting(false);
+    }
+  };
+
+  const extractDetailsFromVerificationLink = async (urlOverride) => {
+    const targetUrl = (typeof urlOverride === 'string' ? urlOverride : '') || verificationUrlInput || formData.credentialUrl;
+
+    if (!targetUrl || !targetUrl.trim()) {
+      addToast('Please enter a verification or credential URL', 'error');
+      return;
+    }
+
+    const cleanUrl = targetUrl.trim();
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      addToast('Please enter a valid URL starting with https://', 'error');
+      return;
+    }
+
+    setIsExtractingLink(true);
+    addToast('✨ Analyzing verification link with AI...', 'info');
+
+    try {
+      const response = await fetch('/api/extract-certificate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verificationUrl: cleanUrl }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success && result.data) {
+        const {
+          title,
+          issuer,
+          category,
+          issuedDate,
+          expiryDate,
+          credentialId,
+          credentialUrl,
+          imageUrl,
+          description,
+        } = result.data;
+
+        setFormData((prev) => ({
+          ...prev,
+          title: title || prev.title,
+          issuer: issuer || prev.issuer,
+          category: category || prev.category,
+          issuedDate: issuedDate || prev.issuedDate,
+          expiryDate: expiryDate || prev.expiryDate,
+          credentialId: credentialId || prev.credentialId,
+          credentialUrl: credentialUrl || cleanUrl,
+          description: description || prev.description,
+          fileUrl: (imageUrl && !prev.filePath && !selectedFile) ? imageUrl : prev.fileUrl,
+          thumbnailUrl: (imageUrl && !prev.filePath && !selectedFile) ? imageUrl : prev.thumbnailUrl,
+          fileType: (imageUrl && !prev.filePath && !selectedFile) ? 'image' : prev.fileType,
+        }));
+
+        if (imageUrl && !selectedFile) {
+          setFilePreview(imageUrl);
+        }
+
+        setVerificationUrlInput(cleanUrl);
+        addToast('✨ Certificate details & badge auto-filled from link!', 'success');
+      } else {
+        addToast(result.error || 'Could not extract details from this verification link', 'warning');
+      }
+    } catch (err) {
+      console.error('Verification link extraction error:', err);
+      addToast('Failed to analyze link: ' + err.message, 'warning');
+    } finally {
+      setIsExtractingLink(false);
     }
   };
 
@@ -483,17 +560,45 @@ export default function CertificateFormModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                Verify / Credential URL
-              </label>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                  Verify / Credential URL
+                </label>
+                {formData.credentialUrl?.trim() && (
+                  <button
+                    type="button"
+                    disabled={isExtractingLink}
+                    onClick={() => extractDetailsFromVerificationLink(formData.credentialUrl)}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition disabled:opacity-50 cursor-pointer"
+                    title="Extract title, issuer, dates, category from this URL using AI"
+                  >
+                    {isExtractingLink ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Analyzing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3 h-3 text-amber-400" />
+                        <span>Auto-Fill from Link</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <ExternalLink className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
                   type="url"
                   name="credentialUrl"
                   value={formData.credentialUrl}
-                  onChange={handleInputChange}
-                  placeholder="https://verify.example.com/..."
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    if (!verificationUrlInput) {
+                      setVerificationUrlInput(e.target.value);
+                    }
+                  }}
+                  placeholder="https://verify.example.com/... or https://www.credly.com/..."
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 transition"
                 />
               </div>
@@ -519,29 +624,41 @@ export default function CertificateFormModal({
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Certificate Document / Picture
+                Certificate Source &amp; Preview
               </label>
-              <span className="text-xs text-slate-400">PDF or Image · Max 10MB</span>
+              <span className="text-xs text-slate-400">Upload File, Use Verification Link, or Direct URL</span>
             </div>
 
             {/* Mode Switcher Tabs */}
-            <div className="flex p-1 bg-slate-800/80 rounded-xl border border-slate-700/80 w-full sm:w-fit gap-1">
+            <div className="flex flex-wrap p-1 bg-slate-800/80 rounded-xl border border-slate-700/80 w-full sm:w-fit gap-1">
               <button
                 type="button"
                 onClick={() => setInputMode('file')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
                   inputMode === 'file'
                     ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
                     : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                 }`}
               >
                 <Upload className="w-3.5 h-3.5" />
-                <span>Upload File (Drag & Drop)</span>
+                <span>Upload File</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMode('verification')}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
+                  inputMode === 'verification'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                    : 'text-amber-400 hover:text-amber-300 hover:bg-slate-700/50'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Verification Link</span>
               </button>
               <button
                 type="button"
                 onClick={() => setInputMode('url')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
                   inputMode === 'url'
                     ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
                     : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
@@ -551,6 +668,93 @@ export default function CertificateFormModal({
                 <span>Direct File URL</span>
               </button>
             </div>
+
+            {/* Mode: Verification Link (Import via Credly / Coursera / etc.) */}
+            {inputMode === 'verification' && (
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/90 border border-amber-500/30 space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      <span>Add via Verification Link</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                        AI Auto-Fill
+                      </span>
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      Paste a public verification or credential link (e.g. Credly, Coursera, Udemy, Microsoft Learn, LinkedIn, HackerRank). Gemini AI will automatically extract the title, issuer, dates, category, and badge image.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <div className="relative flex-1">
+                    <ExternalLink className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <input
+                      type="url"
+                      value={verificationUrlInput}
+                      onChange={(e) => {
+                        setVerificationUrlInput(e.target.value);
+                        setFormData((prev) => ({ ...prev, credentialUrl: e.target.value }));
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          extractDetailsFromVerificationLink();
+                        }
+                      }}
+                      placeholder="https://www.credly.com/badges/... or https://coursera.org/verify/..."
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-800/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 transition"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isExtractingLink || !verificationUrlInput.trim()}
+                    onClick={() => extractDetailsFromVerificationLink()}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 transition disabled:opacity-50 shrink-0 cursor-pointer"
+                  >
+                    {isExtractingLink ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Analyzing Link...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        <span>Fetch &amp; Auto-Fill</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Platforms supported badge chips */}
+                <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-slate-400 pt-1">
+                  <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Supported:</span>
+                  {['Credly', 'Coursera', 'Udemy', 'Microsoft Learn', 'LinkedIn', 'HackerRank', 'Any Public Credential'].map((item) => (
+                    <span key={item} className="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700/80 text-slate-300">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+
+                {/* If badge preview image exists */}
+                {filePreview && (
+                  <div className="mt-3 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center gap-3.5">
+                    <div className="w-16 h-16 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+                      <img src={filePreview} alt="Extracted Badge" className="w-full h-full object-contain p-1" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Badge Image Attached</span>
+                      </div>
+                      <p className="text-xs text-white truncate font-medium mt-0.5">{formData.title || 'Certificate Badge'}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{formData.issuer || 'Issuing Organization'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Mode 1: Drag & Drop File Upload */}
             {inputMode === 'file' && (

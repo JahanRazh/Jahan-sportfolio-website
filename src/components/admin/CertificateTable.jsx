@@ -85,7 +85,14 @@ export default function CertificateTable({
             </button>
           )}
           <button
-            onClick={onAddNew}
+            onClick={() => onAddNew('verification')}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-sm font-bold shadow-md shadow-amber-500/20 transition"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Add via Verification Link</span>
+          </button>
+          <button
+            onClick={() => onAddNew('file')}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold border border-slate-700 transition"
           >
             <Plus className="w-4 h-4" />
@@ -108,11 +115,11 @@ export default function CertificateTable({
           className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 transition"
         />
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
           {onBulkUpload && (
             <button
               onClick={onBulkUpload}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 text-xs sm:text-sm font-bold shadow-md shadow-amber-500/20 transition"
+              className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 text-xs sm:text-sm font-bold shadow-md shadow-amber-500/20 transition"
               title="Upload multiple certificates at once and auto-fill details with AI"
             >
               <Sparkles className="w-4 h-4 text-slate-950" />
@@ -121,8 +128,17 @@ export default function CertificateTable({
           )}
 
           <button
-            onClick={onAddNew}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold border border-slate-700 transition shrink-0"
+            onClick={() => onAddNew('verification')}
+            className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs sm:text-sm font-bold shadow-md shadow-amber-500/20 transition shrink-0"
+            title="Add a certificate by pasting a verification link (Credly, Coursera, Udemy, etc.)"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Add via Link</span>
+          </button>
+
+          <button
+            onClick={() => onAddNew('file')}
+            className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold border border-slate-700 transition shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Add Single</span>

@@ -79,6 +79,7 @@ export default function AdminDashboardPage() {
   const [isCertDeleteOpen, setIsCertDeleteOpen] = useState(false);
   const [certToDelete, setCertToDelete] = useState(null);
   const [isDeletingCert, setIsDeletingCert] = useState(false);
+  const [certFormInitialMode, setCertFormInitialMode] = useState('file');
 
   // ── Skills ────────────────────────────────────────────────────
   const [skills, setSkills] = useState([]);
@@ -259,8 +260,9 @@ export default function AdminDashboardPage() {
   };
 
   // ── Certificate handlers ──────────────────────────────────────
-  const handleOpenAddCert = () => {
+  const handleOpenAddCert = (mode = 'file') => {
     setSelectedCertForEdit(null);
+    setCertFormInitialMode(typeof mode === 'string' ? mode : 'file');
     setIsCertFormOpen(true);
   };
 
@@ -646,6 +648,7 @@ export default function AdminDashboardPage() {
         onClose={() => setIsCertFormOpen(false)}
         onSave={handleSaveCert}
         initialCertificate={selectedCertForEdit}
+        initialInputMode={certFormInitialMode}
       />
       <BulkCertificateUploadModal
         isOpen={isBulkCertModalOpen}
