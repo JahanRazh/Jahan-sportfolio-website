@@ -379,6 +379,21 @@ export async function createCertificate(data) {
 }
 
 /**
+ * Create multiple certificates in a batch
+ */
+export async function createCertificatesBatch(certificatesList) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  if (!Array.isArray(certificatesList) || certificatesList.length === 0) return [];
+
+  const createdCerts = [];
+  for (const cert of certificatesList) {
+    const res = await createCertificate(cert);
+    createdCerts.push(res);
+  }
+  return createdCerts;
+}
+
+/**
  * Update an existing certificate
  */
 export async function updateCertificate(id, data) {

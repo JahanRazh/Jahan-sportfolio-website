@@ -13,6 +13,7 @@ import {
   Plus,
   ExternalLink,
   Calendar,
+  Sparkles,
 } from 'lucide-react';
 
 const CATEGORY_COLORS = {
@@ -46,6 +47,7 @@ export default function CertificateTable({
   onDelete,
   onTogglePublish,
   onAddNew,
+  onBulkUpload,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -67,23 +69,34 @@ export default function CertificateTable({
         <div>
           <h3 className="text-base font-bold text-white mb-1">No Certificates Yet</h3>
           <p className="text-sm text-slate-400 max-w-xs">
-            Add your first certificate or credential to show it on the public portfolio.
+            Upload certificates individually or upload multiple files at once with automatic AI extraction.
           </p>
         </div>
-        <button
-          onClick={onAddNew}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-semibold transition"
-        >
-          <Plus className="w-4 h-4" />
-          Add First Certificate
-        </button>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {onBulkUpload && (
+            <button
+              onClick={onBulkUpload}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 text-sm font-bold shadow-lg shadow-amber-500/25 transition"
+            >
+              <Sparkles className="w-4 h-4 text-slate-950" />
+              <span>Bulk Upload &amp; Auto-Fill</span>
+            </button>
+          )}
+          <button
+            onClick={onAddNew}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold border border-slate-700 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Single Certificate</span>
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* Search */}
+      {/* Search & Actions Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <input
           type="text"
@@ -92,13 +105,27 @@ export default function CertificateTable({
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 transition"
         />
-        <button
-          onClick={onAddNew}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-semibold transition shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Certificate</span>
-        </button>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          {onBulkUpload && (
+            <button
+              onClick={onBulkUpload}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 text-xs sm:text-sm font-bold shadow-md shadow-amber-500/20 transition"
+              title="Upload multiple certificates at once and auto-fill details with AI"
+            >
+              <Sparkles className="w-4 h-4 text-slate-950" />
+              <span>Bulk Upload</span>
+            </button>
+          )}
+
+          <button
+            onClick={onAddNew}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold border border-slate-700 transition shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Single</span>
+          </button>
+        </div>
       </div>
 
       {/* Table */}

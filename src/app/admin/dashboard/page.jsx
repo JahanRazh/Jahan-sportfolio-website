@@ -10,6 +10,7 @@ import {
   Loader2, 
   DatabaseBackup,
   Award,
+  Sparkles,
 } from 'lucide-react';
 import Sidebar from '../../../components/admin/Sidebar';
 import DashboardStats from '../../../components/admin/DashboardStats';
@@ -18,6 +19,7 @@ import ProjectFormModal from '../../../components/admin/ProjectFormModal';
 import DeleteConfirmModal from '../../../components/admin/DeleteConfirmModal';
 import CertificateTable from '../../../components/admin/CertificateTable';
 import CertificateFormModal from '../../../components/admin/CertificateFormModal';
+import BulkCertificateUploadModal from '../../../components/admin/BulkCertificateUploadModal';
 import SkillsManager from '../../../components/admin/SkillsManager';
 import AboutCvManager from '../../../components/admin/AboutCvManager';
 import VisitorAnalyticsCard from '../../../components/admin/VisitorAnalyticsCard';
@@ -72,6 +74,7 @@ export default function AdminDashboardPage() {
   const [certificates, setCertificates] = useState([]);
   const [loadingCerts, setLoadingCerts] = useState(true);
   const [isCertFormOpen, setIsCertFormOpen] = useState(false);
+  const [isBulkCertModalOpen, setIsBulkCertModalOpen] = useState(false);
   const [selectedCertForEdit, setSelectedCertForEdit] = useState(null);
   const [isCertDeleteOpen, setIsCertDeleteOpen] = useState(false);
   const [certToDelete, setCertToDelete] = useState(null);
@@ -380,18 +383,29 @@ export default function AdminDashboardPage() {
               <span>Live Site</span>
             </a>
 
+            {isCertTab && (
+              <button
+                onClick={() => setIsBulkCertModalOpen(true)}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-slate-950 bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-xs sm:text-sm font-bold shadow-md shadow-amber-500/20 transition"
+              >
+                <Sparkles className="w-4 h-4 text-slate-950" />
+                <span className="hidden sm:inline">Bulk Upload &amp; Auto-Fill</span>
+                <span className="sm:hidden">Bulk</span>
+              </button>
+            )}
+
             {(activeTab === 'projects' || activeTab === 'certificates') && (
               <button
                 onClick={isCertTab ? handleOpenAddCert : handleOpenAddModal}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-md transition ${
                   isCertTab
-                    ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-600/30 text-slate-950'
+                    ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
                     : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30'
                 }`}
               >
                 {isCertTab ? (
                   <>
-                    <Award className="w-4 h-4" />
+                    <Plus className="w-4 h-4" />
                     <span className="hidden sm:inline">Add Certificate</span>
                   </>
                 ) : (
@@ -575,6 +589,7 @@ export default function AdminDashboardPage() {
                   onDelete={handleDeleteCert}
                   onTogglePublish={handleToggleCertPublish}
                   onAddNew={handleOpenAddCert}
+                  onBulkUpload={() => setIsBulkCertModalOpen(true)}
                 />
               )}
             </section>
@@ -631,6 +646,11 @@ export default function AdminDashboardPage() {
         onClose={() => setIsCertFormOpen(false)}
         onSave={handleSaveCert}
         initialCertificate={selectedCertForEdit}
+      />
+      <BulkCertificateUploadModal
+        isOpen={isBulkCertModalOpen}
+        onClose={() => setIsBulkCertModalOpen(false)}
+        onBatchSaved={() => {}}
       />
       <DeleteConfirmModal
         isOpen={isCertDeleteOpen}
