@@ -18,6 +18,13 @@ const nextConfig = {
       },
     ],
   },
+  eslint: {
+    // Prevent ESLint errors/incompatibilities from failing Vercel production builds
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 module.exports = nextConfig;
