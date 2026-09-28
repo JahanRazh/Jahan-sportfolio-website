@@ -31,6 +31,7 @@ import {
 import { useToast } from '../Toast';
 import { updateProfile, INITIAL_PROFILE } from '../../lib/firestore';
 import { compressImageIfNeeded } from '../../lib/imageCompressor';
+import { getDirectDownloadUrl, downloadPdfDirectly } from '../../lib/downloadHelper';
 
 export default function AboutCvManager({ profileData = null, onProfileUpdated }) {
   const { addToast } = useToast();
@@ -1022,9 +1023,13 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
                     <span>Preview</span>
                   </a>
                   <a
-                    href={formData.cvUrl}
+                    href={getDirectDownloadUrl(formData.cvUrl, formData.cvFileName || 'CV.pdf')}
                     download={formData.cvFileName || 'CV.pdf'}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-semibold border border-cyan-500/30 transition"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      downloadPdfDirectly(formData.cvUrl, formData.cvFileName || 'CV.pdf');
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-semibold border border-cyan-500/30 transition cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download</span>

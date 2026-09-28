@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { FileText, MousePointer2 } from 'lucide-react';
 import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
 import { subscribeToSocialLinks, INITIAL_SOCIAL_LINKS } from '../lib/firestore';
+import { getDirectDownloadUrl, downloadPdfDirectly } from '../lib/downloadHelper';
 
 export default function Hero({ initialProfile = null }) {
   const [profile, setProfile] = useState(() => initialProfile || getCachedProfile());
@@ -121,11 +122,13 @@ export default function Hero({ initialProfile = null }) {
                 Hire Me
               </a>
               <a
-                href={cvDownloadUrl}
+                href={getDirectDownloadUrl(cvDownloadUrl, cvDownloadName)}
                 download={cvDownloadName}
-                target={cvDownloadUrl.startsWith('http') ? '_blank' : undefined}
-                rel={cvDownloadUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-                className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-base text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:bg-[#00c9ff] hover:text-white dark:hover:bg-[#00c9ff] dark:hover:text-slate-900 transition-all duration-300 shadow-sm hover:shadow-[0_0_20px_rgba(0,201,255,0.4)] hover:-translate-y-0.5"
+                onClick={(e) => {
+                  e.preventDefault();
+                  downloadPdfDirectly(cvDownloadUrl, cvDownloadName);
+                }}
+                className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-base text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:bg-[#00c9ff] hover:text-white dark:hover:bg-[#00c9ff] dark:hover:text-slate-900 transition-all duration-300 shadow-sm hover:shadow-[0_0_20px_rgba(0,201,255,0.4)] hover:-translate-y-0.5 cursor-pointer"
               >
                 <span>Download CV</span>
                 <FileText className="w-4 h-4" />

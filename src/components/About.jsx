@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Download, Code2, Server, Database, Layers } from 'lucide-react';
 import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
+import { getDirectDownloadUrl, downloadPdfDirectly } from '../lib/downloadHelper';
 
 function getCategoryIcon(title = '') {
   const t = title.toLowerCase();
@@ -73,11 +74,13 @@ export default function About({ initialProfile = null }) {
             </p>
 
             <a
-              href={cvDownloadUrl}
+              href={getDirectDownloadUrl(cvDownloadUrl, cvDownloadName)}
               download={cvDownloadName}
-              target={cvDownloadUrl.startsWith('http') ? '_blank' : undefined}
-              rel={cvDownloadUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm text-white bg-[#6e57e0] hover:bg-[#285bd4] transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:-translate-y-0.5"
+              onClick={(e) => {
+                e.preventDefault();
+                downloadPdfDirectly(cvDownloadUrl, cvDownloadName);
+              }}
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm text-white bg-[#6e57e0] hover:bg-[#285bd4] transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:-translate-y-0.5 cursor-pointer"
             >
               <span>Download CV</span>
               <Download className="w-4 h-4" />

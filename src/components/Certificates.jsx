@@ -16,8 +16,12 @@ import {
   Maximize2,
   AlertCircle,
   RefreshCw,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
 } from 'lucide-react';
 import { subscribeToPublishedCertificates } from '../lib/firestore';
+import { getDirectDownloadUrl, downloadPdfDirectly } from '../lib/downloadHelper';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 
@@ -48,258 +52,13 @@ function formatDate(dateStr) {
 }
 
 /**
- * Convert a Cloudinary raw/PDF URL to an inline-viewable URL.
- * Adds fl_attachment:false so the browser renders it instead of downloading.
- * If it's already an image URL, return as-is.
+ * Resolves the visual preview image URL for a certificate.
+ * For PDF certificates uploaded to Cloudinary, automatically targets the high-resolution JPG.
  */
-function makeInlineUrl(url) {
-  if (!url) return url;
-  // Cloudinary raw upload URL format: /raw/upload/
-  if (url.includes('/raw/upload/')) {
-    return url.replace('/raw/upload/', '/raw/upload/fl_attachment:false/');
-  }
-  return url;
-}
-
-/**
- * Google Docs viewer URL – works for any public PDF URL cross-browser.
- */
-function googleDocsViewerUrl(pdfUrl) {
-  return `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
-}
-
-// ─── PDF Viewer Modal ──────────────────────────────────────────────────────
-
-function PdfViewerModal({ cert, onClose }) {
-  // Always start with Google Docs Viewer — avoids Cloudinary X-Frame-Options block
-  const [loading, setLoading] = useState(true);
-  const [timedOut, setTimedOut] = useState(false);
-  const [viewerKey, setViewerKey] = useState(0);
-  const timerRef = useRef(null);
-
-  const googleUrl = googleDocsViewerUrl(cert.fileUrl);
-
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  // Lock body scroll
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, []);
-
-  // 12-second timeout: if still loading, show the help panel
-  useEffect(() => {
-    setLoading(true);
-    setTimedOut(false);
-    timerRef.current = setTimeout(() => {
-      setTimedOut(true);
-      setLoading(false);
-    }, 12000);
-    return () => clearTimeout(timerRef.current);
-  }, [viewerKey]);
-
-  const handleIframeLoad = () => {
-    clearTimeout(timerRef.current);
-    setLoading(false);
-    setTimedOut(false);
-  };
-
-  const handleRetry = () => {
-    setLoading(true);
-    setTimedOut(false);
-    setViewerKey((k) => k + 1);
-  };
-
-  return (
-    <div className="fixed inset-0 z-[200] flex flex-col">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Modal panel */}
-      <div className="relative flex flex-col w-full h-full max-w-5xl mx-auto my-4 sm:my-6 px-4">
-        {/* Header bar */}
-        <div className="relative z-10 flex items-center justify-between bg-slate-900/95 border border-slate-700 rounded-t-2xl px-4 py-3 backdrop-blur-md">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
-              <FileText className="w-4 h-4 text-amber-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-white font-semibold text-sm truncate">{cert.title}</p>
-              <p className="text-slate-400 text-xs truncate">{cert.issuer}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 ml-3">
-            {/* Open in new tab — always works */}
-            <a
-              href={cert.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700 transition"
-            >
-              <Maximize2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">New Tab</span>
-            </a>
-
-            {/* Download */}
-            <a
-              href={cert.fileUrl}
-              download
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-medium border border-amber-500/30 transition"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Download</span>
-            </a>
-
-            {/* Close */}
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition"
-              aria-label="Close viewer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Viewer area */}
-        <div className="relative flex-1 bg-slate-950 border-x border-b border-slate-700 rounded-b-2xl overflow-hidden">
-
-          {/* Loading spinner */}
-          {loading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950 z-10 pointer-events-none">
-              <Loader2 className="w-9 h-9 text-amber-400 animate-spin" />
-              <p className="text-slate-300 text-sm font-medium">Loading PDF...</p>
-              <p className="text-slate-500 text-xs">via Google Docs Viewer</p>
-            </div>
-          )}
-
-          {/* Timed-out fallback panel */}
-          {timedOut && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-slate-950 z-10 p-8">
-              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-amber-400" />
-              </div>
-              <div className="text-center">
-                <p className="text-white font-bold text-base mb-1">Can&apos;t preview this PDF</p>
-                <p className="text-slate-400 text-sm max-w-xs">
-                  The embedded viewer couldn&apos;t load. Use one of these options to view the certificate:
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href={cert.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-bold transition shadow-lg shadow-amber-500/30"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                  Open PDF in New Tab
-                </a>
-                <a
-                  href={cert.fileUrl}
-                  download
-                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold border border-slate-700 transition"
-                >
-                  <Download className="w-4 h-4" />
-                  Download PDF
-                </a>
-                <button
-                  onClick={handleRetry}
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-sm font-medium border border-slate-700 transition"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Retry
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Google Docs Viewer iframe */}
-          <iframe
-            key={`gdocs-${viewerKey}`}
-            src={googleUrl}
-            title={cert.title}
-            className="w-full h-full border-0"
-            onLoad={handleIframeLoad}
-            allow="fullscreen"
-            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Image Viewer Modal ────────────────────────────────────────────────────
-
-function ImageViewerModal({ cert, onClose }) {
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, []);
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8">
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={onClose} />
-
-      <div className="relative w-full max-w-4xl flex flex-col gap-3">
-        {/* Header */}
-        <div className="flex items-center justify-between bg-slate-900/95 border border-slate-700 rounded-2xl px-4 py-3 backdrop-blur-md">
-          <div className="flex items-center gap-3 min-w-0">
-            <Award className="w-5 h-5 text-amber-400 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-white font-semibold text-sm truncate">{cert.title}</p>
-              <p className="text-slate-400 text-xs">{cert.issuer}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 ml-3">
-            <a
-              href={cert.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition"
-            >
-              <Maximize2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Full Size</span>
-            </a>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Image */}
-        <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-slate-950">
-          <img
-            src={cert.fileUrl || cert.thumbnailUrl}
-            alt={cert.title}
-            className="w-full max-h-[75vh] object-contain"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Certificate Card ──────────────────────────────────────────────────────
-
 function getCertificatePreviewUrl(cert) {
-  if (cert.thumbnailUrl) return cert.thumbnailUrl;
+  if (cert.thumbnailUrl && !cert.thumbnailUrl.match(/\.pdf(\?.*)?$/i)) {
+    return cert.thumbnailUrl;
+  }
   if (!cert.fileUrl) return null;
 
   // Direct image URLs
@@ -325,7 +84,242 @@ function getCertificatePreviewUrl(cert) {
     return cert.fileUrl.replace('/raw/upload/', '/image/upload/').replace(/\.pdf(\?.*)?$/i, '.jpg');
   }
 
-  return null;
+  return cert.thumbnailUrl || null;
+}
+
+/**
+ * Returns an ultra high-resolution version of the certificate preview image
+ */
+function getHighResCertificateUrl(cert) {
+  const base = getCertificatePreviewUrl(cert);
+  if (!base) return cert.fileUrl || cert.thumbnailUrl;
+  // If it's a Cloudinary upload URL, ensure high resolution and auto quality
+  if (base.includes('/image/upload/') && !base.includes('/image/upload/w_') && !base.includes('/image/upload/q_')) {
+    return base.replace('/image/upload/', '/image/upload/q_auto,f_auto,w_1800/');
+  }
+  return base;
+}
+
+// ─── Certificate Viewer Modal ──────────────────────────────────────────────
+
+function CertificateViewerModal({ cert, onClose }) {
+  const isPdf = cert.fileType === 'pdf';
+  const [imgLoading, setImgLoading] = useState(true);
+  const [imgError, setImgError] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const visualUrl = getHighResCertificateUrl(cert) || cert.fileUrl;
+  const fileName = `${cert.title || 'Certificate'}.${isPdf ? 'pdf' : 'jpg'}`;
+
+  const handleZoomIn = () => setZoomLevel((z) => Math.min(Number((z + 0.25).toFixed(2)), 2.5));
+  const handleZoomOut = () => setZoomLevel((z) => Math.max(Number((z - 0.25).toFixed(2)), 0.75));
+  const handleResetZoom = () => setZoomLevel(1);
+
+  return (
+    <div className="fixed inset-0 z-[200] flex flex-col justify-center items-center p-2 sm:p-4 md:p-6">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
+
+      {/* Modal Container */}
+      <div className="relative flex flex-col w-full h-[92vh] max-w-5xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden z-10">
+        
+        {/* Top Header */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-slate-900/95 border-b border-slate-800 backdrop-blur-md shrink-0">
+          
+          {/* Certificate Title & Info */}
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+              {isPdf ? (
+                <FileText className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Award className="w-4 h-4 text-amber-400" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-white font-semibold text-sm truncate leading-snug">{cert.title}</h3>
+              <p className="text-slate-400 text-xs truncate flex items-center gap-1.5">
+                <span>{cert.issuer}</span>
+                {cert.category && (
+                  <>
+                    <span className="text-slate-600">·</span>
+                    <span className="text-amber-400/90">{cert.category}</span>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Toolbar */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Open in New Tab */}
+            <a
+              href={cert.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700 transition"
+              title={isPdf ? 'Open original PDF in a new tab' : 'Open full size in a new tab'}
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{isPdf ? 'Open PDF' : 'New Tab'}</span>
+            </a>
+
+            {/* Direct Download */}
+            <a
+              href={getDirectDownloadUrl(cert.fileUrl, fileName)}
+              download={fileName}
+              onClick={(e) => {
+                e.preventDefault();
+                downloadPdfDirectly(cert.fileUrl, fileName);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-semibold border border-amber-500/30 transition cursor-pointer"
+              title="Directly download file to device"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Download</span>
+            </a>
+
+            {/* Close */}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              aria-label="Close viewer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content Viewer */}
+        <div className="relative flex-1 bg-slate-950 overflow-hidden flex flex-col">
+          <div className="relative flex-1 overflow-auto p-4 flex items-center justify-center">
+            {imgLoading && !imgError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950 z-10">
+                <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+                <p className="text-slate-400 text-xs">Loading certificate...</p>
+              </div>
+            )}
+
+            {imgError ? (
+              <div className="flex flex-col items-center justify-center gap-4 text-center p-6">
+                <FileText className="w-12 h-12 text-amber-400/80" />
+                <div>
+                  <p className="text-white font-semibold text-sm mb-1">{cert.title}</p>
+                  <p className="text-slate-400 text-xs">Document is ready to view or download.</p>
+                </div>
+                <div className="flex gap-3">
+                  <a
+                    href={cert.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    Open PDF in New Tab
+                  </a>
+                  <button
+                    onClick={() => downloadPdfDirectly(cert.fileUrl, fileName)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Download PDF
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="transition-transform duration-200 ease-out max-w-full flex items-center justify-center"
+                style={{ transform: `scale(${zoomLevel})` }}
+              >
+                <img
+                  src={visualUrl}
+                  alt={cert.title}
+                  onLoad={() => setImgLoading(false)}
+                  onError={() => {
+                    setImgLoading(false);
+                    setImgError(true);
+                  }}
+                  className="max-h-[72vh] max-w-full object-contain rounded-xl shadow-2xl border border-slate-800/80 bg-white/5"
+                />
+              </div>
+            )}
+
+            {/* Floating Zoom Controls */}
+            {!imgError && (
+              <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 backdrop-blur-md shadow-xl text-slate-300 text-xs">
+                <button
+                  type="button"
+                  onClick={handleZoomOut}
+                  disabled={zoomLevel <= 0.75}
+                  className="p-1 rounded hover:bg-slate-800 hover:text-white disabled:opacity-30 transition"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetZoom}
+                  className="px-1.5 py-0.5 rounded hover:bg-slate-800 text-[11px] font-mono hover:text-white transition"
+                  title="Reset Zoom"
+                >
+                  {Math.round(zoomLevel * 100)}%
+                </button>
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  disabled={zoomLevel >= 2.5}
+                  className="p-1 rounded hover:bg-slate-800 hover:text-white disabled:opacity-30 transition"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer info bar */}
+        <div className="px-4 py-2.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 shrink-0">
+          <div className="flex items-center gap-3">
+            {cert.issuedDate && (
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                {formatDate(cert.issuedDate)}
+              </span>
+            )}
+            {cert.credentialId && (
+              <span className="hidden sm:inline-block font-mono text-[11px] text-slate-500">
+                ID: {cert.credentialId}
+              </span>
+            )}
+          </div>
+          {cert.credentialUrl && (
+            <a
+              href={cert.credentialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-medium transition"
+            >
+              <span>Verify Credential</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function CertificateCard({ cert, index, onViewFile }) {
@@ -440,17 +434,32 @@ function CertificateCard({ cert, index, onViewFile }) {
         {/* Action buttons */}
         <div className="flex items-center gap-2">
           {cert.fileUrl && (
-            <button
-              onClick={() => onViewFile(cert)}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold border ${style.border} ${style.text} bg-gradient-to-r ${style.bg} hover:opacity-80 transition-all duration-200 group/btn`}
-            >
-              {isPdf ? (
-                <><FileText className="w-3.5 h-3.5 shrink-0" /><span>View PDF</span></>
-              ) : (
-                <><Eye className="w-3.5 h-3.5 shrink-0" /><span>View Certificate</span></>
-              )}
-              <ChevronRight className="w-3 h-3 opacity-0 group-hover/btn:opacity-100 -translate-x-1 group-hover/btn:translate-x-0 transition-all" />
-            </button>
+            <>
+              <button
+                onClick={() => onViewFile(cert)}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold border ${style.border} ${style.text} bg-gradient-to-r ${style.bg} hover:opacity-80 transition-all duration-200 group/btn`}
+              >
+                {isPdf ? (
+                  <><FileText className="w-3.5 h-3.5 shrink-0" /><span>View PDF</span></>
+                ) : (
+                  <><Eye className="w-3.5 h-3.5 shrink-0" /><span>View Certificate</span></>
+                )}
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover/btn:opacity-100 -translate-x-1 group-hover/btn:translate-x-0 transition-all" />
+              </button>
+
+              <a
+                href={getDirectDownloadUrl(cert.fileUrl, `${cert.title || 'Certificate'}.${isPdf ? 'pdf' : 'jpg'}`)}
+                download={`${cert.title || 'Certificate'}.${isPdf ? 'pdf' : 'jpg'}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  downloadPdfDirectly(cert.fileUrl, `${cert.title || 'Certificate'}.${isPdf ? 'pdf' : 'jpg'}`);
+                }}
+                title={isPdf ? 'Download PDF directly' : 'Download certificate directly'}
+                className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 border border-slate-700 hover:border-amber-500/40 transition-all duration-200"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </a>
+            </>
           )}
 
           {cert.credentialUrl && (
@@ -523,13 +532,9 @@ export default function Certificates() {
 
   return (
     <>
-      {/* PDF / Image Viewer Modal */}
+      {/* Certificate Viewer Modal */}
       {viewingCert && (
-        viewingCert.fileType === 'pdf' ? (
-          <PdfViewerModal cert={viewingCert} onClose={handleCloseViewer} />
-        ) : (
-          <ImageViewerModal cert={viewingCert} onClose={handleCloseViewer} />
-        )
+        <CertificateViewerModal cert={viewingCert} onClose={handleCloseViewer} />
       )}
 
       <section id="certificates" className="py-24 px-6 sm:px-10 relative overflow-hidden">

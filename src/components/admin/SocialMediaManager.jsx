@@ -105,7 +105,7 @@ export const PLATFORM_PRESETS = {
   },
   gitlab: {
     label: 'GitLab',
-    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/gitlab.svg',
+    icon: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gitlab.svg',
     color: 'bg-orange-600/20 text-orange-300 border-orange-500/30',
     patterns: [/gitlab\.com/i],
     defaultUrl: 'https://gitlab.com/',
@@ -205,7 +205,7 @@ function SocialLinkFormModal({ isOpen, onClose, onSave, initial }) {
   // Handle typing or pasting into Profile URL -> auto-detect platform, name & icon
   const handleUrlChange = (value) => {
     const detected = detectPlatformFromUrl(value);
-    
+
     if (detected && detected !== 'other') {
       const preset = PLATFORM_PRESETS[detected];
       setDetectedBadge(preset.label);
@@ -349,11 +349,10 @@ function SocialLinkFormModal({ isOpen, onClose, onSave, initial }) {
                   type="button"
                   onClick={() => handlePlatformChange(key)}
                   title={preset.label}
-                  className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg border text-[10px] font-medium transition ${
-                    form.platform === key
+                  className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg border text-[10px] font-medium transition ${form.platform === key
                       ? 'border-cyan-400 bg-cyan-400/15 text-cyan-300 font-bold shadow-sm shadow-cyan-500/20'
                       : 'border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-slate-900/60'
-                  }`}
+                    }`}
                 >
                   {preset.icon ? (
                     <img src={preset.icon} alt={preset.label} className="w-4 h-4 object-contain" />
@@ -427,11 +426,10 @@ function SocialLinkFormModal({ isOpen, onClose, onSave, initial }) {
               <button
                 type="button"
                 onClick={() => setForm((p) => ({ ...p, published: !p.published }))}
-                className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-semibold transition ${
-                  form.published
+                className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-semibold transition ${form.published
                     ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
                     : 'bg-slate-800 border-slate-700 text-slate-400'
-                }`}
+                  }`}
               >
                 {form.published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 {form.published ? 'Published' : 'Hidden'}
@@ -448,11 +446,10 @@ function SocialLinkFormModal({ isOpen, onClose, onSave, initial }) {
               <button
                 type="button"
                 onClick={() => setForm((p) => ({ ...p, showInHero: !p.showInHero }))}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-sm font-medium transition ${
-                  form.showInHero
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-sm font-medium transition ${form.showInHero
                     ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
                     : 'bg-slate-800 border-slate-700 text-slate-500'
-                }`}
+                  }`}
               >
                 {form.showInHero ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
                 Hero Section
@@ -460,11 +457,10 @@ function SocialLinkFormModal({ isOpen, onClose, onSave, initial }) {
               <button
                 type="button"
                 onClick={() => setForm((p) => ({ ...p, showInFooter: !p.showInFooter }))}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-sm font-medium transition ${
-                  form.showInFooter
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-sm font-medium transition ${form.showInFooter
                     ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300'
                     : 'bg-slate-800 border-slate-700 text-slate-500'
-                }`}
+                  }`}
               >
                 {form.showInFooter ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
                 Footer
@@ -704,22 +700,20 @@ https://x.com/yourprofile`}
                 <button
                   type="button"
                   onClick={() => handleToggleGlobalHero(!globalHero)}
-                  className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition ${
-                    globalHero
+                  className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition ${globalHero
                       ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
                       : 'bg-slate-800 border-slate-700 text-slate-500'
-                  }`}
+                    }`}
                 >
                   Hero {globalHero ? '✓ ON' : '✕ OFF'}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleToggleGlobalFooter(!globalFooter)}
-                  className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition ${
-                    globalFooter
+                  className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition ${globalFooter
                       ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
                       : 'bg-slate-800 border-slate-700 text-slate-500'
-                  }`}
+                    }`}
                 >
                   Footer {globalFooter ? '✓ ON' : '✕ OFF'}
                 </button>
@@ -775,11 +769,10 @@ https://x.com/yourprofile`}
                       type="button"
                       onClick={() => handleItemToggleHero(index)}
                       title="Toggle Hero section"
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition ${
-                        item.showInHero
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition ${item.showInHero
                           ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
                           : 'bg-slate-900 border-slate-700 text-slate-600'
-                      }`}
+                        }`}
                     >
                       Hero
                     </button>
@@ -789,11 +782,10 @@ https://x.com/yourprofile`}
                       type="button"
                       onClick={() => handleItemToggleFooter(index)}
                       title="Toggle Footer"
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition ${
-                        item.showInFooter
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition ${item.showInFooter
                           ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
                           : 'bg-slate-900 border-slate-700 text-slate-600'
-                      }`}
+                        }`}
                     >
                       Footer
                     </button>
@@ -1152,11 +1144,10 @@ export default function SocialMediaManager({ links = [], loading = false }) {
                         onClick={() => handleTogglePublish(link)}
                         disabled={isToggling}
                         title={link.published ? 'Hide from site' : 'Publish to site'}
-                        className={`p-1.5 rounded-lg border transition text-xs ${
-                          link.published
+                        className={`p-1.5 rounded-lg border transition text-xs ${link.published
                             ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25'
                             : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'
-                        }`}
+                          }`}
                       >
                         {isToggling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : link.published ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                       </button>

@@ -14,7 +14,9 @@ import {
   ExternalLink,
   Calendar,
   Sparkles,
+  Download,
 } from 'lucide-react';
+import { getDirectDownloadUrl, downloadPdfDirectly } from '../../lib/downloadHelper';
 
 const CATEGORY_COLORS = {
   'Web Development':     'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
@@ -202,20 +204,33 @@ export default function CertificateTable({
                       </div>
                     </td>
 
-                    {/* File type badge */}
+                    {/* File type badge (clickable to directly download) */}
                     <td className="hidden sm:table-cell px-4 py-3">
                       {cert.fileUrl ? (
-                        cert.fileType === 'pdf' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-500/15 text-orange-300 border border-orange-500/30 text-[10px] font-semibold">
-                            <FileText className="w-3 h-3" />
-                            PDF
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 text-[10px] font-semibold">
-                            <ImageIcon className="w-3 h-3" />
-                            Image
-                          </span>
-                        )
+                        <a
+                          href={getDirectDownloadUrl(cert.fileUrl, `${cert.title || 'Certificate'}.${cert.fileType === 'pdf' ? 'pdf' : 'jpg'}`)}
+                          download={`${cert.title || 'Certificate'}.${cert.fileType === 'pdf' ? 'pdf' : 'jpg'}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            downloadPdfDirectly(cert.fileUrl, `${cert.title || 'Certificate'}.${cert.fileType === 'pdf' ? 'pdf' : 'jpg'}`);
+                          }}
+                          title="Directly download document"
+                          className="inline-block group/badge cursor-pointer"
+                        >
+                          {cert.fileType === 'pdf' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-500/15 group-hover/badge:bg-orange-500/30 text-orange-300 border border-orange-500/30 text-[10px] font-semibold transition">
+                              <FileText className="w-3 h-3" />
+                              PDF
+                              <Download className="w-2.5 h-2.5 ml-0.5 opacity-60 group-hover/badge:opacity-100" />
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-500/15 group-hover/badge:bg-teal-500/30 text-teal-300 border border-teal-500/30 text-[10px] font-semibold transition">
+                              <ImageIcon className="w-3 h-3" />
+                              Image
+                              <Download className="w-2.5 h-2.5 ml-0.5 opacity-60 group-hover/badge:opacity-100" />
+                            </span>
+                          )}
+                        </a>
                       ) : (
                         <span className="text-xs text-slate-600">No file</span>
                       )}
@@ -252,6 +267,20 @@ export default function CertificateTable({
                             className="p-1.5 rounded-lg text-slate-500 hover:text-cyan-400 hover:bg-cyan-400/10 transition"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                        {cert.fileUrl && (
+                          <a
+                            href={getDirectDownloadUrl(cert.fileUrl, `${cert.title || 'Certificate'}.${cert.fileType === 'pdf' ? 'pdf' : 'jpg'}`)}
+                            download={`${cert.title || 'Certificate'}.${cert.fileType === 'pdf' ? 'pdf' : 'jpg'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              downloadPdfDirectly(cert.fileUrl, `${cert.title || 'Certificate'}.${cert.fileType === 'pdf' ? 'pdf' : 'jpg'}`);
+                            }}
+                            title="Directly download document"
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-amber-300 hover:bg-amber-500/10 transition cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5" />
                           </a>
                         )}
                         <button
