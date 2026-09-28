@@ -633,6 +633,13 @@ Passionate about coding, software development, and modern technologies, I specia
       skills: ['MySQL', 'SQLite', 'MongoDB'],
     },
   ],
+
+  // Direct Contact / "Find Me" section
+  contactPhone: '+94 76-722 14 36',
+  contactEmail: 'jahanrazh@gmail.com',
+  contactWhatsapp: '+94 76 722 1436',
+  findMeTitle: "Let's start a project together",
+  findMeText: 'I am always open to discussing new projects, creative ideas, or opportunities to be part of your vision. Feel free to reach out anytime!',
 };
 
 /**
@@ -651,6 +658,11 @@ export function getCachedProfile() {
             heroTitles: Array.isArray(parsed.heroTitles) && parsed.heroTitles.length > 0 ? parsed.heroTitles : INITIAL_PROFILE.heroTitles,
             aboutBadge: parsed.aboutBadge || INITIAL_PROFILE.aboutBadge,
             skillStacks: Array.isArray(parsed.skillStacks) && parsed.skillStacks.length > 0 ? parsed.skillStacks : INITIAL_PROFILE.skillStacks,
+            contactPhone: parsed.contactPhone !== undefined ? parsed.contactPhone : INITIAL_PROFILE.contactPhone,
+            contactEmail: parsed.contactEmail !== undefined ? parsed.contactEmail : INITIAL_PROFILE.contactEmail,
+            contactWhatsapp: parsed.contactWhatsapp !== undefined ? parsed.contactWhatsapp : INITIAL_PROFILE.contactWhatsapp,
+            findMeTitle: parsed.findMeTitle !== undefined ? parsed.findMeTitle : INITIAL_PROFILE.findMeTitle,
+            findMeText: parsed.findMeText !== undefined ? parsed.findMeText : INITIAL_PROFILE.findMeText,
           };
         }
       }
@@ -678,6 +690,11 @@ export function saveProfileCache(data) {
       cvUrl: data.cvUrl || INITIAL_PROFILE.cvUrl,
       cvFileName: data.cvFileName || INITIAL_PROFILE.cvFileName,
       skillStacks: Array.isArray(data.skillStacks) && data.skillStacks.length > 0 ? data.skillStacks : INITIAL_PROFILE.skillStacks,
+      contactPhone: data.contactPhone !== undefined ? data.contactPhone : INITIAL_PROFILE.contactPhone,
+      contactEmail: data.contactEmail !== undefined ? data.contactEmail : INITIAL_PROFILE.contactEmail,
+      contactWhatsapp: data.contactWhatsapp !== undefined ? data.contactWhatsapp : INITIAL_PROFILE.contactWhatsapp,
+      findMeTitle: data.findMeTitle !== undefined ? data.findMeTitle : INITIAL_PROFILE.findMeTitle,
+      findMeText: data.findMeText !== undefined ? data.findMeText : INITIAL_PROFILE.findMeText,
       updatedAt: new Date().toISOString(),
     };
     localStorage.setItem('jahan_profile_cache', JSON.stringify(serializable));
@@ -848,6 +865,21 @@ export async function updateProfile(profileData) {
       ? profileData.skillStacks
       : INITIAL_PROFILE.skillStacks;
   }
+  if (profileData.contactPhone !== undefined) {
+    cleanData.contactPhone = String(profileData.contactPhone || '').trim() || INITIAL_PROFILE.contactPhone;
+  }
+  if (profileData.contactEmail !== undefined) {
+    cleanData.contactEmail = String(profileData.contactEmail || '').trim() || INITIAL_PROFILE.contactEmail;
+  }
+  if (profileData.contactWhatsapp !== undefined) {
+    cleanData.contactWhatsapp = String(profileData.contactWhatsapp || '').trim() || INITIAL_PROFILE.contactWhatsapp;
+  }
+  if (profileData.findMeTitle !== undefined) {
+    cleanData.findMeTitle = String(profileData.findMeTitle || '').trim() || INITIAL_PROFILE.findMeTitle;
+  }
+  if (profileData.findMeText !== undefined) {
+    cleanData.findMeText = String(profileData.findMeText || '').trim() || INITIAL_PROFILE.findMeText;
+  }
   cleanData.updatedAt = serverTimestamp();
 
   try {
@@ -876,6 +908,11 @@ export async function updateProfile(profileData) {
     cvUrl: cleanData.cvUrl !== undefined ? cleanData.cvUrl : currentCached.cvUrl,
     cvFileName: cleanData.cvFileName !== undefined ? cleanData.cvFileName : currentCached.cvFileName,
     skillStacks: cleanData.skillStacks !== undefined ? cleanData.skillStacks : currentCached.skillStacks,
+    contactPhone: cleanData.contactPhone !== undefined ? cleanData.contactPhone : currentCached.contactPhone,
+    contactEmail: cleanData.contactEmail !== undefined ? cleanData.contactEmail : currentCached.contactEmail,
+    contactWhatsapp: cleanData.contactWhatsapp !== undefined ? cleanData.contactWhatsapp : currentCached.contactWhatsapp,
+    findMeTitle: cleanData.findMeTitle !== undefined ? cleanData.findMeTitle : currentCached.findMeTitle,
+    findMeText: cleanData.findMeText !== undefined ? cleanData.findMeText : currentCached.findMeText,
   };
 
   saveProfileCache(mergedResult);

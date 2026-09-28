@@ -24,6 +24,9 @@ import {
   Eye,
   Save,
   AlertCircle,
+  Phone,
+  Mail,
+  PhoneCall,
 } from 'lucide-react';
 import { useToast } from '../Toast';
 import { updateProfile, INITIAL_PROFILE } from '../../lib/firestore';
@@ -37,6 +40,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
   const [isSavingHero, setIsSavingHero] = useState(false);
   const [isSavingIntro, setIsSavingIntro] = useState(false);
   const [isSavingStacks, setIsSavingStacks] = useState(false);
+  const [isSavingContact, setIsSavingContact] = useState(false);
   const [newRoleInput, setNewRoleInput] = useState('');
 
   // Track if user has made local changes so background snapshots don't overwrite active typing
@@ -89,6 +93,11 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
           skillStacks: Array.isArray(profileData.skillStacks) && profileData.skillStacks.length > 0
             ? profileData.skillStacks
             : INITIAL_PROFILE.skillStacks,
+          contactPhone: profileData.contactPhone !== undefined ? profileData.contactPhone : INITIAL_PROFILE.contactPhone,
+          contactEmail: profileData.contactEmail !== undefined ? profileData.contactEmail : INITIAL_PROFILE.contactEmail,
+          contactWhatsapp: profileData.contactWhatsapp !== undefined ? profileData.contactWhatsapp : INITIAL_PROFILE.contactWhatsapp,
+          findMeTitle: profileData.findMeTitle !== undefined ? profileData.findMeTitle : INITIAL_PROFILE.findMeTitle,
+          findMeText: profileData.findMeText !== undefined ? profileData.findMeText : INITIAL_PROFILE.findMeText,
         };
       });
 
@@ -529,6 +538,63 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
     addToast('Introduction reverted to last saved version', 'info');
   };
 
+  const handleContactFieldChange = (field, value) => {
+    hasUserEditedRef.current = true;
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const savedContactPhone = profileData?.contactPhone || INITIAL_PROFILE.contactPhone;
+  const savedContactEmail = profileData?.contactEmail || INITIAL_PROFILE.contactEmail;
+  const savedContactWhatsapp = profileData?.contactWhatsapp || INITIAL_PROFILE.contactWhatsapp;
+  const savedFindMeTitle = profileData?.findMeTitle || INITIAL_PROFILE.findMeTitle;
+  const savedFindMeText = profileData?.findMeText || INITIAL_PROFILE.findMeText;
+
+  const isContactDirty =
+    (formData.contactPhone || '') !== (savedContactPhone || '') ||
+    (formData.contactEmail || '') !== (savedContactEmail || '') ||
+    (formData.contactWhatsapp || '') !== (savedContactWhatsapp || '') ||
+    (formData.findMeTitle || '') !== (savedFindMeTitle || '') ||
+    (formData.findMeText || '') !== (savedFindMeText || '');
+
+  const handleSaveContact = async (e) => {
+    if (e) e.preventDefault();
+    if (!formData.contactPhone?.trim()) {
+      addToast('Phone number cannot be empty', 'warning');
+      return;
+    }
+    if (!formData.contactEmail?.trim()) {
+      addToast('Email address cannot be empty', 'warning');
+      return;
+    }
+
+    setIsSavingContact(true);
+    try {
+      const saved = await updateProfile(formData);
+      setFormData((prev) => ({ ...prev, ...saved }));
+      hasUserEditedRef.current = false;
+      addToast('Find Me contact details saved successfully! Changes are live on your portfolio.', 'success');
+      if (onProfileUpdated) onProfileUpdated(saved);
+    } catch (err) {
+      console.error('Save contact error:', err);
+      addToast(err.message || 'Failed to save contact details', 'error');
+    } finally {
+      setIsSavingContact(false);
+    }
+  };
+
+  const handleResetContact = () => {
+    setFormData((prev) => ({
+      ...prev,
+      contactPhone: savedContactPhone,
+      contactEmail: savedContactEmail,
+      contactWhatsapp: savedContactWhatsapp,
+      findMeTitle: savedFindMeTitle,
+      findMeText: savedFindMeText,
+    }));
+    hasUserEditedRef.current = false;
+    addToast('Find Me contact details reverted to saved version', 'info');
+  };
+
   const handleSaveSkillStacks = async (e) => {
     if (e) e.preventDefault();
     setIsSavingStacks(true);
@@ -629,9 +695,9 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
             <User className="w-5 h-5 text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Profile Picture, Hero Intro, About Me & CV</h2>
+            <h2 className="text-lg font-bold text-white">Profile, Bio, CV & Contact ("Find Me")</h2>
             <p className="text-xs text-slate-400">
-              Update your hero photo, profile section introduction, CV document, biography, and skill stacks.
+              Update your hero photo, introduction, CV document, biography, skill stacks, and "Find Me" direct contact details (Phone, Email, WhatsApp).
             </p>
           </div>
         </div>
@@ -1287,8 +1353,184 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
           </div>
         </div>
 
-        {/* Right Column: Skill Stacks inside About Me */}
+        {/* Right Column: Contact Details & Skill Stacks */}
         <div className="lg:col-span-5 space-y-6">
+          {/* ── FIND ME / DIRECT CONTACT DETAILS CARD ───────────── */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-7 space-y-5 shadow-lg shadow-black/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center">
+                  <PhoneCall className="w-5 h-5 text-cyan-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Find Me / Contact Details</h3>
+                  <p className="text-xs text-slate-400">Phone, Email & WhatsApp ("Find Me" card)</p>
+                </div>
+              </div>
+
+              {isContactDirty ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  Unsaved Changes
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                  <Check className="w-3.5 h-3.5" />
+                  Saved & Synced
+                </span>
+              )}
+            </div>
+
+            {/* Direct Phone Number ("no") */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-cyan-400" />
+                  Phone Number (Direct Call)
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono">tel: link</span>
+              </label>
+              <input
+                type="text"
+                value={formData.contactPhone || ''}
+                onChange={(e) => handleContactFieldChange('contactPhone', e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition font-mono"
+                placeholder="+94 76-722 14 36"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Visitors on mobile or desktop click to dial directly.
+              </p>
+            </div>
+
+            {/* Direct Email Address */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                  Email Address (Direct Message)
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono">mailto: link</span>
+              </label>
+              <input
+                type="email"
+                value={formData.contactEmail || ''}
+                onChange={(e) => handleContactFieldChange('contactEmail', e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                placeholder="jahanrazh@gmail.com"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Direct email opened when visitors click Email in "Find Me".
+              </p>
+            </div>
+
+            {/* Direct WhatsApp Number */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 fill-[#25D366]" viewBox="0 0 24 24">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+                  </svg>
+                  WhatsApp Number (Direct Chat)
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono">wa.me link</span>
+              </label>
+              <input
+                type="text"
+                value={formData.contactWhatsapp || ''}
+                onChange={(e) => handleContactFieldChange('contactWhatsapp', e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition font-mono"
+                placeholder="+94 76 722 1436"
+              />
+              <div className="flex items-center justify-between gap-2 mt-1.5">
+                <p className="text-[11px] text-slate-500">
+                  Direct chat via <span className="text-emerald-400 font-mono">wa.me/{formData.contactWhatsapp?.replace(/[^0-9]/g, '') || '...'}</span>
+                </p>
+                {formData.contactWhatsapp && (
+                  <a
+                    href={`https://wa.me/${formData.contactWhatsapp.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 underline"
+                  >
+                    <span>Test Chat</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Find Me Card Headline & Subtext (Optional) */}
+            <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                Find Me Card Headline & Text (Optional)
+              </span>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Card Title</label>
+                <input
+                  type="text"
+                  value={formData.findMeTitle || ''}
+                  onChange={(e) => handleContactFieldChange('findMeTitle', e.target.value)}
+                  className="w-full px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  placeholder="Let's start a project together"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Card Subtext</label>
+                <textarea
+                  rows={2}
+                  value={formData.findMeText || ''}
+                  onChange={(e) => handleContactFieldChange('findMeText', e.target.value)}
+                  className="w-full px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-400 resize-y"
+                  placeholder="I am always open to discussing new projects..."
+                />
+              </div>
+            </div>
+
+            {/* Save / Revert Actions */}
+            <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-slate-800">
+              <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Live sync on "Find Me" card</span>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                {isContactDirty && (
+                  <button
+                    type="button"
+                    onClick={handleResetContact}
+                    disabled={isSavingContact}
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Revert</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleSaveContact}
+                  disabled={isSavingContact}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition disabled:opacity-50"
+                >
+                  {isSavingContact ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span>Saving Contact...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 text-white" />
+                      <span>Save Contact Details</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ── ABOUT ME SKILL STACKS ────────────────────────────── */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-7 space-y-5 shadow-lg shadow-black/20">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2.5">

@@ -27,7 +27,7 @@ export default async function HomePage() {
         <Projects />
         <Skills />
         <Certificates />
-        <Contact />
+        <Contact initialProfile={profile} />
       </div>
       <Footer />
     </main>

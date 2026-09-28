@@ -33,7 +33,7 @@ export default function Sidebar({
     { id: 'projects', label: 'Projects Management', icon: FolderGit2 },
     { id: 'certificates', label: 'Certificates', icon: Award },
     { id: 'skills', label: 'Skills (Tech & Pro)', icon: Sliders },
-    { id: 'about', label: 'Profile Picture & CV', icon: User },
+    { id: 'about', label: 'Profile, Bio & Contact', icon: User },
     { id: 'social', label: 'Social Media Links', icon: Share2 },
   ];
 
