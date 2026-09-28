@@ -21,6 +21,7 @@ import CertificateFormModal from '../../../components/admin/CertificateFormModal
 import SkillsManager from '../../../components/admin/SkillsManager';
 import AboutCvManager from '../../../components/admin/AboutCvManager';
 import VisitorAnalyticsCard from '../../../components/admin/VisitorAnalyticsCard';
+import SocialMediaManager from '../../../components/admin/SocialMediaManager';
 import ThemeToggle from '../../../components/ThemeToggle';
 import { useToast } from '../../../components/Toast';
 import { 
@@ -43,6 +44,7 @@ import {
   getCachedProfile,
   INITIAL_PROFILE,
   subscribeToVisitorStats,
+  subscribeToSocialLinks,
 } from '../../../lib/firestore';
 import { deleteProjectImage, extractCloudinaryPublicId } from '../../../lib/storage';
 import { deleteCertificateFile } from '../../../lib/certificateStorage';
@@ -91,6 +93,10 @@ export default function AdminDashboardPage() {
     lastVisitedAt: null,
     dailyViews: {},
   });
+
+  // ── Social Links ──────────────────────────────────────────────
+  const [socialLinks, setSocialLinks] = useState([]);
+  const [loadingSocial, setLoadingSocial] = useState(true);
 
   // ── Auth ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -156,6 +162,17 @@ export default function AdminDashboardPage() {
       if (data) setVisitorStats(data);
     });
     return () => unsubscribe();
+  }, [currentUser]);
+
+  // ── Realtime social links ─────────────────────────────────────
+  useEffect(() => {
+    if (!currentUser) return;
+    setLoadingSocial(true);
+    const unsub = subscribeToSocialLinks((data) => {
+      setSocialLinks(data);
+      setLoadingSocial(false);
+    });
+    return () => unsub();
   }, [currentUser]);
 
   // ── Project handlers ──────────────────────────────────────────
@@ -346,6 +363,8 @@ export default function AdminDashboardPage() {
                 ? 'Technical & Professional Skills'
                 : activeTab === 'about'
                 ? 'Profile Picture, About Me & CV'
+                : activeTab === 'social'
+                ? 'Social Media Links'
                 : 'Project Management CMS'}
             </h1>
           </div>
@@ -582,6 +601,11 @@ export default function AdminDashboardPage() {
                 }
               }}
             />
+          )}
+
+          {/* ── SOCIAL MEDIA TAB ──────────────────────────────────────── */}
+          {activeTab === 'social' && (
+            <SocialMediaManager links={socialLinks} loading={loadingSocial} />
           )}
         </main>
       </div>

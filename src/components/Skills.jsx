@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   subscribeToAllSkills,
   INITIAL_TECHNICAL_SKILLS,
@@ -10,13 +10,16 @@ import {
 export default function Skills() {
   const [skillsList, setSkillsList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const unsubRef = useRef(null);
 
   useEffect(() => {
+    if (unsubRef.current) { unsubRef.current(); unsubRef.current = null; }
     const unsub = subscribeToAllSkills((data) => {
       setSkillsList(data);
       setLoading(false);
     });
-    return () => unsub();
+    unsubRef.current = unsub;
+    return () => { if (unsubRef.current) { unsubRef.current(); unsubRef.current = null; } };
   }, []);
 
   const published = skillsList.filter((s) => s.published !== false);

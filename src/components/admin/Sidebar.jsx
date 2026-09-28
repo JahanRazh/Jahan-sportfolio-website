@@ -12,6 +12,7 @@ import {
   Award,
   Sliders,
   User,
+  Share2,
   X 
 } from 'lucide-react';
 import { INITIAL_PROFILE } from '../../lib/firestore';
@@ -33,6 +34,7 @@ export default function Sidebar({
     { id: 'certificates', label: 'Certificates', icon: Award },
     { id: 'skills', label: 'Skills (Tech & Pro)', icon: Sliders },
     { id: 'about', label: 'Profile Picture & CV', icon: User },
+    { id: 'social', label: 'Social Media Links', icon: Share2 },
   ];
 
   const handleNavClick = (tabId) => {

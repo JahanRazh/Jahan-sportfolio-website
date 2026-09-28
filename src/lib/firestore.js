@@ -14,6 +14,7 @@ import {
   setDoc,
   increment,
   limit,
+  writeBatch,
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import { INITIAL_PROJECTS } from './initialProjects';
@@ -49,6 +50,46 @@ export async function getPublishedProjects() {
   } catch (error) {
     console.warn('Firestore fetch notice (using fallback):', error.message);
     return INITIAL_PROJECTS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+}
+
+/**
+ * Subscribe to published projects in real-time for the public portfolio site
+ */
+export function subscribeToPublishedProjects(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_PROJECTS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    return () => {};
+  }
+
+  try {
+    const q = query(
+      collection(db, PROJECTS_COLLECTION),
+      where('published', '==', true)
+    );
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          callback(INITIAL_PROJECTS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+          return;
+        }
+        const projects = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        projects.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(projects);
+      },
+      (error) => {
+        console.warn('Published projects realtime error:', error);
+        callback(INITIAL_PROJECTS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+      }
+    );
+  } catch (err) {
+    console.error('Failed to set up published projects listener:', err);
+    callback(INITIAL_PROJECTS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    return () => {};
   }
 }
 
@@ -269,7 +310,7 @@ export function subscribeToPublishedCertificates(callback) {
 }
 
 /**
- * Subscribe to ALL certificates (admin panel — includes unpublished)
+ * Subscribe to ALL certificates (admin panel â€” includes unpublished)
  */
 export function subscribeToAllCertificates(callback) {
   if (!isFirebaseConfigured || !db) {
@@ -381,9 +422,9 @@ export async function deleteCertificate(id) {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SKILLS MANAGEMENT (Technical & Professional)
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const SKILLS_COLLECTION = 'skills';
 
@@ -555,9 +596,9 @@ export async function seedInitialSkills() {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // ABOUT ME & CV PROFILE MANAGEMENT
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const PROFILE_COLLECTION = 'profile';
 const PROFILE_DOC_ID = 'main';
@@ -822,9 +863,9 @@ export async function updateProfile(profileData) {
   return mergedResult;
 }
 
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // VISITOR & TRAFFIC ANALYTICS
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const ANALYTICS_COLLECTION = 'analytics';
 const VISITORS_DOC_ID = 'visitors';
@@ -1024,3 +1065,280 @@ export function subscribeToRecentVisitors(callback, maxCount = 15) {
   }
 }
 
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// SOCIAL LINKS MANAGEMENT
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+const SOCIAL_LINKS_COLLECTION = 'socialLinks';
+
+export const INITIAL_SOCIAL_LINKS = [
+  {
+    id: 'facebook',
+    name: 'Facebook',
+    url: 'https://fb.com/rjahan.razh',
+    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/facebook.svg',
+    platform: 'facebook',
+    showInHero: true,
+    showInFooter: false,
+    order: 1,
+    published: true,
+  },
+  {
+    id: 'github',
+    name: 'GitHub',
+    url: 'https://github.com/JahanRazh',
+    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/github.svg',
+    platform: 'github',
+    showInHero: true,
+    showInFooter: true,
+    order: 2,
+    published: true,
+  },
+  {
+    id: 'instagram',
+    name: 'Instagram',
+    url: 'https://instagram.com/_jahan_razh_',
+    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/instagram.svg',
+    platform: 'instagram',
+    showInHero: true,
+    showInFooter: true,
+    order: 3,
+    published: true,
+  },
+  {
+    id: 'youtube',
+    name: 'YouTube',
+    url: 'https://www.youtube.com/channel/UC_4OKBZ0RYHTDxKYHwFFojw',
+    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/youtube.svg',
+    platform: 'youtube',
+    showInHero: true,
+    showInFooter: true,
+    order: 4,
+    published: true,
+  },
+  {
+    id: 'twitter',
+    name: 'Twitter / X',
+    url: 'https://twitter.com/jahan3165',
+    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg',
+    platform: 'twitter',
+    showInHero: true,
+    showInFooter: false,
+    order: 5,
+    published: true,
+  },
+  {
+    id: 'linkedin',
+    name: 'LinkedIn',
+    url: 'https://linkedin.com/in/jahanrazh',
+    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg',
+    platform: 'linkedin',
+    showInHero: true,
+    showInFooter: true,
+    order: 6,
+    published: true,
+  },
+  {
+    id: 'discord',
+    name: 'Discord',
+    url: 'https://discord.gg/jahanramesh',
+    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/discord.svg',
+    platform: 'discord',
+    showInHero: true,
+    showInFooter: false,
+    order: 7,
+    published: true,
+  },
+  {
+    id: 'stackoverflow',
+    name: 'Stack Overflow',
+    url: 'https://stackoverflow.com/users/jahan-ramesh',
+    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/stack-overflow.svg',
+    platform: 'stackoverflow',
+    showInHero: true,
+    showInFooter: false,
+    order: 8,
+    published: true,
+  },
+  {
+    id: 'hackerrank',
+    name: 'HackerRank',
+    url: 'https://www.hackerrank.com/jahanrazh',
+    icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/hackerrank.svg',
+    platform: 'hackerrank',
+    showInHero: true,
+    showInFooter: false,
+    order: 9,
+    published: true,
+  },
+];
+
+/**
+ * Realtime subscription to all social links (admin + public)
+ */
+export function subscribeToSocialLinks(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_SOCIAL_LINKS);
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(db, SOCIAL_LINKS_COLLECTION));
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          callback(INITIAL_SOCIAL_LINKS);
+          return;
+        }
+        const links = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        links.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(links);
+      },
+      (error) => {
+        console.warn('Social links subscription error:', error);
+        callback(INITIAL_SOCIAL_LINKS);
+      }
+    );
+  } catch (err) {
+    console.error('Failed to set up social links listener:', err);
+    callback(INITIAL_SOCIAL_LINKS);
+    return () => {};
+  }
+}
+
+/**
+ * Create a new social link
+ */
+export async function createSocialLink(data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  const cleanData = {
+    name: data.name || '',
+    url: data.url || '',
+    icon: data.icon || '',
+    platform: data.platform || 'other',
+    showInHero: Boolean(data.showInHero),
+    showInFooter: Boolean(data.showInFooter),
+    order: Number(data.order) || 1,
+    published: data.published !== undefined ? Boolean(data.published) : true,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  try {
+    const docRef = await addDoc(collection(db, SOCIAL_LINKS_COLLECTION), cleanData);
+    return { id: docRef.id, ...cleanData };
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Please update your Firestore Security Rules.');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Bulk create multiple social links at once using a batch write
+ */
+export async function bulkCreateSocialLinks(linksArray) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  if (!Array.isArray(linksArray) || linksArray.length === 0) return [];
+
+  const batch = writeBatch(db);
+  const colRef = collection(db, SOCIAL_LINKS_COLLECTION);
+  const created = [];
+
+  for (const item of linksArray) {
+    const docRef = doc(colRef);
+    const cleanData = {
+      name: item.name || '',
+      url: item.url || '',
+      icon: item.icon || '',
+      platform: item.platform || 'other',
+      showInHero: Boolean(item.showInHero),
+      showInFooter: Boolean(item.showInFooter),
+      order: Number(item.order) || 1,
+      published: item.published !== undefined ? Boolean(item.published) : true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+    batch.set(docRef, cleanData);
+    created.push({ id: docRef.id, ...cleanData });
+  }
+
+  try {
+    await batch.commit();
+    return created;
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Please update your Firestore Security Rules.');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update an existing social link
+ */
+export async function updateSocialLink(id, data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SOCIAL_LINKS_COLLECTION, id);
+
+  const cleanData = {
+    ...data,
+    order: Number(data.order) || 1,
+    published: Boolean(data.published),
+    showInHero: Boolean(data.showInHero),
+    showInFooter: Boolean(data.showInFooter),
+    updatedAt: serverTimestamp(),
+  };
+  delete cleanData.id;
+
+  try {
+    await setDoc(docRef, cleanData, { merge: true });
+    return { id, ...cleanData };
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Please update your Firestore Security Rules.');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Delete a social link
+ */
+export async function deleteSocialLink(id) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SOCIAL_LINKS_COLLECTION, id);
+  try {
+    await deleteDoc(docRef);
+    return id;
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Please update your Firestore Security Rules.');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Seed initial social links into Firestore if empty
+ */
+export async function seedInitialSocialLinks() {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  try {
+    for (const link of INITIAL_SOCIAL_LINKS) {
+      const docRef = doc(db, SOCIAL_LINKS_COLLECTION, link.id);
+      const dataToSave = { ...link, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+      delete dataToSave.id;
+      await setDoc(docRef, dataToSave, { merge: true });
+    }
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Please update your Firestore Security Rules.');
+    }
+    throw error;
+  }
+}

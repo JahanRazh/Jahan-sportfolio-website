@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Download, Code2, Server, Database, Layers } from 'lucide-react';
 import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
 
@@ -12,15 +12,34 @@ function getCategoryIcon(title = '') {
   return Layers;
 }
 
-export default function About() {
-  const [profile, setProfile] = useState(getCachedProfile);
+export default function About({ initialProfile = null }) {
+  const [profile, setProfile] = useState(() => initialProfile || getCachedProfile());
+  const unsubRef = useRef(null);
 
   useEffect(() => {
+    if (initialProfile) {
+      setProfile(initialProfile);
+    }
+  }, [initialProfile]);
+
+  useEffect(() => {
+    // Tear down any previous subscription (handles React Strict Mode double-invocation)
+    if (unsubRef.current) {
+      unsubRef.current();
+      unsubRef.current = null;
+    }
     const unsub = subscribeToProfile((data) => {
       if (data) setProfile(data);
     });
-    return () => unsub();
+    unsubRef.current = unsub;
+    return () => {
+      if (unsubRef.current) {
+        unsubRef.current();
+        unsubRef.current = null;
+      }
+    };
   }, []);
+
 
   const skillCategories = Array.isArray(profile.skillStacks) && profile.skillStacks.length > 0
     ? profile.skillStacks

@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Users, Eye } from 'lucide-react';
-import { subscribeToVisitorStats } from '../lib/firestore';
+import { subscribeToVisitorStats, subscribeToSocialLinks, INITIAL_SOCIAL_LINKS } from '../lib/firestore';
 
 export default function Footer() {
   const [visitorStats, setVisitorStats] = useState({ totalViews: 0, uniqueVisitors: 0 });
+  const [socialLinks, setSocialLinks] = useState(INITIAL_SOCIAL_LINKS.filter((l) => l.showInFooter && l.published));
+  const unsubSocialRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToVisitorStats((data) => {
@@ -17,34 +19,20 @@ export default function Footer() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (unsubSocialRef.current) { unsubSocialRef.current(); unsubSocialRef.current = null; }
+    const unsub = subscribeToSocialLinks((data) => {
+      setSocialLinks(data.filter((l) => l.showInFooter && l.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    });
+    unsubSocialRef.current = unsub;
+    return () => { if (unsubSocialRef.current) { unsubSocialRef.current(); unsubSocialRef.current = null; } };
+  }, []);
+
   const footerLinks = [
     { label: 'Home', href: '#home' },
     { label: 'About', href: '#about' },
     { label: 'Projects', href: '#projects' },
     { label: 'Contact', href: '#contact' },
-  ];
-
-  const socialLinks = [
-    {
-      name: 'Instagram',
-      href: 'https://www.instagram.com/_jahan_razh_',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/instagram.svg',
-    },
-    {
-      name: 'LinkedIn',
-      href: 'https://www.linkedin.com/in/jahanrazh',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg',
-    },
-    {
-      name: 'YouTube',
-      href: 'https://youtube.com/channel/UC_4OKBZ0RYHTDxKYHwFFojw',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/youtube.svg',
-    },
-    {
-      name: 'GitHub',
-      href: 'https://github.com/JahanRazh',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/github.svg',
-    },
   ];
 
   return (
@@ -76,8 +64,8 @@ export default function Footer() {
         <div className="flex items-center gap-4 mb-8">
           {socialLinks.map((social) => (
             <a
-              key={social.name}
-              href={social.href}
+              key={social.id || social.name}
+              href={social.url || social.href}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={social.name}

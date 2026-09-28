@@ -1,29 +1,25 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ProjectCard from './ProjectCard';
-import { getPublishedProjects } from '../lib/firestore';
-import { Sparkles, Layers, RefreshCw } from 'lucide-react';
+import { subscribeToPublishedProjects } from '../lib/firestore';
+import { Sparkles, Layers } from 'lucide-react';
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
-
-  const fetchProjects = async () => {
-    setLoading(true);
-    try {
-      const data = await getPublishedProjects();
-      setProjects(data);
-    } catch (error) {
-      console.error('Error loading projects:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const unsubRef = useRef(null);
 
   useEffect(() => {
-    fetchProjects();
+    if (unsubRef.current) { unsubRef.current(); unsubRef.current = null; }
+    setLoading(true);
+    const unsub = subscribeToPublishedProjects((data) => {
+      setProjects(data);
+      setLoading(false);
+    });
+    unsubRef.current = unsub;
+    return () => { if (unsubRef.current) { unsubRef.current(); unsubRef.current = null; } };
   }, []);
 
   const categories = ['All', ...new Set(projects.map((p) => p.category).filter(Boolean))];
@@ -87,16 +83,9 @@ export default function Projects() {
           <div className="text-center py-20 bg-white dark:bg-[#161f30] rounded-3xl border border-slate-200 dark:border-slate-800 max-w-xl mx-auto p-8">
             <Layers className="w-12 h-12 text-slate-400 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">No projects found</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               There are currently no published projects in this category.
             </p>
-            <button
-              onClick={fetchProjects}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#6e57e0] text-white text-sm font-medium hover:bg-[#285bd4] transition"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Refresh Projects</span>
-            </button>
           </div>
         ) : (
           <div className="space-y-16">

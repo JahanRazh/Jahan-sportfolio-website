@@ -8,15 +8,21 @@ import Certificates from '../components/Certificates';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 import VisitorTracker from '../components/VisitorTracker';
+import { getProfileData } from '../lib/firestore';
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default async function HomePage() {
+  const profile = await getProfileData();
+
   return (
     <main className="min-h-screen relative flex flex-col">
       <VisitorTracker />
       <Navbar />
       <div className="flex-1">
-        <Hero />
-        <About />
+        <Hero initialProfile={profile} />
+        <About initialProfile={profile} />
         <Services />
         <Projects />
         <Skills />

@@ -1,19 +1,49 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { FileText, MousePointer2 } from 'lucide-react';
 import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
+import { subscribeToSocialLinks, INITIAL_SOCIAL_LINKS } from '../lib/firestore';
 
-export default function Hero() {
-  const [profile, setProfile] = useState(getCachedProfile);
+export default function Hero({ initialProfile = null }) {
+  const [profile, setProfile] = useState(() => initialProfile || getCachedProfile());
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [socialLinks, setSocialLinks] = useState(INITIAL_SOCIAL_LINKS.filter((l) => l.showInHero && l.published));
+  const unsubRef = useRef(null);
+  const unsubSocialRef = useRef(null);
 
   useEffect(() => {
+    if (initialProfile) {
+      setProfile(initialProfile);
+    }
+  }, [initialProfile]);
+
+  useEffect(() => {
+    // Tear down any previous subscription (handles React Strict Mode double-invocation)
+    if (unsubRef.current) {
+      unsubRef.current();
+      unsubRef.current = null;
+    }
     const unsub = subscribeToProfile((data) => {
       if (data) setProfile(data);
     });
-    return () => unsub();
+    unsubRef.current = unsub;
+    return () => {
+      if (unsubRef.current) {
+        unsubRef.current();
+        unsubRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (unsubSocialRef.current) { unsubSocialRef.current(); unsubSocialRef.current = null; }
+    const unsub = subscribeToSocialLinks((data) => {
+      setSocialLinks(data.filter((l) => l.showInHero && l.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    });
+    unsubSocialRef.current = unsub;
+    return () => { if (unsubSocialRef.current) { unsubSocialRef.current(); unsubSocialRef.current = null; } };
   }, []);
 
   const cvDownloadUrl = profile.cvUrl || '/assets/cv/Jahan_Jayalath-CV.pdf';
@@ -50,53 +80,6 @@ export default function Hero() {
     return () => clearTimeout(timer);
   }, [currentText, isDeleting, currentTextIndex, typedList]);
 
-  const socialLinks = [
-    {
-      name: 'Facebook',
-      href: 'https://fb.com/rjahan.razh',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/facebook.svg',
-    },
-    {
-      name: 'GitHub',
-      href: 'https://github.com/JahanRazh',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/github.svg',
-    },
-    {
-      name: 'Instagram',
-      href: 'https://instagram.com/_jahan_razh_',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/instagram.svg',
-    },
-    {
-      name: 'YouTube',
-      href: 'https://www.youtube.com/channel/UC_4OKBZ0RYHTDxKYHwFFojw',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/youtube.svg',
-    },
-    {
-      name: 'Twitter/X',
-      href: 'https://twitter.com/jahan3165',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg',
-    },
-    {
-      name: 'LinkedIn',
-      href: 'https://linkedin.com/in/jahanrazh',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg',
-    },
-    {
-      name: 'Discord',
-      href: 'https://discord.gg/jahanramesh',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/discord.svg',
-    },
-    {
-      name: 'Stack Overflow',
-      href: 'https://stackoverflow.com/users/jahan-ramesh',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/stack-overflow.svg',
-    },
-    {
-      name: 'HackerRank',
-      href: 'https://www.hackerrank.com/jahanrazh',
-      icon: 'https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/hackerrank.svg',
-    },
-  ];
 
   return (
     <section
@@ -153,8 +136,8 @@ export default function Hero() {
             <div className="mt-12 flex flex-wrap items-center gap-3.5">
               {socialLinks.map((social) => (
                 <a
-                  key={social.name}
-                  href={social.href}
+                  key={social.id || social.name}
+                  href={social.url || social.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.name}

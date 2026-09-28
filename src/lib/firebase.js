@@ -25,12 +25,12 @@ let auth;
 let db;
 let storage;
 
-if (typeof window !== 'undefined' || isFirebaseConfigured) {
+if (isFirebaseConfigured) {
   try {
     app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
+    auth = typeof window !== 'undefined' ? getAuth(app) : null;
     db = getFirestore(app);
-    storage = getStorage(app);
+    storage = typeof window !== 'undefined' ? getStorage(app) : null;
   } catch (error) {
     console.warn('Firebase initialization notice:', error.message);
   }
