@@ -80,6 +80,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
             ? profileData.heroTitles
             : INITIAL_PROFILE.heroTitles,
           heroIntro: profileData.heroIntro || INITIAL_PROFILE.heroIntro,
+          aboutBadge: profileData.aboutBadge || INITIAL_PROFILE.aboutBadge,
           title: profileData.title || INITIAL_PROFILE.title,
           bio: profileData.bio || INITIAL_PROFILE.bio,
           profileImageUrl: profileData.profileImageUrl || INITIAL_PROFILE.profileImageUrl,
@@ -468,6 +469,11 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
     addToast('Profile section introduction reverted to saved version', 'info');
   };
 
+  const handleAboutBadgeChange = (e) => {
+    hasUserEditedRef.current = true;
+    setFormData((prev) => ({ ...prev, aboutBadge: e.target.value }));
+  };
+
   const handleTitleChange = (e) => {
     hasUserEditedRef.current = true;
     setFormData((prev) => ({ ...prev, title: e.target.value }));
@@ -478,9 +484,13 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
     setFormData((prev) => ({ ...prev, bio: e.target.value }));
   };
 
+  const savedAboutBadge = profileData?.aboutBadge || INITIAL_PROFILE.aboutBadge;
   const savedTitle = profileData?.title || INITIAL_PROFILE.title;
   const savedBio = profileData?.bio || INITIAL_PROFILE.bio;
-  const isIntroDirty = formData.title !== savedTitle || formData.bio !== savedBio;
+  const isIntroDirty =
+    (formData.aboutBadge || '') !== (savedAboutBadge || '') ||
+    (formData.title || '') !== (savedTitle || '') ||
+    (formData.bio || '') !== (savedBio || '');
 
   const handleSaveIntroduction = async (e) => {
     if (e) e.preventDefault();
@@ -511,6 +521,7 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
   const handleResetIntroduction = () => {
     setFormData((prev) => ({
       ...prev,
+      aboutBadge: profileData?.aboutBadge || INITIAL_PROFILE.aboutBadge,
       title: profileData?.title || INITIAL_PROFILE.title,
       bio: profileData?.bio || INITIAL_PROFILE.bio,
     }));
@@ -1178,6 +1189,22 @@ export default function AboutCvManager({ profileData = null, onProfileUpdated })
                   Saved & Synced
                 </span>
               )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                Subtitle Badge / Tagline
+              </label>
+              <input
+                type="text"
+                value={formData.aboutBadge || ''}
+                onChange={handleAboutBadgeChange}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                placeholder="SLIIT Software Engineering Undergraduate"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Displayed as the pill badge directly above the "About Me" heading on your public site.
+              </p>
             </div>
 
             <div>

@@ -610,6 +610,7 @@ export const INITIAL_PROFILE = {
   heroIntro: 'I am a Software Engineering undergraduate student at SLIIT University. Passionate about coding, software development, and continuously learning new technologies and methodologies in the field. Skilled in programming languages such as Java, Python, and C++. Experienced in web development, mobile app development, and database management.',
 
   // About Me section
+  aboutBadge: 'SLIIT Software Engineering Undergraduate',
   title: 'About Ramesh Jahan Jayalath',
   bio: `Hello! I am Ramesh Jahan Jayalath (professionally known as Jahan Jayalath, Jahan Ramesh, or Jahan Razh). I am a Software Engineering undergraduate student at SLIIT University and a dedicated IT professional.
 
@@ -648,6 +649,7 @@ export function getCachedProfile() {
             ...INITIAL_PROFILE,
             ...parsed,
             heroTitles: Array.isArray(parsed.heroTitles) && parsed.heroTitles.length > 0 ? parsed.heroTitles : INITIAL_PROFILE.heroTitles,
+            aboutBadge: parsed.aboutBadge || INITIAL_PROFILE.aboutBadge,
             skillStacks: Array.isArray(parsed.skillStacks) && parsed.skillStacks.length > 0 ? parsed.skillStacks : INITIAL_PROFILE.skillStacks,
           };
         }
@@ -669,6 +671,7 @@ export function saveProfileCache(data) {
       heroBadge: data.heroBadge !== undefined ? data.heroBadge : INITIAL_PROFILE.heroBadge,
       heroTitles: Array.isArray(data.heroTitles) && data.heroTitles.length > 0 ? data.heroTitles : INITIAL_PROFILE.heroTitles,
       heroIntro: data.heroIntro !== undefined ? data.heroIntro : INITIAL_PROFILE.heroIntro,
+      aboutBadge: data.aboutBadge !== undefined ? data.aboutBadge : INITIAL_PROFILE.aboutBadge,
       title: data.title !== undefined ? data.title : INITIAL_PROFILE.title,
       bio: data.bio !== undefined ? data.bio : INITIAL_PROFILE.bio,
       profileImageUrl: data.profileImageUrl || INITIAL_PROFILE.profileImageUrl,
@@ -698,7 +701,19 @@ export async function getProfileData() {
     if (!docSnap.exists()) {
       return getCachedProfile();
     }
-    const data = { ...INITIAL_PROFILE, ...docSnap.data() };
+    const rawData = docSnap.data();
+    // Sanitize timestamps for Next.js Server Components
+    const sanitizedData = { ...rawData };
+    if (sanitizedData.updatedAt && typeof sanitizedData.updatedAt.toDate === 'function') {
+      sanitizedData.updatedAt = sanitizedData.updatedAt.toDate().toISOString();
+    }
+    if (sanitizedData.cvUpdatedAt && typeof sanitizedData.cvUpdatedAt.toDate === 'function') {
+      sanitizedData.cvUpdatedAt = sanitizedData.cvUpdatedAt.toDate().toISOString();
+    }
+    if (sanitizedData.createdAt && typeof sanitizedData.createdAt.toDate === 'function') {
+      sanitizedData.createdAt = sanitizedData.createdAt.toDate().toISOString();
+    }
+    const data = { ...INITIAL_PROFILE, ...sanitizedData };
     saveProfileCache(data);
     return data;
   } catch (error) {
@@ -809,6 +824,9 @@ export async function updateProfile(profileData) {
   if (profileData.heroIntro !== undefined) {
     cleanData.heroIntro = String(profileData.heroIntro || '').trim() || INITIAL_PROFILE.heroIntro;
   }
+  if (profileData.aboutBadge !== undefined) {
+    cleanData.aboutBadge = String(profileData.aboutBadge || '').trim() || INITIAL_PROFILE.aboutBadge;
+  }
   if (profileData.title !== undefined) {
     cleanData.title = String(profileData.title || '').trim() || INITIAL_PROFILE.title;
   }
@@ -851,6 +869,7 @@ export async function updateProfile(profileData) {
     heroBadge: cleanData.heroBadge !== undefined ? cleanData.heroBadge : currentCached.heroBadge,
     heroTitles: cleanData.heroTitles !== undefined ? cleanData.heroTitles : currentCached.heroTitles,
     heroIntro: cleanData.heroIntro !== undefined ? cleanData.heroIntro : currentCached.heroIntro,
+    aboutBadge: cleanData.aboutBadge !== undefined ? cleanData.aboutBadge : currentCached.aboutBadge,
     title: cleanData.title !== undefined ? cleanData.title : currentCached.title,
     bio: cleanData.bio !== undefined ? cleanData.bio : currentCached.bio,
     profileImageUrl: cleanData.profileImageUrl !== undefined ? cleanData.profileImageUrl : currentCached.profileImageUrl,
