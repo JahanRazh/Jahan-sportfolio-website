@@ -59,6 +59,9 @@ export default function ProjectFormModal({
   const [repoSearchQuery, setRepoSearchQuery] = useState('');
   const [ghTab, setGhTab] = useState('select'); // 'select' | 'url'
   const [selectedRepoUrl, setSelectedRepoUrl] = useState('');
+  const [isGeneratingAiPreview, setIsGeneratingAiPreview] = useState(false);
+  const [aiPreviewSource, setAiPreviewSource] = useState('');
+  const [imagePreviewError, setImagePreviewError] = useState(false);
 
   const fetchUserRepositories = async (usernameToFetch) => {
     const user = (usernameToFetch || githubUsername || 'JahanRazh').trim();
@@ -141,9 +144,19 @@ export default function ProjectFormModal({
 
         if (imageUrl) {
           setImagePreview(imageUrl);
+          setImagePreviewError(false);
         }
 
-        addToast('✨ Project details & README images auto-filled!', 'success');
+        if (result.data.isAiGeneratedPreview) {
+          setAiPreviewSource(result.data.aiPreviewSourceFile || 'Homepage Source Code');
+          addToast('✨ No README image found — Gemini synthesized UI visual preview from code!', 'success');
+        } else if (imageUrl) {
+          setAiPreviewSource('');
+          addToast('✨ Project details & README preview image auto-filled!', 'success');
+        } else {
+          setAiPreviewSource('');
+          addToast('✨ Project details auto-filled from GitHub!', 'success');
+        }
       } else {
         console.warn('GitHub extraction returned error:', result.error);
         addToast(result.error || 'Could not auto-fill details from GitHub repository', 'warning');
@@ -155,6 +168,63 @@ export default function ProjectFormModal({
       setIsExtractingGh(false);
     }
   };
+
+  const handleGenerateAiPreviewFromCode = async () => {
+    const targetUrl = (formData.githubUrl || selectedRepoUrl || githubInputBar || '').trim();
+
+    if (!targetUrl || !targetUrl.includes('github.com')) {
+      addToast('Please provide a valid GitHub repository URL first', 'warning');
+      return;
+    }
+
+    setIsGeneratingAiPreview(true);
+    setImagePreviewError(false);
+    addToast('🤖 Reading homepage source code & synthesizing visual preview with Gemini...', 'info');
+
+    try {
+      const res = await fetch('/api/extract-github-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          githubUrl: targetUrl,
+          forceAiPreview: true,
+        }),
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success && result.data?.imageUrl) {
+        setFormData((prev) => ({
+          ...prev,
+          imageUrl: result.data.imageUrl,
+          imageAlt: prev.imageAlt || `${prev.name || result.data.name} UI Preview`,
+        }));
+        setImagePreview(result.data.imageUrl);
+        setImagePreviewError(false);
+        setAiPreviewSource(result.data.aiPreviewSourceFile || 'Homepage Code');
+        addToast('✨ AI UI visual preview generated & saved from repository code!', 'success');
+      } else {
+        addToast(result?.error || 'Failed to generate visual preview from code', 'error');
+      }
+    } catch (err) {
+      console.error('Error generating AI preview:', err);
+      addToast('AI preview generation failed: ' + err.message, 'error');
+    } finally {
+      setIsGeneratingAiPreview(false);
+    }
+  };
+
+  const handleImageError = () => {
+    setImagePreviewError(true);
+    const targetUrl = (formData.githubUrl || selectedRepoUrl || githubInputBar || '').trim();
+    if (targetUrl.includes('github.com') && !isGeneratingAiPreview) {
+      addToast('⚠️ Candidate image not reachable. Auto-generating AI UI preview from code...', 'info');
+      handleGenerateAiPreviewFromCode();
+    }
+  };
+
+  useEffect(() => {
+    setImagePreviewError(false);
+  }, [imagePreview, formData.imageUrl]);
 
   useEffect(() => {
     if (initialProject) {
@@ -174,6 +244,7 @@ export default function ProjectFormModal({
         order: initialProject.order !== undefined ? Number(initialProject.order) : 1,
       });
       setImagePreview(initialProject.imageUrl || '');
+      setImagePreviewError(false);
     } else {
       setFormData({
         name: '',
@@ -191,9 +262,13 @@ export default function ProjectFormModal({
         order: 1,
       });
       setImagePreview('');
+      setImagePreviewError(false);
     }
     setImageFile(null);
     setUploadProgress(0);
+    setAiPreviewSource('');
+    setIsGeneratingAiPreview(false);
+    setImagePreviewError(false);
   }, [initialProject, isOpen]);
 
   if (!isOpen) return null;
@@ -243,11 +318,13 @@ export default function ProjectFormModal({
 
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
+    setImagePreviewError(false);
   };
 
   const handleRemoveImage = () => {
     setImageFile(null);
     setImagePreview('');
+    setImagePreviewError(false);
     setFormData((prev) => ({ ...prev, imageUrl: '', imagePath: '' }));
   };
 
@@ -743,39 +820,58 @@ export default function ProjectFormModal({
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
                 Project Image
               </label>
-              <span className="text-xs text-slate-400">JPG, PNG, GIF, WEBP up to 10MB</span>
+              <span className="text-xs text-slate-400">JPG, PNG, GIF, WEBP, SVG</span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-5">
               {/* Preview Box */}
-              <div className="relative w-40 h-28 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0 shadow-inner">
-                {imagePreview ? (
+              <div className="relative w-44 h-28 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0 shadow-inner">
+                {isGeneratingAiPreview ? (
+                  <div className="flex flex-col items-center justify-center text-cyan-400 text-xs gap-2 p-3 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+                    <span className="text-[11px] font-medium text-slate-300">Synthesizing UI...</span>
+                  </div>
+                ) : imagePreview && !imagePreviewError ? (
                   <img
                     src={imagePreview}
                     alt="Preview"
+                    onError={handleImageError}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center text-slate-500 text-xs gap-1">
-                    <ImageIcon className="w-6 h-6" />
-                    <span>No image</span>
+                  <div className="flex flex-col items-center justify-center text-slate-500 text-xs gap-1.5 p-3 text-center">
+                    <ImageIcon className="w-6 h-6 text-slate-500" />
+                    <span className="text-[11px] text-slate-400">No image preview</span>
+                    {(formData.githubUrl || selectedRepoUrl) && (
+                      <button
+                        type="button"
+                        onClick={handleGenerateAiPreviewFromCode}
+                        className="mt-1 px-2.5 py-1 rounded-lg bg-indigo-600/40 hover:bg-indigo-600/60 text-indigo-200 text-[10px] font-semibold border border-indigo-400/30 transition shadow-sm"
+                      >
+                        ✨ Generate AI Preview
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Upload Input & Actions */}
-              <div className="flex-1 w-full space-y-2">
+              <div className="flex-1 w-full space-y-2.5">
                 {formData.imageUrl && !imageFile && (
-                  <div className="flex items-center gap-1.5 text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg w-fit">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span className="truncate max-w-xs">Using README preview image</span>
+                  <div className="flex items-center gap-1.5 text-xs text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1.5 rounded-lg w-fit">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <span className="truncate max-w-xs">
+                      {aiPreviewSource || formData.imageUrl.includes('.svg')
+                        ? `AI UI Preview (${aiPreviewSource || 'Source Code'})`
+                        : 'Using README preview image'}
+                    </span>
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 flex-wrap">
-                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-semibold transition">
-                    <Upload className="w-4 h-4" />
-                    <span>Upload Custom Image</span>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <label className="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-semibold transition">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Custom</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -783,6 +879,26 @@ export default function ProjectFormModal({
                       className="hidden"
                     />
                   </label>
+
+                  <button
+                    type="button"
+                    onClick={handleGenerateAiPreviewFromCode}
+                    disabled={isGeneratingAiPreview || isExtractingGh}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600/90 to-purple-600/90 hover:from-indigo-600 hover:to-purple-600 text-white text-xs font-semibold border border-indigo-400/30 shadow-md shadow-indigo-500/20 disabled:opacity-50 transition"
+                    title="Read homepage JSX/HTML/Tailwind and generate visual preview mockup"
+                  >
+                    {isGeneratingAiPreview ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-300" />
+                        <span>Generating Preview...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        <span>Generate AI Preview from Code</span>
+                      </>
+                    )}
+                  </button>
 
                   {imagePreview && (
                     <button
@@ -795,6 +911,10 @@ export default function ProjectFormModal({
                     </button>
                   )}
                 </div>
+
+                <p className="text-[11px] text-slate-400">
+                  Tip: If your repository doesn&apos;t have screenshots in README, click &quot;Generate AI Preview from Code&quot; to synthesize an image directly from your homepage JSX/CSS!
+                </p>
 
                 {isUploading && (
                   <div className="w-full">

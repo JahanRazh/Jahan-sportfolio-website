@@ -21,20 +21,33 @@ export default function ProjectCard({ project }) {
 
   const displayDescription = shortDescription || description || '';
 
+  const [imageError, setImageError] = React.useState(false);
+
   return (
     <div className="group relative bg-white dark:bg-[#161f30] rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800/80 shadow-lg shadow-slate-200/50 dark:shadow-black/40 hover:shadow-2xl hover:border-[#6e57e0]/60 dark:hover:border-[#12f7ff]/50 transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5">
       {/* Top Image Preview Container */}
       <div className="relative w-full h-52 sm:h-56 bg-slate-900 overflow-hidden">
-        {imageUrl ? (
+        {imageUrl && !imageError ? (
           <img
             src={imageUrl}
             alt={imageAlt || `${name} - Project by Ramesh Jahan Jayalath`}
             loading="lazy"
+            onError={() => setImageError(true)}
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-950 text-slate-500 font-medium text-sm">
-            No Preview Available
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-[#101b33] to-slate-900 text-center p-6 border-b border-slate-800">
+            <div className="w-12 h-12 rounded-2xl bg-[#6e57e0]/20 border border-[#6e57e0]/40 flex items-center justify-center mb-2 shadow-inner">
+              <span className="text-xl font-extrabold text-[#12f7ff]">
+                {(name || 'P').charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <p className="text-sm font-bold text-white tracking-tight line-clamp-1">
+              {name || 'Project'}
+            </p>
+            <p className="text-xs text-[#12f7ff] font-medium mt-0.5">
+              {category || 'Software Project'}
+            </p>
           </div>
         )}
 
