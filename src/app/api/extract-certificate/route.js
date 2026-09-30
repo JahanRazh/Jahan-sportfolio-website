@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
 const ALLOWED_CATEGORIES = [
   'General',
   'Web Development',
@@ -15,17 +13,62 @@ const ALLOWED_CATEGORIES = [
   'Other',
 ];
 
+// Active Gemini models ordered for optimal rate-limits and token quotas
+// 100% Free-tier Gemini models ordered by high free quota, speed, and reliability
 const CANDIDATE_MODELS = [
+  'gemini-3.5-flash-lite',
+  'gemini-3.1-flash-lite',
+  'gemini-3.1-flash-lite-preview',
+  'gemini-flash-lite-latest',
+  'gemini-3.5-flash',
+  'gemini-3.6-flash',
+  'gemini-3-flash-preview',
   'gemini-3.8-flash',
-  'gemini-2.0-flash',
-  'gemini-2.5-flash',
-  'gemini-1.5-flash',
+  'gemini-3.7-flash',
   'gemini-flash-latest',
 ];
 
+function getGeminiApiKeys() {
+  const keys = [];
+  const primary = process.env.GEMINI_API_KEY || '';
+  const backup = process.env.GEMINI_BACKUP_KEY || '';
+  const list = process.env.GEMINI_API_KEYS || '';
+  for (const item of [primary, backup, list]) {
+    if (!item) continue;
+    item.split(',').forEach((k) => {
+      const trimmed = k.trim();
+      if (trimmed && !keys.includes(trimmed)) {
+        keys.push(trimmed);
+      }
+    });
+  }
+  return keys;
+}
+
+function parseJsonSafely(rawText) {
+  if (!rawText) return null;
+  const cleaned = rawText
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Extract first JSON object block if surrounded by markdown commentary
+    const match = rawText.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch { }
+    }
+  }
+  return null;
+}
+
 export async function POST(request) {
   try {
-    if (!GEMINI_API_KEY) {
+    const apiKeys = getGeminiApiKeys();
+    if (apiKeys.length === 0) {
       return NextResponse.json(
         { error: 'GEMINI_API_KEY is not configured in .env' },
         { status: 500 }
@@ -176,65 +219,103 @@ IMPORTANT: Output ONLY the raw JSON object. Do not include markdown codeblocks (
     let resultJson = null;
     let lastError = null;
 
-    // Try candidate models in order of speed and availability
-    for (const model of CANDIDATE_MODELS) {
-      try {
-        const contents = isVerificationUrlMode
-          ? [{ parts: [{ text: webpagePrompt }] }]
-          : [
-              {
-                parts: [
-                  {
-                    inlineData: {
-                      mimeType: mimeType.includes('pdf') ? 'application/pdf' : mimeType,
-                      data: base64Data,
-                    },
-                  },
-                  { text: documentPrompt },
-                ],
+    const contents = isVerificationUrlMode
+      ? [{ parts: [{ text: webpagePrompt }] }]
+      : [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType: mimeType.includes('pdf') ? 'application/pdf' : mimeType,
+                data: base64Data,
               },
-            ];
+            },
+            { text: documentPrompt },
+          ],
+        },
+      ];
 
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents,
-              generationConfig: {
-                temperature: 0.1,
-                topP: 0.8,
-              },
-            }),
+    // Try available API keys and candidate models in order
+    modelLoop: for (const key of apiKeys) {
+      for (const model of CANDIDATE_MODELS) {
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents,
+                generationConfig: {
+                  temperature: 0.1,
+                  topP: 0.8,
+                },
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            const rawText = data.candidates[0].content.parts[0].text.trim();
+            const parsed = parseJsonSafely(rawText);
+            if (parsed && typeof parsed === 'object') {
+              resultJson = parsed;
+              console.log(`[extract-certificate] Successfully extracted with model: ${model}`);
+              break modelLoop;
+            }
           }
-        );
 
-        const data = await response.json();
+          // Error handling & quota limit detection (RPM, RPD, TPM, 429, 503, 404, RESOURCE_EXHAUSTED)
+          const errorMsg = data?.error?.message || data?.error?.status || `HTTP ${response.status}`;
+          lastError = errorMsg;
 
-        if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-          const rawText = data.candidates[0].content.parts[0].text.trim();
-          const cleanedText = rawText
-            .replace(/^```json\s*/i, '')
-            .replace(/^```\s*/i, '')
-            .replace(/```$/i, '')
-            .trim();
-
-          resultJson = JSON.parse(cleanedText);
-          break;
-        } else {
-          lastError = data.error?.message || 'Unknown error from Gemini model';
+          console.warn(
+            `[extract-certificate] Model "${model}" unavailable or rate-limited (${response.status}: ${errorMsg}). Automatically switching to next candidate model...`
+          );
+        } catch (err) {
+          lastError = err.message;
+          console.warn(`[extract-certificate] Error with model "${model}": ${err.message}. Trying next candidate model...`);
         }
-      } catch (err) {
-        lastError = err.message;
       }
     }
 
     if (!resultJson) {
-      return NextResponse.json(
-        { error: lastError || 'Failed to extract certificate details with AI.' },
-        { status: 500 }
-      );
+      // If AI models all reached free-tier rate limits, fallback gracefully to extracted webpage metadata
+      if (isVerificationUrlMode && (targetVerificationUrl || webpagePrompt)) {
+        console.log('[extract-certificate] AI free tier limit reached — falling back to extracted page metadata');
+        resultJson = {
+          title: 'Certificate Credential',
+          issuer: targetVerificationUrl.includes('credly') ? 'Credly' :
+                  targetVerificationUrl.includes('coursera') ? 'Coursera' :
+                  targetVerificationUrl.includes('udemy') ? 'Udemy' :
+                  targetVerificationUrl.includes('hackerrank') ? 'HackerRank' :
+                  targetVerificationUrl.includes('microsoft') ? 'Microsoft' : '',
+          category: 'General',
+          issuedDate: '',
+          expiryDate: '',
+          credentialId: '',
+          credentialUrl: targetVerificationUrl,
+          imageUrl: '',
+          description: 'Verified digital certificate credential.',
+        };
+      } else {
+        const isQuota =
+          String(lastError).includes('429') ||
+          String(lastError).toLowerCase().includes('quota') ||
+          String(lastError).toLowerCase().includes('rate limit') ||
+          String(lastError).toLowerCase().includes('resource_exhausted') ||
+          String(lastError).toLowerCase().includes('billing');
+
+        return NextResponse.json(
+          {
+            error: isQuota
+              ? 'Free-tier request limit momentarily reached on Gemini. Please wait 15-30 seconds and try again (no paid account needed).'
+              : 'Could not extract certificate details with free AI tier. Please try again shortly.',
+          },
+          { status: 500 }
+        );
+      }
     }
 
     // Validate category

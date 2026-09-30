@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
 const ALLOWED_CATEGORIES = [
   'Web Application',
   'Mobile Application',
@@ -12,12 +10,55 @@ const ALLOWED_CATEGORIES = [
   'Desktop Application',
 ];
 
+// 100% Free-tier Gemini models ordered by high free quota, speed, and reliability
 const CANDIDATE_MODELS = [
   'gemini-3.5-flash-lite',
+  'gemini-3.1-flash-lite',
+  'gemini-3.1-flash-lite-preview',
+  'gemini-flash-lite-latest',
   'gemini-3.5-flash',
-  'gemini-flash-latest',
+  'gemini-3.6-flash',
+  'gemini-3-flash-preview',
   'gemini-3.8-flash',
+  'gemini-3.7-flash',
+  'gemini-flash-latest',
 ];
+
+function getGeminiApiKeys() {
+  const keys = [];
+  const primary = process.env.GEMINI_API_KEY || '';
+  const backup = process.env.GEMINI_BACKUP_KEY || '';
+  const list = process.env.GEMINI_API_KEYS || '';
+  for (const item of [primary, backup, list]) {
+    if (!item) continue;
+    item.split(',').forEach((k) => {
+      const trimmed = k.trim();
+      if (trimmed && !keys.includes(trimmed)) {
+        keys.push(trimmed);
+      }
+    });
+  }
+  return keys;
+}
+
+function parseJsonSafely(rawText) {
+  if (!rawText) return null;
+  const cleaned = rawText
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const match = rawText.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch { }
+    }
+  }
+  return null;
+}
 
 const CANDIDATE_HOMEPAGE_PATHS = [
   // App router (Next.js)
@@ -353,7 +394,7 @@ async function findHomepageFile(owner, repo, defaultBranch = 'main') {
       const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${candidate.path}`;
       const res = await fetch(rawUrl, { method: 'HEAD', headers: { 'User-Agent': 'Portfolio-App' } });
       if (res.ok) return candidate.path;
-    } catch {}
+    } catch { }
   }
 
   return null;
@@ -389,7 +430,7 @@ async function fetchHomepageCode(owner, repo, defaultBranch, filePath) {
             const compCode = await compRes.text();
             code += `\n\n// Linked Component (${importMatch[1]}):\n` + compCode.substring(0, 3000);
           }
-        } catch {}
+        } catch { }
       }
     }
 
@@ -454,32 +495,43 @@ Design & SVG Mockup Specifications:
    - Do NOT include any explanations or conversational text.
    - Ensure all tags are strictly closed.`;
 
-  for (const model of CANDIDATE_MODELS) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2,
-            },
-          }),
-        }
-      );
+  const apiKeys = getGeminiApiKeys();
+  if (apiKeys.length === 0) return null;
 
-      const data = await response.json();
-      if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        const rawText = data.candidates[0].content.parts[0].text;
-        const svgMatch = rawText.match(/<svg[\s\S]*?<\/svg>/i);
-        if (svgMatch) {
-          return sanitizeSvgString(svgMatch[0].trim());
+  for (const key of apiKeys) {
+    for (const model of CANDIDATE_MODELS) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.2,
+              },
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+          const rawText = data.candidates[0].content.parts[0].text;
+          const svgMatch = rawText.match(/<svg[\s\S]*?<\/svg>/i);
+          if (svgMatch) {
+            console.log(`[extract-github-project] SVG preview generated successfully with model: ${model}`);
+            return sanitizeSvgString(svgMatch[0].trim());
+          }
         }
+
+        const errorMsg = data?.error?.message || data?.error?.status || `HTTP ${response.status}`;
+        console.warn(
+          `[extract-github-project] SVG preview: Model "${model}" rate-limited or unavailable (${response.status}: ${errorMsg}). Switching to next candidate model...`
+        );
+      } catch (err) {
+        console.warn(`[extract-github-project] SVG preview: Model "${model}" error (${err.message}). Switching to next candidate model...`);
       }
-    } catch (err) {
-      console.warn(`Model ${model} failed for SVG generation:`, err.message);
     }
   }
 
@@ -634,8 +686,8 @@ export async function POST(request) {
       technologies: Array.isArray(repoData.topics) && repoData.topics.length > 0
         ? repoData.topics.slice(0, 6)
         : repoData.language
-        ? [repoData.language]
-        : ['JavaScript', 'React'],
+          ? [repoData.language]
+          : ['JavaScript', 'React'],
       githubUrl: repoData.html_url || githubUrl.trim(),
       liveUrl: repoData.homepage || '',
       imageUrl: validReadmeImageUrl,
@@ -643,8 +695,10 @@ export async function POST(request) {
 
     let finalData = { ...fallbackData };
 
-    // 5. Intelligent AI extraction using Gemini
-    if (GEMINI_API_KEY) {
+    const apiKeys = getGeminiApiKeys();
+
+    // 5. Intelligent AI extraction using Gemini with automatic rate-limit/quota fallback
+    if (apiKeys.length > 0) {
       const prompt = `You are an expert technical portfolio builder. Analyze this GitHub repository and its README markdown to generate a polished, professional portfolio project entry.
 
 Repository Metadata:
@@ -675,37 +729,42 @@ IMPORTANT: Return ONLY the raw JSON object. Do not include markdown codeblocks (
 
       let aiResult = null;
 
-      for (const model of CANDIDATE_MODELS) {
-        try {
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                  temperature: 0.2,
-                  topP: 0.8,
-                },
-              }),
+      metaLoop: for (const key of apiKeys) {
+        for (const model of CANDIDATE_MODELS) {
+          try {
+            const response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: {
+                    temperature: 0.2,
+                    topP: 0.8,
+                  },
+                }),
+              }
+            );
+
+            const data = await response.json();
+            if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+              const rawText = data.candidates[0].content.parts[0].text.trim();
+              const parsed = parseJsonSafely(rawText);
+              if (parsed && typeof parsed === 'object') {
+                aiResult = parsed;
+                console.log(`[extract-github-project] Metadata successfully generated with model: ${model}`);
+                break metaLoop;
+              }
             }
-          );
 
-          const data = await response.json();
-          if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-            const rawText = data.candidates[0].content.parts[0].text.trim();
-            const cleanedText = rawText
-              .replace(/^```json\s*/i, '')
-              .replace(/^```\s*/i, '')
-              .replace(/```$/i, '')
-              .trim();
-
-            aiResult = JSON.parse(cleanedText);
-            break;
+            const errorMsg = data?.error?.message || data?.error?.status || `HTTP ${response.status}`;
+            console.warn(
+              `[extract-github-project] Metadata: Model "${model}" rate-limited or unavailable (${response.status}: ${errorMsg}). Automatically switching to next candidate model...`
+            );
+          } catch (err) {
+            console.warn(`[extract-github-project] Metadata: Model "${model}" error (${err.message}). Trying next candidate model...`);
           }
-        } catch (err) {
-          // try next model
         }
       }
 
@@ -748,7 +807,7 @@ IMPORTANT: Return ONLY the raw JSON object. Do not include markdown codeblocks (
         }
 
         let generatedSvg = null;
-        if (GEMINI_API_KEY) {
+        if (apiKeys.length > 0) {
           generatedSvg = await generateAiVisualPreview({
             repoName: finalData.name,
             description: finalData.shortDescription || finalData.description,
