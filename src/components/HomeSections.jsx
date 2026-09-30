@@ -14,6 +14,7 @@ import {
   subscribeToSectionVisibility,
   getCachedSectionVisibility,
   DEFAULT_SECTION_VISIBILITY,
+  DEFAULT_SECTION_ORDER,
 } from '../lib/firestore';
 
 export default function HomeSections({ initialProfile, initialVisibility }) {
@@ -28,17 +29,32 @@ export default function HomeSections({ initialProfile, initialVisibility }) {
     return () => unsub();
   }, []);
 
+  const sectionComponents = {
+    hero: <Hero initialProfile={initialProfile} />,
+    about: <About initialProfile={initialProfile} />,
+    services: <Services />,
+    projects: <Projects />,
+    skills: <Skills />,
+    experience: <ExperienceEducation />,
+    publications: <ResearchPublications />,
+    certificates: <Certificates />,
+    contact: <Contact initialProfile={initialProfile} />,
+  };
+
+  const order = visibility.sectionOrder || DEFAULT_SECTION_ORDER;
+
   return (
     <div className="flex-1">
-      {visibility.hero !== false && <Hero initialProfile={initialProfile} />}
-      {visibility.about !== false && <About initialProfile={initialProfile} />}
-      {visibility.services !== false && <Services />}
-      {visibility.projects !== false && <Projects />}
-      {visibility.skills !== false && <Skills />}
-      {visibility.experience !== false && <ExperienceEducation />}
-      {visibility.publications !== false && <ResearchPublications />}
-      {visibility.certificates !== false && <Certificates />}
-      {visibility.contact !== false && <Contact initialProfile={initialProfile} />}
+      {order.map((sectionKey) => {
+        if (visibility[sectionKey] === false) return null;
+        const component = sectionComponents[sectionKey];
+        if (!component) return null;
+        return (
+          <React.Fragment key={sectionKey}>
+            {component}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 }

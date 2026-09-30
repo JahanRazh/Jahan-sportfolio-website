@@ -11,6 +11,7 @@ import {
   subscribeToSectionVisibility,
   getCachedSectionVisibility,
   DEFAULT_SECTION_VISIBILITY,
+  DEFAULT_SECTION_ORDER,
 } from '../lib/firestore';
 import { getDirectDownloadUrl, downloadPdfDirectly } from '../lib/downloadHelper';
 
@@ -40,19 +41,22 @@ export default function Navbar({ initialVisibility }) {
   const cvDownloadUrl = profile.cvUrl || '/assets/cv/Jahan_Jayalath-CV.pdf';
   const cvDownloadName = profile.cvFileName || 'Jahan_Jayalath_CV.pdf';
 
-  const allNavLinks = [
-    { label: 'Home', href: '#home', id: 'home', sectionKey: 'hero' },
-    { label: 'About', href: '#about', id: 'about', sectionKey: 'about' },
-    { label: 'Services', href: '#services', id: 'services', sectionKey: 'services' },
-    { label: 'Projects', href: '#projects', id: 'projects', sectionKey: 'projects' },
-    { label: 'Skills', href: '#skills', id: 'skills', sectionKey: 'skills' },
-    { label: 'Experience', href: '#experience', id: 'experience', sectionKey: 'experience' },
-    { label: 'Research', href: '#publications', id: 'publications', sectionKey: 'publications' },
-    { label: 'Certificates', href: '#certificates', id: 'certificates', sectionKey: 'certificates' },
-    { label: 'Contact', href: '#contact', id: 'contact', sectionKey: 'contact' },
-  ];
+  const allNavLinksMap = {
+    hero: { label: 'Home', href: '#home', id: 'home', sectionKey: 'hero' },
+    about: { label: 'About', href: '#about', id: 'about', sectionKey: 'about' },
+    services: { label: 'Services', href: '#services', id: 'services', sectionKey: 'services' },
+    projects: { label: 'Projects', href: '#projects', id: 'projects', sectionKey: 'projects' },
+    skills: { label: 'Skills', href: '#skills', id: 'skills', sectionKey: 'skills' },
+    experience: { label: 'Experience', href: '#experience', id: 'experience', sectionKey: 'experience' },
+    publications: { label: 'Research', href: '#publications', id: 'publications', sectionKey: 'publications' },
+    certificates: { label: 'Certificates', href: '#certificates', id: 'certificates', sectionKey: 'certificates' },
+    contact: { label: 'Contact', href: '#contact', id: 'contact', sectionKey: 'contact' },
+  };
 
-  const navLinks = allNavLinks.filter((link) => visibility[link.sectionKey] !== false);
+  const order = visibility.sectionOrder || DEFAULT_SECTION_ORDER;
+  const navLinks = order
+    .filter((key) => visibility[key] !== false && allNavLinksMap[key])
+    .map((key) => allNavLinksMap[key]);
 
   useEffect(() => {
     const handleScroll = () => {

@@ -158,8 +158,14 @@ Access the secured dashboard at `/admin/dashboard` (login portal at `/admin/logi
 - All non-authenticated attempts to access `/admin/dashboard` are automatically intercepted and redirected to `/admin/login`.
 - No public registration: admin accounts are created securely inside the Firebase Console.
 
-### Section Visibility Manager (Show / Hide Any Section)
+### Section Visibility & Order Manager (Show, Hide & Rearrange Sections)
 - **Granular 1-Click Page Control**: Completely show or hide any specific section of the live portfolio directly from the admin panel (`/admin/dashboard` ➔ **Section Visibility**).
+- **Dynamic Layout Reordering**:
+  - Rearrange the top-to-bottom order of your sections using intuitive **Up** (▲) and **Down** (▼) position buttons.
+  - Live order position badges (`#1`, `#2`, `#3`, etc.) on every card.
+  - **Live Page Flow Mini-Map**: Displays the complete top-to-bottom sequence in real time (e.g. `Hero ➔ About ➔ Projects ➔ Services ...`).
+  - **Automatic Navbar Synchronization**: The desktop Navbar navigation links, mobile menu drawer, and scroll-spy tracker automatically rearrange to match the newly configured section order.
+  - **1-Click "Reset Order"**: Restores default chronological layout flow anytime.
 - **Supported Sections**:
   - `Hero & Intro Banner` (`#home`)
   - `About Me & Bio` (`#about`)
@@ -173,7 +179,7 @@ Access the secured dashboard at `/admin/dashboard` (login portal at `/admin/logi
 - **Complete DOM & Navigation Removal**:
   - When a section is switched off, it is removed from the DOM on the live homepage.
   - The section link in the desktop Navbar, mobile drawer menu, and scroll spy tracker is automatically removed so visitors never see broken links or empty gaps.
-- **Batch Actions**: 1-click **"Show All"** and **"Reset Defaults"** buttons.
+- **Batch Actions**: 1-click **"Show All"**, **"Reset Order"**, and **"Reset All"** buttons.
 - **Real-Time Persistence**: Synchronizes instantly via Firestore with client-side cache fallback for zero layout shift on page loads.
 
 ### Project Management & GitHub AI Auto-Fill

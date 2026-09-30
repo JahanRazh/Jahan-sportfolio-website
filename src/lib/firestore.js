@@ -1949,10 +1949,22 @@ export async function seedInitialPublications() {
   }
 }
 
-// ─── SECTION VISIBILITY MANAGEMENT ──────────────────────────────────────────
+// ─── SECTION VISIBILITY & ORDER MANAGEMENT ──────────────────────────────────
 
 export const SECTION_VISIBILITY_COLLECTION = 'settings';
 export const SECTION_VISIBILITY_DOC_ID = 'section_visibility';
+
+export const DEFAULT_SECTION_ORDER = [
+  'hero',
+  'about',
+  'services',
+  'projects',
+  'skills',
+  'experience',
+  'publications',
+  'certificates',
+  'contact',
+];
 
 export const DEFAULT_SECTION_VISIBILITY = {
   hero: true,
@@ -1966,6 +1978,49 @@ export const DEFAULT_SECTION_VISIBILITY = {
   contact: true,
 };
 
+export function normalizeSectionSettings(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return {
+      ...DEFAULT_SECTION_VISIBILITY,
+      sectionOrder: [...DEFAULT_SECTION_ORDER],
+    };
+  }
+
+  const visibility = {};
+  for (const key of DEFAULT_SECTION_ORDER) {
+    if (raw.visibility && typeof raw.visibility === 'object' && raw.visibility[key] !== undefined) {
+      visibility[key] = Boolean(raw.visibility[key]);
+    } else if (raw[key] !== undefined && typeof raw[key] === 'boolean') {
+      visibility[key] = Boolean(raw[key]);
+    } else {
+      visibility[key] = true;
+    }
+  }
+
+  let order = [];
+  const rawOrder = Array.isArray(raw.sectionOrder)
+    ? raw.sectionOrder
+    : Array.isArray(raw.order)
+    ? raw.order
+    : [];
+
+  for (const k of rawOrder) {
+    if (DEFAULT_SECTION_ORDER.includes(k) && !order.includes(k)) {
+      order.push(k);
+    }
+  }
+  for (const k of DEFAULT_SECTION_ORDER) {
+    if (!order.includes(k)) {
+      order.push(k);
+    }
+  }
+
+  return {
+    ...visibility,
+    sectionOrder: order,
+  };
+}
+
 const SECTION_VISIBILITY_CACHE_KEY = 'jahan_section_visibility_cache';
 
 export function getCachedSectionVisibility() {
@@ -1975,19 +2030,20 @@ export function getCachedSectionVisibility() {
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed && typeof parsed === 'object') {
-          return { ...DEFAULT_SECTION_VISIBILITY, ...parsed };
+          return normalizeSectionSettings(parsed);
         }
       }
     } catch {}
   }
-  return DEFAULT_SECTION_VISIBILITY;
+  return normalizeSectionSettings(null);
 }
 
 export function saveCachedSectionVisibility(data) {
   if (typeof window === 'undefined' || !data) return;
   try {
-    localStorage.setItem(SECTION_VISIBILITY_CACHE_KEY, JSON.stringify(data));
-    window.dispatchEvent(new CustomEvent('jahan_visibility_updated', { detail: data }));
+    const normalized = normalizeSectionSettings(data);
+    localStorage.setItem(SECTION_VISIBILITY_CACHE_KEY, JSON.stringify(normalized));
+    window.dispatchEvent(new CustomEvent('jahan_visibility_updated', { detail: normalized }));
   } catch {}
 }
 
@@ -2002,7 +2058,7 @@ export async function getSectionVisibility() {
     if (!snap.exists()) {
       return getCachedSectionVisibility();
     }
-    const data = { ...DEFAULT_SECTION_VISIBILITY, ...snap.data() };
+    const data = normalizeSectionSettings(snap.data());
     saveCachedSectionVisibility(data);
     return data;
   } catch (error) {
@@ -2023,7 +2079,7 @@ export function subscribeToSectionVisibility(callback) {
     if (e.key === SECTION_VISIBILITY_CACHE_KEY && e.newValue) {
       try {
         const parsed = JSON.parse(e.newValue);
-        callback({ ...DEFAULT_SECTION_VISIBILITY, ...parsed });
+        callback(normalizeSectionSettings(parsed));
       } catch {}
     }
   };
@@ -2031,7 +2087,7 @@ export function subscribeToSectionVisibility(callback) {
 
   const handleCustomUpdate = (e) => {
     if (e.detail) {
-      callback({ ...DEFAULT_SECTION_VISIBILITY, ...e.detail });
+      callback(normalizeSectionSettings(e.detail));
     }
   };
   window.addEventListener('jahan_visibility_updated', handleCustomUpdate);
@@ -2048,7 +2104,7 @@ export function subscribeToSectionVisibility(callback) {
 
     getDoc(docRef).then((snap) => {
       if (snap && snap.exists()) {
-        const data = { ...DEFAULT_SECTION_VISIBILITY, ...snap.data() };
+        const data = normalizeSectionSettings(snap.data());
         saveCachedSectionVisibility(data);
         callback(data);
       }
@@ -2058,7 +2114,7 @@ export function subscribeToSectionVisibility(callback) {
       docRef,
       (snapshot) => {
         if (snapshot.exists()) {
-          const data = { ...DEFAULT_SECTION_VISIBILITY, ...snapshot.data() };
+          const data = normalizeSectionSettings(snapshot.data());
           saveCachedSectionVisibility(data);
           callback(data);
         }
@@ -2086,13 +2142,28 @@ export async function updateSectionVisibility(sectionId, isVisible) {
   const docRef = doc(db, SECTION_VISIBILITY_COLLECTION, SECTION_VISIBILITY_DOC_ID);
 
   const current = getCachedSectionVisibility();
-  const updated = {
+  const updated = normalizeSectionSettings({
     ...current,
     [sectionId]: Boolean(isVisible),
-  };
+  });
 
   saveCachedSectionVisibility(updated);
   await setDoc(docRef, { [sectionId]: Boolean(isVisible), updatedAt: serverTimestamp() }, { merge: true });
+  return updated;
+}
+
+export async function updateSectionOrder(newOrderArray) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SECTION_VISIBILITY_COLLECTION, SECTION_VISIBILITY_DOC_ID);
+
+  const current = getCachedSectionVisibility();
+  const updated = normalizeSectionSettings({
+    ...current,
+    sectionOrder: newOrderArray,
+  });
+
+  saveCachedSectionVisibility(updated);
+  await setDoc(docRef, { sectionOrder: updated.sectionOrder, updatedAt: serverTimestamp() }, { merge: true });
   return updated;
 }
 
@@ -2100,16 +2171,32 @@ export async function updateAllSectionsVisibility(visibilityObject) {
   if (!db) throw new Error('Firestore is not initialized.');
   const docRef = doc(db, SECTION_VISIBILITY_COLLECTION, SECTION_VISIBILITY_DOC_ID);
 
-  const updated = {
-    ...DEFAULT_SECTION_VISIBILITY,
+  const current = getCachedSectionVisibility();
+  const updated = normalizeSectionSettings({
+    ...current,
     ...visibilityObject,
-  };
+  });
 
   saveCachedSectionVisibility(updated);
   const toSave = { ...updated, updatedAt: serverTimestamp() };
   await setDoc(docRef, toSave, { merge: true });
   return updated;
 }
+
+export async function resetSectionSettings() {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SECTION_VISIBILITY_COLLECTION, SECTION_VISIBILITY_DOC_ID);
+
+  const resetData = {
+    ...DEFAULT_SECTION_VISIBILITY,
+    sectionOrder: [...DEFAULT_SECTION_ORDER],
+  };
+
+  saveCachedSectionVisibility(resetData);
+  await setDoc(docRef, { ...resetData, updatedAt: serverTimestamp() }, { merge: true });
+  return resetData;
+}
+
 
 
 

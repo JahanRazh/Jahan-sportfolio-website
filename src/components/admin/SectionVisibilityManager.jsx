@@ -18,12 +18,18 @@ import {
   CheckCircle2,
   AlertCircle,
   Layers,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from 'lucide-react';
 import {
   subscribeToSectionVisibility,
   updateSectionVisibility,
   updateAllSectionsVisibility,
+  updateSectionOrder,
+  resetSectionSettings,
   DEFAULT_SECTION_VISIBILITY,
+  DEFAULT_SECTION_ORDER,
 } from '../../lib/firestore';
 import { useToast } from '../Toast';
 
@@ -102,9 +108,17 @@ const SECTION_CONFIGS = [
   },
 ];
 
+const SECTION_CONFIG_MAP = SECTION_CONFIGS.reduce((acc, config) => {
+  acc[config.key] = config;
+  return acc;
+}, {});
+
 export default function SectionVisibilityManager() {
   const { addToast } = useToast();
-  const [visibility, setVisibility] = useState(DEFAULT_SECTION_VISIBILITY);
+  const [visibility, setVisibility] = useState({
+    ...DEFAULT_SECTION_VISIBILITY,
+    sectionOrder: [...DEFAULT_SECTION_ORDER],
+  });
   const [updatingKey, setUpdatingKey] = useState(null);
   const [batchUpdating, setBatchUpdating] = useState(false);
 
@@ -118,6 +132,11 @@ export default function SectionVisibilityManager() {
   const totalSections = SECTION_CONFIGS.length;
   const visibleCount = SECTION_CONFIGS.filter((s) => visibility[s.key] !== false).length;
   const hiddenCount = totalSections - visibleCount;
+
+  const currentOrder = visibility.sectionOrder || DEFAULT_SECTION_ORDER;
+  const orderedConfigs = currentOrder
+    .map((key) => SECTION_CONFIG_MAP[key])
+    .filter(Boolean);
 
   const handleToggle = async (sectionKey, sectionName) => {
     const nextState = visibility[sectionKey] === false;
@@ -136,11 +155,35 @@ export default function SectionVisibilityManager() {
       );
     } catch (err) {
       console.error('Failed to update section visibility:', err);
-      // Revert optimistic update
       setVisibility((prev) => ({ ...prev, [sectionKey]: !nextState }));
       addToast('Failed to update visibility. Check connection.', 'error');
     } finally {
       setUpdatingKey(null);
+    }
+  };
+
+  const handleMove = async (currentIndex, direction) => {
+    const targetIndex = currentIndex + direction;
+    if (targetIndex < 0 || targetIndex >= currentOrder.length) return;
+
+    const newOrder = [...currentOrder];
+    const [movedItem] = newOrder.splice(currentIndex, 1);
+    newOrder.splice(targetIndex, 0, movedItem);
+
+    // Optimistic UI update
+    setVisibility((prev) => ({ ...prev, sectionOrder: newOrder }));
+
+    const itemConfig = SECTION_CONFIG_MAP[movedItem];
+    try {
+      await updateSectionOrder(newOrder);
+      addToast(
+        `Moved "${itemConfig?.name || movedItem}" to position #${targetIndex + 1}.`,
+        'success'
+      );
+    } catch (err) {
+      console.error('Failed to update section order:', err);
+      setVisibility((prev) => ({ ...prev, sectionOrder: currentOrder }));
+      addToast('Failed to update section order. Check connection.', 'error');
     }
   };
 
@@ -157,7 +200,7 @@ export default function SectionVisibilityManager() {
       certificates: true,
       contact: true,
     };
-    setVisibility(allVisible);
+    setVisibility((prev) => ({ ...prev, ...allVisible }));
     try {
       await updateAllSectionsVisibility(allVisible);
       addToast('All portfolio sections are now visible.', 'success');
@@ -168,18 +211,37 @@ export default function SectionVisibilityManager() {
     }
   };
 
+  const handleResetOrder = async () => {
+    setBatchUpdating(true);
+    setVisibility((prev) => ({ ...prev, sectionOrder: [...DEFAULT_SECTION_ORDER] }));
+    try {
+      await updateSectionOrder([...DEFAULT_SECTION_ORDER]);
+      addToast('Section order reset to default top-to-bottom layout.', 'success');
+    } catch (err) {
+      addToast('Failed to reset section order.', 'error');
+    } finally {
+      setBatchUpdating(false);
+    }
+  };
+
   const handleResetDefaults = async () => {
     setBatchUpdating(true);
-    setVisibility(DEFAULT_SECTION_VISIBILITY);
+    const resetData = {
+      ...DEFAULT_SECTION_VISIBILITY,
+      sectionOrder: [...DEFAULT_SECTION_ORDER],
+    };
+    setVisibility(resetData);
     try {
-      await updateAllSectionsVisibility(DEFAULT_SECTION_VISIBILITY);
-      addToast('Reset all section visibility to defaults.', 'success');
+      await resetSectionSettings();
+      addToast('Reset all section visibility and order to defaults.', 'success');
     } catch (err) {
       addToast('Failed to reset sections.', 'error');
     } finally {
       setBatchUpdating(false);
     }
   };
+
+  const isCustomOrder = JSON.stringify(currentOrder) !== JSON.stringify(DEFAULT_SECTION_ORDER);
 
   return (
     <div className="space-y-8">
@@ -193,39 +255,54 @@ export default function SectionVisibilityManager() {
               <Layers className="w-6 h-6 text-cyan-400" />
             </div>
             <div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                  Portfolio Section Visibility
+                  Portfolio Section Visibility & Order
                 </h2>
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
                   {visibleCount} of {totalSections} Visible
                 </span>
+                {isCustomOrder && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                    Custom Order Active
+                  </span>
+                )}
               </div>
               <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
-                Show or fully hide any section of your portfolio in real-time. Toggling a section immediately removes it from the public homepage, the navigation menu, and the mobile drawer with zero code redeployment.
+                Show, hide, or rearrange the layout order of any section on your portfolio. Changes update the public homepage, navigation bar links, and mobile drawer in real-time with zero redeployment.
               </p>
             </div>
           </div>
 
           {/* Batch Actions */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
             <button
               type="button"
               onClick={handleShowAll}
               disabled={batchUpdating}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition disabled:opacity-50"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition disabled:opacity-50"
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="w-3.5 h-3.5" />
               <span>Show All</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleResetOrder}
+              disabled={batchUpdating || !isCustomOrder}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition disabled:opacity-50"
+              title="Reset sections to default top-to-bottom order"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              <span>Reset Order</span>
             </button>
             <button
               type="button"
               onClick={handleResetDefaults}
               disabled={batchUpdating}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition disabled:opacity-50"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition disabled:opacity-50"
             >
-              <RotateCcw className="w-4 h-4" />
-              <span>Reset Defaults</span>
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset All</span>
             </button>
           </div>
         </div>
@@ -252,22 +329,54 @@ export default function SectionVisibilityManager() {
           </div>
           <div className="col-span-2 sm:col-span-1 p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800/80">
             <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1">
-              Sync Mode
+              Layout Order Flow
             </span>
             <div className="flex items-center gap-2">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-xs text-cyan-300 font-semibold">Real-time Firestore</span>
+              <span className="text-xs text-cyan-300 font-semibold">
+                {isCustomOrder ? 'Custom sequence' : 'Default layout flow'}
+              </span>
             </div>
+          </div>
+        </div>
+
+        {/* Visual Flow Mini-Map */}
+        <div className="mt-5 pt-5 border-t border-slate-800/80">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-2.5">
+            Live Page Top-to-Bottom Flow:
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            {orderedConfigs.map((section, idx) => {
+              const isVisible = visibility[section.key] !== false;
+              return (
+                <React.Fragment key={section.key}>
+                  {idx > 0 && <span className="text-slate-600 font-bold">➔</span>}
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium border transition ${
+                      isVisible
+                        ? 'bg-slate-800/90 text-cyan-300 border-cyan-500/30'
+                        : 'bg-slate-950/40 text-slate-500 border-slate-800 line-through'
+                    }`}
+                  >
+                    <span className="text-[10px] text-slate-400 font-mono">#{idx + 1}</span>
+                    <span>{section.name.split(' ')[0]}</span>
+                  </span>
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
       </div>
 
       {/* Sections Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {SECTION_CONFIGS.map((section) => {
+        {orderedConfigs.map((section, index) => {
           const isVisible = visibility[section.key] !== false;
           const Icon = section.icon;
           const isUpdating = updatingKey === section.key;
+
+          const isFirst = index === 0;
+          const isLast = index === orderedConfigs.length - 1;
 
           return (
             <div
@@ -279,9 +388,16 @@ export default function SectionVisibilityManager() {
               }`}
             >
               <div>
-                {/* Header: Icon, Anchor & Toggle Switch */}
+                {/* Header: Order badge, Icon, Anchor, Reorder Buttons & Toggle Switch */}
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
+                    {/* Position Number Pill */}
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700/80 text-xs font-black text-white flex items-center justify-center shadow-inner">
+                        #{index + 1}
+                      </span>
+                    </div>
+
                     <div className={`w-11 h-11 rounded-2xl bg-gradient-to-tr border flex items-center justify-center shrink-0 ${section.color}`}>
                       <Icon className="w-5 h-5" />
                     </div>
@@ -322,33 +438,65 @@ export default function SectionVisibilityManager() {
                 </p>
               </div>
 
-              {/* Card Footer: Status Badge & Live Preview Link */}
-              <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                {isVisible ? (
-                  <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-400">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Visible</span>
+              {/* Card Footer: Reorder Controls, Status Badge & Preview */}
+              <div className="pt-4 border-t border-slate-800/80 space-y-3 text-xs">
+                {/* Reorder Buttons Bar */}
+                <div className="flex items-center justify-between bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
+                  <span className="text-[11px] font-medium text-slate-400 pl-1">
+                    Display Position:
                   </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 font-semibold text-amber-400">
-                    <EyeOff className="w-3.5 h-3.5" />
-                    <span>Hidden</span>
-                  </span>
-                )}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleMove(index, -1)}
+                      disabled={isFirst}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold text-xs bg-slate-800 hover:bg-cyan-500 hover:text-white text-slate-300 border border-slate-700/80 disabled:opacity-30 disabled:pointer-events-none transition"
+                      title={isFirst ? 'Already at the top' : `Move "${section.name}" up`}
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                      <span>Up</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMove(index, 1)}
+                      disabled={isLast}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold text-xs bg-slate-800 hover:bg-cyan-500 hover:text-white text-slate-300 border border-slate-700/80 disabled:opacity-30 disabled:pointer-events-none transition"
+                      title={isLast ? 'Already at the bottom' : `Move "${section.name}" down`}
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                      <span>Down</span>
+                    </button>
+                  </div>
+                </div>
 
-                {isVisible ? (
-                  <a
-                    href={`/${section.anchor}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-slate-400 hover:text-cyan-300 font-medium transition"
-                  >
-                    <span>View Section</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                ) : (
-                  <span className="text-slate-600 font-medium">Excluded from page</span>
-                )}
+                {/* Status & Preview Link */}
+                <div className="flex items-center justify-between pt-1">
+                  {isVisible ? (
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Visible</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-amber-400">
+                      <EyeOff className="w-3.5 h-3.5" />
+                      <span>Hidden</span>
+                    </span>
+                  )}
+
+                  {isVisible ? (
+                    <a
+                      href={`/${section.anchor}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-slate-400 hover:text-cyan-300 font-medium transition"
+                    >
+                      <span>View Section</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-slate-600 font-medium">Excluded from page</span>
+                  )}
+                </div>
               </div>
             </div>
           );
@@ -360,9 +508,9 @@ export default function SectionVisibilityManager() {
         <AlertCircle className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
         <div>
           <strong className="text-cyan-300 font-semibold block mb-0.5">
-            How Section Visibility Works
+            How Section Ordering & Visibility Works
           </strong>
-          When a section is switched off, it is completely removed from the DOM on the public portfolio. The corresponding link in the top navigation bar and the mobile drawer is automatically hidden, ensuring seamless presentation for recruiters and clients.
+          Use the <span className="text-cyan-300 font-bold">Up</span> and <span className="text-cyan-300 font-bold">Down</span> buttons on any card to rearrange your sections. The public portfolio homepage, top Navbar links, and mobile drawer automatically reorder in that exact sequence in real-time.
         </div>
       </div>
     </div>
