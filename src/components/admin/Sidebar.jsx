@@ -13,6 +13,7 @@ import {
   Sliders,
   User,
   Share2,
+  Briefcase,
   X 
 } from 'lucide-react';
 import { INITIAL_PROFILE } from '../../lib/firestore';
@@ -31,7 +32,8 @@ export default function Sidebar({
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'projects', label: 'Projects Management', icon: FolderGit2 },
-    { id: 'certificates', label: 'Certificates', icon: Award },
+    { id: 'experience', label: 'Experience & Education', icon: Briefcase },
+    { id: 'certificates', label: 'Certificates & Badges', icon: Award },
     { id: 'skills', label: 'Skills (Tech & Pro)', icon: Sliders },
     { id: 'about', label: 'Profile, Bio & Contact', icon: User },
     { id: 'social', label: 'Social Media Links', icon: Share2 },

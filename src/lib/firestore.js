@@ -1414,3 +1414,539 @@ export async function seedInitialSocialLinks() {
     throw error;
   }
 }
+
+// ─── EXPERIENCES & EDUCATION COLLECTIONS ───────────────────────────────────
+
+export const EXPERIENCES_COLLECTION = 'experiences';
+export const EDUCATION_COLLECTION = 'education';
+
+export const INITIAL_EXPERIENCES = [
+  {
+    id: 'exp-1',
+    title: 'Full Stack Software Developer',
+    company: 'Freelance & Independent Projects',
+    location: 'Remote / Sri Lanka',
+    employmentType: 'Freelance',
+    startDate: '2023-01',
+    endDate: 'Present',
+    isCurrent: true,
+    description: 'Designed and deployed responsive web and mobile applications using Next.js, React, Node.js, and Firebase. Implemented RESTful APIs, modern UI/UX design systems, and robust database architectures.',
+    technologies: ['React', 'Next.js', 'Node.js', 'Firebase', 'Tailwind CSS', 'MongoDB'],
+    order: 1,
+    published: true,
+  },
+  {
+    id: 'exp-2',
+    title: 'Software Engineering Trainee / Projects Developer',
+    company: 'Academic & Industry Collaborative Projects',
+    location: 'Colombo, Sri Lanka',
+    employmentType: 'Contract',
+    startDate: '2023-06',
+    endDate: '2024-05',
+    isCurrent: false,
+    description: 'Collaborated on end-to-end development of enterprise cloud applications, microservices, and AI-integrated workflow tools. Contributed to database optimization and unit testing.',
+    technologies: ['Java', 'Python', 'MySQL', 'Cloud Architecture', 'ExpressJS', 'Git'],
+    order: 2,
+    published: true,
+  },
+];
+
+export const INITIAL_EDUCATION = [
+  {
+    id: 'edu-1',
+    degree: 'BSc (Hons) in Information Technology Specializing in Software Engineering',
+    institution: 'Sri Lanka Institute of Information Technology (SLIIT)',
+    location: 'Malabe, Sri Lanka',
+    startDate: '2022',
+    endDate: '2026',
+    isCurrent: true,
+    grade: 'Undergraduate',
+    description: 'Specializing in advanced software architecture, data structures & algorithms, cloud computing, AI systems, and mobile development. Active participant in coding challenges and IT societies.',
+    activities: ['Software Engineering Student', 'Hackathons & AI Workgroups', 'IEEE Student Member'],
+    order: 1,
+    published: true,
+  },
+  {
+    id: 'edu-2',
+    degree: 'G.C.E. Advanced Level (Physical Science / Mathematics Stream)',
+    institution: 'High School',
+    location: 'Sri Lanka',
+    startDate: '2019',
+    endDate: '2021',
+    isCurrent: false,
+    grade: 'Completed',
+    description: 'Focus in Combined Mathematics, Physics, and Chemistry, laying a solid quantitative foundation for engineering and computing.',
+    activities: ['Science Society', 'IT & Computer Club'],
+    order: 2,
+    published: true,
+  },
+];
+
+// ── Experience CRUD ────────────────────────────────────────────────────────
+
+export async function getPublishedExperiences() {
+  if (!isFirebaseConfigured || !db) {
+    return INITIAL_EXPERIENCES.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+
+  try {
+    const q = query(
+      collection(db, EXPERIENCES_COLLECTION),
+      where('published', '==', true)
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      return INITIAL_EXPERIENCES.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+    const items = snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+    return items.sort((a, b) => (a.order || 0) - (b.order || 0));
+  } catch (error) {
+    console.warn('Experiences fetch fallback:', error.message);
+    return INITIAL_EXPERIENCES.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+}
+
+export function subscribeToPublishedExperiences(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_EXPERIENCES.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    return () => {};
+  }
+
+  try {
+    const q = query(
+      collection(db, EXPERIENCES_COLLECTION),
+      where('published', '==', true)
+    );
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          callback(INITIAL_EXPERIENCES.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+          return;
+        }
+        const items = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        items.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(items);
+      },
+      (error) => {
+        console.warn('Realtime experiences error:', error);
+        callback(INITIAL_EXPERIENCES.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+      }
+    );
+  } catch {
+    callback(INITIAL_EXPERIENCES.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    return () => {};
+  }
+}
+
+export function subscribeToAllExperiences(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_EXPERIENCES);
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(db, EXPERIENCES_COLLECTION));
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          callback(INITIAL_EXPERIENCES);
+          return;
+        }
+        const items = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        items.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(items);
+      },
+      (error) => {
+        console.warn('Admin experiences error:', error);
+        callback(INITIAL_EXPERIENCES);
+      }
+    );
+  } catch {
+    callback(INITIAL_EXPERIENCES);
+    return () => {};
+  }
+}
+
+export async function createExperience(data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  const cleanData = {
+    title: String(data.title || '').trim(),
+    company: String(data.company || '').trim(),
+    location: String(data.location || '').trim(),
+    employmentType: data.employmentType || 'Full-time',
+    startDate: data.startDate || '',
+    endDate: data.endDate || 'Present',
+    isCurrent: Boolean(data.isCurrent),
+    description: data.description || '',
+    technologies: Array.isArray(data.technologies) ? data.technologies : [],
+    order: Number(data.order) || 1,
+    published: data.published !== undefined ? Boolean(data.published) : true,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  const docRef = await addDoc(collection(db, EXPERIENCES_COLLECTION), cleanData);
+  return { id: docRef.id, ...cleanData };
+}
+
+export async function updateExperience(id, data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, EXPERIENCES_COLLECTION, id);
+
+  const cleanData = {
+    ...data,
+    order: Number(data.order) || 1,
+    published: data.published !== undefined ? Boolean(data.published) : true,
+    isCurrent: Boolean(data.isCurrent),
+    updatedAt: serverTimestamp(),
+  };
+  delete cleanData.id;
+
+  await setDoc(docRef, cleanData, { merge: true });
+  return { id, ...cleanData };
+}
+
+export async function deleteExperience(id) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, EXPERIENCES_COLLECTION, id);
+  await deleteDoc(docRef);
+  return id;
+}
+
+export async function seedInitialExperiences() {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  for (const exp of INITIAL_EXPERIENCES) {
+    const docRef = doc(db, EXPERIENCES_COLLECTION, exp.id);
+    const dataToSave = { ...exp, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+    delete dataToSave.id;
+    await setDoc(docRef, dataToSave, { merge: true });
+  }
+}
+
+// ── Education CRUD ─────────────────────────────────────────────────────────
+
+export async function getPublishedEducation() {
+  if (!isFirebaseConfigured || !db) {
+    return INITIAL_EDUCATION.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+
+  try {
+    const q = query(
+      collection(db, EDUCATION_COLLECTION),
+      where('published', '==', true)
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      return INITIAL_EDUCATION.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+    const items = snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+    return items.sort((a, b) => (a.order || 0) - (b.order || 0));
+  } catch (error) {
+    console.warn('Education fetch fallback:', error.message);
+    return INITIAL_EDUCATION.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+}
+
+export function subscribeToPublishedEducation(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_EDUCATION.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    return () => {};
+  }
+
+  try {
+    const q = query(
+      collection(db, EDUCATION_COLLECTION),
+      where('published', '==', true)
+    );
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          callback(INITIAL_EDUCATION.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+          return;
+        }
+        const items = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        items.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(items);
+      },
+      (error) => {
+        console.warn('Realtime education error:', error);
+        callback(INITIAL_EDUCATION.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+      }
+    );
+  } catch {
+    callback(INITIAL_EDUCATION.filter((e) => e.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    return () => {};
+  }
+}
+
+export function subscribeToAllEducation(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_EDUCATION);
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(db, EDUCATION_COLLECTION));
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          callback(INITIAL_EDUCATION);
+          return;
+        }
+        const items = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        items.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(items);
+      },
+      (error) => {
+        console.warn('Admin education error:', error);
+        callback(INITIAL_EDUCATION);
+      }
+    );
+  } catch {
+    callback(INITIAL_EDUCATION);
+    return () => {};
+  }
+}
+
+export async function createEducation(data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  const cleanData = {
+    degree: String(data.degree || '').trim(),
+    institution: String(data.institution || '').trim(),
+    location: String(data.location || '').trim(),
+    startDate: data.startDate || '',
+    endDate: data.endDate || 'Present',
+    isCurrent: Boolean(data.isCurrent),
+    grade: data.grade || '',
+    description: data.description || '',
+    activities: Array.isArray(data.activities) ? data.activities : [],
+    order: Number(data.order) || 1,
+    published: data.published !== undefined ? Boolean(data.published) : true,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  const docRef = await addDoc(collection(db, EDUCATION_COLLECTION), cleanData);
+  return { id: docRef.id, ...cleanData };
+}
+
+export async function updateEducation(id, data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, EDUCATION_COLLECTION, id);
+
+  const cleanData = {
+    ...data,
+    order: Number(data.order) || 1,
+    published: data.published !== undefined ? Boolean(data.published) : true,
+    isCurrent: Boolean(data.isCurrent),
+    updatedAt: serverTimestamp(),
+  };
+  delete cleanData.id;
+
+  await setDoc(docRef, cleanData, { merge: true });
+  return { id, ...cleanData };
+}
+
+export async function deleteEducation(id) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, EDUCATION_COLLECTION, id);
+  await deleteDoc(docRef);
+  return id;
+}
+
+export async function seedInitialEducation() {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  for (const edu of INITIAL_EDUCATION) {
+    const docRef = doc(db, EDUCATION_COLLECTION, edu.id);
+    const dataToSave = { ...edu, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+    delete dataToSave.id;
+    await setDoc(docRef, dataToSave, { merge: true });
+  }
+}
+
+// ─── PUBLICATIONS & RESEARCH COLLECTION ────────────────────────────────────
+
+export const PUBLICATIONS_COLLECTION = 'publications';
+
+export const INITIAL_PUBLICATIONS = [
+  {
+    id: 'pub-1',
+    title: 'Optimizing Cloud Microservices and Multi-Model AI Pipelines for Real-Time Developer Workflows',
+    authors: 'Ramesh Jahan Jayalath, et al.',
+    venue: 'IEEE International Conference on Advances in ICT & Computing (ICAIC)',
+    year: '2024',
+    type: 'Conference Paper',
+    doi: 'https://doi.org/10.1109/EXAMPLE.2024.10001',
+    paperUrl: 'https://arxiv.org',
+    abstract: 'This research investigates low-latency cloud infrastructure design combining containerized microservices with dynamic multi-tier generative AI model cascades, demonstrating reduced inference latency and improved fault tolerance in automated developer workflows.',
+    keywords: ['Cloud Computing', 'Generative AI', 'Microservices', 'System Architecture', 'Latency Optimization'],
+    order: 1,
+    published: true,
+  },
+  {
+    id: 'pub-2',
+    title: 'Adaptive Resource Allocation and Security in Multi-Cloud Environments: A Comparative Study',
+    authors: 'Ramesh Jahan Jayalath',
+    venue: 'SLIIT Faculty of Computing Research Symposium (FCRS)',
+    year: '2023',
+    type: 'Research Report',
+    doi: '',
+    paperUrl: '',
+    abstract: 'An analytical review and benchmark of modern container orchestrators and automated scaling policies across hybrid multi-cloud infrastructure, examining cost-effectiveness, zero-trust network policies, and throughput bottlenecks.',
+    keywords: ['Cloud Security', 'DevOps', 'Zero Trust', 'Kubernetes', 'Scalability'],
+    order: 2,
+    published: true,
+  },
+];
+
+export async function getPublishedPublications() {
+  if (!isFirebaseConfigured || !db) {
+    return INITIAL_PUBLICATIONS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+
+  try {
+    const q = query(
+      collection(db, PUBLICATIONS_COLLECTION),
+      where('published', '==', true)
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      return INITIAL_PUBLICATIONS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+    const items = snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+    return items.sort((a, b) => (a.order || 0) - (b.order || 0));
+  } catch (error) {
+    console.warn('Publications fetch fallback:', error.message);
+    return INITIAL_PUBLICATIONS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+}
+
+export function subscribeToPublishedPublications(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_PUBLICATIONS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    return () => {};
+  }
+
+  try {
+    const q = query(
+      collection(db, PUBLICATIONS_COLLECTION),
+      where('published', '==', true)
+    );
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          callback(INITIAL_PUBLICATIONS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+          return;
+        }
+        const items = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        items.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(items);
+      },
+      (error) => {
+        console.warn('Realtime publications error:', error);
+        callback(INITIAL_PUBLICATIONS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+      }
+    );
+  } catch {
+    callback(INITIAL_PUBLICATIONS.filter((p) => p.published).sort((a, b) => (a.order || 0) - (b.order || 0)));
+    return () => {};
+  }
+}
+
+export function subscribeToAllPublications(callback) {
+  if (!isFirebaseConfigured || !db) {
+    callback(INITIAL_PUBLICATIONS);
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(db, PUBLICATIONS_COLLECTION));
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          callback(INITIAL_PUBLICATIONS);
+          return;
+        }
+        const items = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        items.sort((a, b) => (a.order || 0) - (b.order || 0));
+        callback(items);
+      },
+      (error) => {
+        console.warn('Admin publications error:', error);
+        callback(INITIAL_PUBLICATIONS);
+      }
+    );
+  } catch {
+    callback(INITIAL_PUBLICATIONS);
+    return () => {};
+  }
+}
+
+export async function createPublication(data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  const cleanData = {
+    title: String(data.title || '').trim(),
+    authors: String(data.authors || '').trim(),
+    venue: String(data.venue || '').trim(),
+    year: String(data.year || '').trim(),
+    type: data.type || 'Conference Paper',
+    doi: String(data.doi || '').trim(),
+    paperUrl: String(data.paperUrl || '').trim(),
+    abstract: String(data.abstract || '').trim(),
+    keywords: Array.isArray(data.keywords) ? data.keywords : [],
+    order: Number(data.order) || 1,
+    published: data.published !== undefined ? Boolean(data.published) : true,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  const docRef = await addDoc(collection(db, PUBLICATIONS_COLLECTION), cleanData);
+  return { id: docRef.id, ...cleanData };
+}
+
+export async function updatePublication(id, data) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, PUBLICATIONS_COLLECTION, id);
+
+  const cleanData = {
+    ...data,
+    order: Number(data.order) || 1,
+    published: data.published !== undefined ? Boolean(data.published) : true,
+    updatedAt: serverTimestamp(),
+  };
+  delete cleanData.id;
+
+  await setDoc(docRef, cleanData, { merge: true });
+  return { id, ...cleanData };
+}
+
+export async function deletePublication(id) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, PUBLICATIONS_COLLECTION, id);
+  await deleteDoc(docRef);
+  return id;
+}
+
+export async function seedInitialPublications() {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  for (const pub of INITIAL_PUBLICATIONS) {
+    const docRef = doc(db, PUBLICATIONS_COLLECTION, pub.id);
+    const dataToSave = { ...pub, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+    delete dataToSave.id;
+    await setDoc(docRef, dataToSave, { merge: true });
+  }
+}
+
+

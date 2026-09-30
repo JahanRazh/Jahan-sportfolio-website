@@ -81,7 +81,20 @@ The purpose of this portfolio is to provide a **living, dynamic personal platfor
 - **Technical Skills**: Animated progress bars showing proficiency in JavaScript, TypeScript, React, Next.js, Node.js, Python, Java, SQL, and Cloud platforms.
 - **Professional Competencies**: SVG circular score meters representing problem-solving, project management, agile workflow, and teamwork.
 
-### 6. Certifications & Credentials
+### 6. Experience & Education Timeline
+- **Dual Timeline View**: Side-by-side split view on desktop and seamless vertical stack on mobile.
+- **Interactive Tabs**: Filter between *All Journey*, *Work Experience*, or *Education* with live count indicators.
+- **Work Experience Cards**:
+  - Highlights engineering roles, freelance software development, and industry projects.
+  - Role title, company/organization, employment type pill (Full-time, Contract, Freelance, Internship).
+  - Date ranges with pulsing live "Present" indicator for active positions.
+  - Location badge, comprehensive responsibilities description, and technology stack tags.
+- **Education & Academics Cards**:
+  - Highlights degrees, university qualifications (SLIIT), and high school foundations.
+  - Degree title, university/institution, graduation period, and enrollment status badge.
+  - GPA/Grade status pill, academic specialization, and student activities / societies.
+
+### 7. Certifications & Credentials
 - **Document Previews**: Renders certificate documents uploaded as PDF or images (auto-converted to crisp JPGs via Cloudinary).
 - **Category Navigation**: Filter certificates by domain (*Web Development*, *Cloud & DevOps*, *AI / ML*, *Cybersecurity*, *UI/UX*, *Data Science*, *Database*).
 - **Certificate Viewer Modal**:
@@ -91,7 +104,7 @@ The purpose of this portfolio is to provide a **living, dynamic personal platfor
   - Direct 1-click download with proper file naming.
   - Credential ID display and external verification button.
 
-### 7. Verified Digital Badges & Micro-Credentials
+### 8. Verified Digital Badges & Micro-Credentials
 - **Dedicated Section**: Positioned directly below traditional certificates to highlight modern micro-credentials.
 - **Open Badges Display**:
   - Badge cards featuring a circular glowing pedestal framing the official badge icon.
@@ -103,12 +116,12 @@ The purpose of this portfolio is to provide a **living, dynamic personal platfor
   - 1-click copy for Assertion / Credential IDs with visual "Copied!" feedback.
   - Direct verification button navigating to the official registry (Parchment, Credly, Badgr).
 
-### 8. Contact & Social Ecosystem
+### 9. Contact & Social Ecosystem
 - **Interactive Contact Form**: Integrated with EmailJS for direct inbox message delivery.
 - Input validation, loading indicators, and toast notification alerts.
 - Direct contact cards (email, phone, location, availability status).
 
-### 9. Visitor Analytics & Tracking
+### 10. Visitor Analytics & Tracking
 - **Automatic Background Tracker**: Logs page visits, country, device type (Desktop, Mobile, Tablet), browser, and operating system without slowing down client page loads.
 - Data stored directly in Firestore for analysis in the admin dashboard.
 
@@ -129,6 +142,14 @@ Access the secured dashboard at `/admin/dashboard` (login portal at `/admin/logi
   - Paste any GitHub repository URL (e.g. `https://github.com/user/project`).
   - Google Gemini AI fetches repository metadata, reads the `README.md`, analyzes language distributions, and auto-populates all form fields.
 - **Instant Status Toggle**: Switch any project between *Published* and *Draft* with a single click.
+
+### Experience & Education CMS
+- **Dedicated Sub-Tabs**: Seamlessly toggle between **💼 Work Experience** and **🎓 Education**.
+- **Full CRUD Management**: Add, edit, delete with confirmation, and reorder positions and qualifications.
+- **Role & Company Tracking**: Job title, organization, location, employment type (Full-time, Part-time, Internship, Contract, Freelance), date ranges, and live "Present" toggle.
+- **Academic Qualifications**: Degree, institution (SLIIT), study period, grade/GPA, major coursework, and student society activities.
+- **Live Status Toggle**: Publish or draft any item with one click.
+- **1-Click Seed Button**: Seed initial default SLIIT education and sample experiences anytime.
 
 ### Certificate & Digital Badge CMS
 - **Format Toggle**: Explicitly select between:

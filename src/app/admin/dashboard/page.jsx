@@ -20,6 +20,7 @@ import DeleteConfirmModal from '../../../components/admin/DeleteConfirmModal';
 import CertificateTable from '../../../components/admin/CertificateTable';
 import CertificateFormModal from '../../../components/admin/CertificateFormModal';
 import BulkCertificateUploadModal from '../../../components/admin/BulkCertificateUploadModal';
+import ExperienceEducationManager from '../../../components/admin/ExperienceEducationManager';
 import SkillsManager from '../../../components/admin/SkillsManager';
 import AboutCvManager from '../../../components/admin/AboutCvManager';
 import VisitorAnalyticsCard from '../../../components/admin/VisitorAnalyticsCard';
@@ -557,6 +558,13 @@ export default function AdminDashboardPage() {
                 )}
               </section>
             </>
+          )}
+
+          {/* ── EXPERIENCE & EDUCATION TAB ──────────────────────────── */}
+          {activeTab === 'experience' && (
+            <section>
+              <ExperienceEducationManager />
+            </section>
           )}
 
           {/* ── CERTIFICATES TAB ──────────────────────────────────────── */}

@@ -4,6 +4,7 @@ import About from '../components/About';
 import Services from '../components/Services';
 import Projects from '../components/Projects';
 import Skills from '../components/Skills';
+import ExperienceEducation from '../components/ExperienceEducation';
 import Certificates from '../components/Certificates';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
@@ -26,6 +27,7 @@ export default async function HomePage() {
         <Services />
         <Projects />
         <Skills />
+        <ExperienceEducation />
         <Certificates />
         <Contact initialProfile={profile} />
       </div>
