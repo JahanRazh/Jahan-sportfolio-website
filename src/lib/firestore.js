@@ -2341,7 +2341,9 @@ export function applyThemeToDom(theme) {
   const primary = theme.primaryColor || '#12f7ff';
   const secondary = theme.secondaryColor || '#6e57e0';
   const accent = theme.accentColor || '#00c9ff';
+  const themeId = theme.themeId || 'cyber_cyan';
 
+  // Set CSS variables (used by inline styles / var() references)
   root.style.setProperty('--theme-primary', primary);
   root.style.setProperty('--theme-secondary', secondary);
   root.style.setProperty('--theme-accent', accent);
@@ -2349,7 +2351,144 @@ export function applyThemeToDom(theme) {
   root.style.setProperty('--second-color', accent);
   root.style.setProperty('--neon-cyan', primary);
   root.style.setProperty('--theme-glow', `${primary}55`);
-  root.setAttribute('data-portfolio-theme', theme.themeId || 'cyber_cyan');
+  root.setAttribute('data-portfolio-theme', themeId);
+
+  // Inject a dynamic <style> element to override hardcoded Tailwind arbitrary colors
+  // For the default cyber_cyan theme, inject nothing (preserving original design exactly)
+  const styleId = 'portfolio-theme-override';
+  let styleEl = document.getElementById(styleId);
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = styleId;
+    document.head.appendChild(styleEl);
+  }
+
+  if (themeId === 'cyber_cyan') {
+    // Default theme: remove all overrides so the site looks exactly as designed
+    styleEl.textContent = '';
+    return;
+  }
+
+  // Helper to parse hex to rgb string "r, g, b"
+  function hexToRgb(hex) {
+    const clean = hex.replace('#', '');
+    const full = clean.length === 3
+      ? clean.split('').map(c => c + c).join('')
+      : clean;
+    const r = parseInt(full.substring(0, 2), 16);
+    const g = parseInt(full.substring(2, 4), 16);
+    const b = parseInt(full.substring(4, 6), 16);
+    return `${r}, ${g}, ${b}`;
+  }
+
+  const p = primary;       // replaces #12f7ff (neon cyan)
+  const s = secondary;     // replaces #6e57e0 (purple/indigo)
+  const a = accent;        // replaces #00c9ff (sky)
+  const pRgb = hexToRgb(primary);
+  const sRgb = hexToRgb(secondary);
+  const aRgb = hexToRgb(accent);
+
+  // These rules override the compiled Tailwind arbitrary-value classes.
+  // We use [data-portfolio-theme] scoping so they only apply when a custom theme is active.
+  // The !important ensures they win over the compiled Tailwind class specificity.
+  styleEl.textContent = `
+    /* ── Color overrides for custom portfolio theme: ${themeId} ── */
+
+    /* TEXT colors */
+    [data-portfolio-theme] .text-\\[\\#6e57e0\\],
+    [data-portfolio-theme] .dark\\:text-\\[\\#6e57e0\\] { color: ${s} !important; }
+    [data-portfolio-theme] .text-\\[\\#12f7ff\\],
+    [data-portfolio-theme] .dark\\:text-\\[\\#12f7ff\\] { color: ${p} !important; }
+    [data-portfolio-theme] .text-\\[\\#1e9fab\\] { color: ${p} !important; }
+    [data-portfolio-theme] .text-\\[\\#00c9ff\\],
+    [data-portfolio-theme] .dark\\:text-\\[\\#00c9ff\\] { color: ${a} !important; }
+
+    /* BACKGROUND colors */
+    [data-portfolio-theme] .bg-\\[\\#6e57e0\\],
+    [data-portfolio-theme] .dark\\:bg-\\[\\#6e57e0\\] { background-color: ${s} !important; }
+    [data-portfolio-theme] .bg-\\[\\#12f7ff\\],
+    [data-portfolio-theme] .dark\\:bg-\\[\\#12f7ff\\] { background-color: ${p} !important; }
+    [data-portfolio-theme] .bg-\\[\\#00c9ff\\],
+    [data-portfolio-theme] .dark\\:bg-\\[\\#00c9ff\\] { background-color: ${a} !important; }
+
+    /* HOVER backgrounds */
+    [data-portfolio-theme] .hover\\:bg-\\[\\#6e57e0\\]:hover { background-color: ${s} !important; }
+    [data-portfolio-theme] .hover\\:bg-\\[\\#12f7ff\\]:hover { background-color: ${p} !important; }
+    [data-portfolio-theme] .hover\\:bg-\\[\\#00c9ff\\]:hover,
+    [data-portfolio-theme] .dark\\:hover\\:bg-\\[\\#00c9ff\\]:hover { background-color: ${a} !important; }
+    [data-portfolio-theme] .hover\\:bg-\\[\\#285bd4\\]:hover { background-color: ${s} !important; filter: brightness(1.15); }
+
+    /* HOVER text */
+    [data-portfolio-theme] .hover\\:text-\\[\\#6e57e0\\]:hover,
+    [data-portfolio-theme] .dark\\:hover\\:text-\\[\\#12f7ff\\]:hover { color: ${p} !important; }
+
+    /* BORDER colors */
+    [data-portfolio-theme] .border-\\[\\#6e57e0\\],
+    [data-portfolio-theme] .dark\\:border-\\[\\#6e57e0\\] { border-color: ${s} !important; }
+    [data-portfolio-theme] .border-\\[\\#12f7ff\\],
+    [data-portfolio-theme] .dark\\:border-\\[\\#12f7ff\\] { border-color: ${p} !important; }
+    [data-portfolio-theme] .hover\\:border-\\[\\#12f7ff\\]:hover,
+    [data-portfolio-theme] .dark\\:hover\\:border-\\[\\#12f7ff\\]:hover { border-color: ${p} !important; }
+
+    /* OPACITY-based bg helpers (Tailwind uses / syntax, escape manually) */
+    [data-portfolio-theme] .bg-\\[\\#6e57e0\\]\\/10 { background-color: rgba(${sRgb}, 0.1) !important; }
+    [data-portfolio-theme] .bg-\\[\\#6e57e0\\]\\/20 { background-color: rgba(${sRgb}, 0.2) !important; }
+    [data-portfolio-theme] .dark\\:bg-\\[\\#6e57e0\\]\\/20 { background-color: rgba(${sRgb}, 0.2) !important; }
+    [data-portfolio-theme] .dark\\:bg-\\[\\#6e57e0\\]\\/30 { background-color: rgba(${sRgb}, 0.3) !important; }
+    [data-portfolio-theme] .bg-\\[\\#12f7ff\\]\\/10 { background-color: rgba(${pRgb}, 0.1) !important; }
+    [data-portfolio-theme] .dark\\:bg-\\[\\#12f7ff\\]\\/10 { background-color: rgba(${pRgb}, 0.1) !important; }
+    [data-portfolio-theme] .dark\\:bg-\\[\\#12f7ff\\]\\/15 { background-color: rgba(${pRgb}, 0.15) !important; }
+
+    /* OPACITY-based border helpers */
+    [data-portfolio-theme] .border-\\[\\#6e57e0\\]\\/20 { border-color: rgba(${sRgb}, 0.2) !important; }
+    [data-portfolio-theme] .dark\\:border-\\[\\#6e57e0\\]\\/30 { border-color: rgba(${sRgb}, 0.3) !important; }
+    [data-portfolio-theme] .hover\\:border-\\[\\#6e57e0\\]\\/50:hover,
+    [data-portfolio-theme] .dark\\:hover\\:border-\\[\\#12f7ff\\]\\/40:hover { border-color: rgba(${pRgb}, 0.4) !important; }
+
+    /* GRADIENT backgrounds */
+    [data-portfolio-theme] .from-\\[\\#6e57e0\\] { --tw-gradient-from: ${s} !important; }
+    [data-portfolio-theme] .via-\\[\\#00c9ff\\] { --tw-gradient-via: ${a} !important; }
+    [data-portfolio-theme] .to-\\[\\#12f7ff\\],
+    [data-portfolio-theme] .dark\\:to-\\[\\#12f7ff\\] { --tw-gradient-to: ${p} !important; }
+    [data-portfolio-theme] .to-\\[\\#00c9ff\\] { --tw-gradient-to: ${a} !important; }
+
+    /* SCROLLBAR */
+    [data-portfolio-theme] ::-webkit-scrollbar-thumb { background: ${s} !important; }
+    [data-portfolio-theme] ::-webkit-scrollbar-thumb:hover { background: ${p} !important; }
+
+    /* SHADOW glow overrides (inline styles won't need !important, but CSS can't override inline) */
+    [data-portfolio-theme] .shadow-\\[0_0_10px_rgba\\(18\\,247\\,255\\,0\\.4\\)\\] {
+      box-shadow: 0 0 10px rgba(${pRgb}, 0.4) !important;
+    }
+    [data-portfolio-theme] .hover\\:shadow-\\[0_0_20px_rgba\\(0\\,201\\,255\\,0\\.4\\)\\]:hover {
+      box-shadow: 0 0 20px rgba(${aRgb}, 0.4) !important;
+    }
+
+    /* SVG stroke (for circular progress in Skills.jsx) */
+    [data-portfolio-theme] .text-\\[\\#12f7ff\\] { color: ${p} !important; }
+
+    /* GROUP-HOVER backgrounds (Services icon, About skills hover) */
+    [data-portfolio-theme] .group-hover\\:bg-\\[\\#6e57e0\\]:hover,
+    [data-portfolio-theme] .group:hover .group-hover\\:bg-\\[\\#6e57e0\\] { background-color: ${s} !important; }
+    [data-portfolio-theme] .group-hover\\:bg-\\[\\#12f7ff\\]:hover,
+    [data-portfolio-theme] .group:hover .group-hover\\:bg-\\[\\#12f7ff\\] { background-color: ${p} !important; }
+    [data-portfolio-theme] .dark\\:group-hover\\:bg-\\[\\#12f7ff\\]:hover,
+    [data-portfolio-theme] .group:hover .dark\\:group-hover\\:bg-\\[\\#12f7ff\\] { background-color: ${p} !important; }
+
+    /* GROUP-HOVER text */
+    [data-portfolio-theme] .group:hover .group-hover\\:text-\\[\\#6e57e0\\] { color: ${s} !important; }
+    [data-portfolio-theme] .group:hover .dark\\:group-hover\\:text-\\[\\#12f7ff\\] { color: ${p} !important; }
+
+    /* FOCUS border (Contact inputs) */
+    [data-portfolio-theme] .focus\\:border-\\[\\#6e57e0\\]:focus { border-color: ${s} !important; }
+    [data-portfolio-theme] .dark\\:focus\\:border-\\[\\#12f7ff\\]:focus { border-color: ${p} !important; }
+
+    /* Contact gradient card (from-[#00c9ff] to-[#6e57e0]) */
+    [data-portfolio-theme] .from-\\[\\#00c9ff\\] { --tw-gradient-from: ${a} !important; }
+
+    /* Projects filter active tab */
+    [data-portfolio-theme] .bg-\\[\\#6e57e0\\].text-white { background-color: ${s} !important; }
+  `;
 }
 
 export async function getPortfolioTheme() {
