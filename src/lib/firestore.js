@@ -360,6 +360,7 @@ export async function createCertificate(data) {
     filePath: data.filePath || '',
     fileType: data.fileType || 'image',
     thumbnailUrl: data.thumbnailUrl || '',
+    isBadge: Boolean(data.isBadge),
     featured: Boolean(data.featured),
     published: data.published !== undefined ? Boolean(data.published) : true,
     order: Number(data.order) || 1,

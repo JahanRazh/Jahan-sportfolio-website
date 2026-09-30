@@ -28,6 +28,7 @@ const CATEGORY_COLORS = {
   'Data Science':        'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
   'Database':            'bg-teal-500/15 text-teal-300 border-teal-500/30',
   'General':             'bg-slate-500/15 text-slate-300 border-slate-500/30',
+  'Digital Badge':       'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
   'Other':               'bg-slate-500/15 text-slate-300 border-slate-500/30',
 };
 
@@ -52,8 +53,26 @@ export default function CertificateTable({
   onBulkUpload,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all'); // 'all' | 'certificates' | 'badges'
+
+  const isBadgeItem = (c) => {
+    if (c.isBadge === true) return true;
+    if (c.isBadge === false) return false;
+    if (c.category === 'Digital Badge') return true;
+    if (c.fileType === 'pdf' || c.fileUrl?.match(/\.pdf($|\?)/i)) return false;
+    return Boolean(
+      c.credentialUrl && (c.credentialUrl.includes('badges.parchment.com') || c.credentialUrl.includes('badgr.com'))
+    );
+  };
+
+  const certCount = certificates.filter((c) => !isBadgeItem(c)).length;
+  const badgeCount = certificates.filter((c) => isBadgeItem(c)).length;
 
   const filtered = certificates.filter((cert) => {
+    const isBadge = isBadgeItem(cert);
+    if (typeFilter === 'certificates' && isBadge) return false;
+    if (typeFilter === 'badges' && !isBadge) return false;
+
     const q = searchQuery.toLowerCase();
     return (
       cert.title?.toLowerCase().includes(q) ||
@@ -146,15 +165,65 @@ export default function CertificateTable({
         </div>
       </div>
 
+      {/* Filter Tabs & Quick Stats */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <button
+          type="button"
+          onClick={() => setTypeFilter('all')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
+            typeFilter === 'all'
+              ? 'bg-slate-700 text-white shadow-md'
+              : 'bg-slate-800/60 text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <span>All Items</span>
+          <span className="px-1.5 py-0.2 rounded-full bg-slate-900/60 text-[10px] text-slate-300">
+            {certificates.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setTypeFilter('certificates')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
+            typeFilter === 'certificates'
+              ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+              : 'bg-slate-800/60 text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Award className="w-3.5 h-3.5" />
+          <span>Certificates</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${typeFilter === 'certificates' ? 'bg-amber-600/40 text-slate-950 font-black' : 'bg-slate-900/60 text-slate-300'}`}>
+            {certCount}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setTypeFilter('badges')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
+            typeFilter === 'badges'
+              ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow-md shadow-cyan-500/20'
+              : 'bg-slate-800/60 text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Digital Badges</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${typeFilter === 'badges' ? 'bg-teal-600/40 text-slate-950 font-black' : 'bg-slate-900/60 text-slate-300'}`}>
+            {badgeCount}
+          </span>
+        </button>
+      </div>
+
       {/* Table */}
       <div className="rounded-2xl overflow-hidden border border-slate-800">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider">
-              <th className="text-left px-4 py-3">Certificate</th>
+              <th className="text-left px-4 py-3">Credential</th>
               <th className="hidden md:table-cell text-left px-4 py-3">Category</th>
               <th className="hidden lg:table-cell text-left px-4 py-3">Issued</th>
-              <th className="hidden sm:table-cell text-left px-4 py-3">File</th>
+              <th className="hidden sm:table-cell text-left px-4 py-3">Source</th>
               <th className="text-center px-4 py-3">Status</th>
               <th className="text-right px-4 py-3">Actions</th>
             </tr>
@@ -163,12 +232,13 @@ export default function CertificateTable({
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={6} className="text-center py-10 text-slate-500 text-sm">
-                  No certificates match your search.
+                  No {typeFilter === 'all' ? 'credentials' : typeFilter} match your search.
                 </td>
               </tr>
             ) : (
               filtered.map((cert) => {
                 const catColor = CATEGORY_COLORS[cert.category] || CATEGORY_COLORS['General'];
+                const isBadge = isBadgeItem(cert);
                 return (
                   <tr
                     key={cert.id}
@@ -178,13 +248,15 @@ export default function CertificateTable({
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {/* Thumbnail */}
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                        <div className={`w-10 h-10 ${isBadge ? 'rounded-full bg-slate-950 border-cyan-500/40 p-0.5' : 'rounded-lg bg-slate-800 border-slate-700'} overflow-hidden border flex items-center justify-center shrink-0`}>
                           {cert.thumbnailUrl ? (
                             <img
                               src={cert.thumbnailUrl}
                               alt={cert.title}
-                              className="w-full h-full object-cover"
+                              className={`w-full h-full ${isBadge ? 'object-contain' : 'object-cover'}`}
                             />
+                          ) : isBadge ? (
+                            <Sparkles className="w-5 h-5 text-cyan-400" />
                           ) : cert.fileType === 'pdf' ? (
                             <FileText className="w-5 h-5 text-amber-400" />
                           ) : (
@@ -192,10 +264,15 @@ export default function CertificateTable({
                           )}
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <p className="font-semibold text-white text-xs truncate max-w-[160px]">
                               {cert.title}
                             </p>
+                            {isBadge && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                                🛡️ Badge
+                              </span>
+                            )}
                             {cert.featured && (
                               <Star className="w-3 h-3 text-amber-400 shrink-0" fill="currentColor" />
                             )}

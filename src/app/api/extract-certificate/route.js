@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 const ALLOWED_CATEGORIES = [
   'General',
@@ -10,8 +11,152 @@ const ALLOWED_CATEGORIES = [
   'UI/UX Design',
   'Data Science',
   'Database',
+  'Digital Badge',
   'Other',
 ];
+
+function getCloudinaryCredentials() {
+  const cloudinaryUrl = process.env.CLOUDINARY_URL;
+  if (!cloudinaryUrl) return null;
+
+  const match = cloudinaryUrl.match(/^cloudinary:\/\/([^:]+):([^@]+)@([^\r\n]+)/);
+  if (!match) return null;
+
+  return {
+    apiKey: match[1],
+    apiSecret: match[2],
+    cloudName: match[3].trim(),
+  };
+}
+
+async function uploadUrlToCloudinary(remoteUrl) {
+  const creds = getCloudinaryCredentials();
+  if (!creds || !remoteUrl) return null;
+
+  try {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const folder = 'portfolio-certificates';
+    const paramsToSign = `access_mode=public&folder=${folder}&timestamp=${timestamp}${creds.apiSecret}`;
+    const signature = crypto.createHash('sha1').update(paramsToSign).digest('hex');
+
+    const fd = new FormData();
+    fd.append('file', remoteUrl);
+    fd.append('api_key', creds.apiKey);
+    fd.append('timestamp', timestamp.toString());
+    fd.append('folder', folder);
+    fd.append('access_mode', 'public');
+    fd.append('signature', signature);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${creds.cloudName}/image/upload`, {
+      method: 'POST',
+      body: fd,
+    });
+
+    const data = await res.json();
+    if (res.ok && data.secure_url) {
+      return data.secure_url;
+    }
+  } catch (err) {
+    console.warn('Failed to rehost remote badge image to Cloudinary:', err.message);
+  }
+  return null;
+}
+
+/**
+ * Dedicated parser for Open Badges v2 (Badgr / Parchment Digital Badges)
+ * Example: https://badges.parchment.com/public/assertions/N6taIz2BSt2B55ZiwBooXw
+ */
+async function extractParchmentBadge(targetUrl) {
+  try {
+    const match = targetUrl.match(/assertions\/([a-zA-Z0-9_\-]+)/i);
+    const assertionId = match ? match[1] : null;
+    if (!assertionId) return null;
+
+    const jsonUrl = `https://badges.parchment.com/public/assertions/${assertionId}.json`;
+    const res = await fetch(jsonUrl, {
+      headers: {
+        'Accept': 'application/json, application/ld+json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
+      },
+    });
+
+    if (!res.ok) return null;
+    const assertion = await res.json();
+
+    let badgeClass = {};
+    if (typeof assertion.badge === 'string') {
+      try {
+        const bRes = await fetch(assertion.badge, {
+          headers: { 'Accept': 'application/json, application/ld+json', 'User-Agent': 'Mozilla/5.0' },
+        });
+        if (bRes.ok) badgeClass = await bRes.json();
+      } catch {}
+    } else if (typeof assertion.badge === 'object' && assertion.badge) {
+      badgeClass = assertion.badge;
+    }
+
+    let issuerName = 'Parchment';
+    if (typeof badgeClass.issuer === 'string') {
+      try {
+        const iRes = await fetch(badgeClass.issuer, {
+          headers: { 'Accept': 'application/json, application/ld+json', 'User-Agent': 'Mozilla/5.0' },
+        });
+        if (iRes.ok) {
+          const issuerData = await iRes.json();
+          issuerName = issuerData.name || issuerName;
+        }
+      } catch {}
+    } else if (typeof badgeClass.issuer === 'object' && badgeClass.issuer?.name) {
+      issuerName = badgeClass.issuer.name;
+    }
+
+    const rawBadgeImg =
+      (typeof badgeClass.image === 'string' ? badgeClass.image : badgeClass.image?.id) ||
+      (typeof assertion.image === 'string' ? assertion.image : assertion.image?.id) ||
+      `https://api.badgr.io/public/assertions/${assertionId}/image`;
+
+    // Rehost to Cloudinary for permanent hosting and lightning-fast loading
+    const hostedImage = (await uploadUrlToCloudinary(rawBadgeImg)) || rawBadgeImg;
+
+    const title = badgeClass.name || 'Digital Badge';
+    const description = badgeClass.description || assertion.narrative || '';
+    const issuedDate = assertion.issuedOn ? assertion.issuedOn.split('T')[0] : '';
+
+    const tags = Array.isArray(badgeClass.tags) ? badgeClass.tags.map((t) => String(t).toLowerCase()) : [];
+    const textAll = `${title} ${description} ${tags.join(' ')}`.toLowerCase();
+
+    let category = 'Web Development';
+    if (/\b(cloud|aws|azure|gcp|devops|docker|kubernetes)\b/i.test(textAll)) {
+      category = 'Cloud & DevOps';
+    } else if (/\b(ai|machine learning|deep learning|data science|ml)\b/i.test(textAll)) {
+      category = 'AI / Machine Learning';
+    } else if (/\b(security|cyber|cybersecurity|pentest|ethical)\b/i.test(textAll)) {
+      category = 'Cybersecurity';
+    } else if (/\b(mobile|android|ios|flutter|react native|swift|kotlin)\b/i.test(textAll)) {
+      category = 'Mobile Development';
+    } else if (/\b(ui|ux|design|figma|prototype)\b/i.test(textAll)) {
+      category = 'UI/UX Design';
+    } else if (/\b(api|web|frontend|backend|rest|javascript|node|postman)\b/i.test(textAll)) {
+      category = 'Web Development';
+    }
+
+    return {
+      title,
+      issuer: issuerName,
+      category,
+      issuedDate,
+      expiryDate: '',
+      credentialId: assertionId,
+      credentialUrl: targetUrl,
+      imageUrl: hostedImage,
+      description,
+      isBadge: true,
+    };
+  } catch (err) {
+    console.warn('Parchment badge extraction failed:', err.message);
+    return null;
+  }
+}
 
 // Active Gemini models ordered for optimal rate-limits and token quotas
 // 100% Free-tier Gemini models ordered by high free quota, speed, and reliability
@@ -22,9 +167,8 @@ const CANDIDATE_MODELS = [
   'gemini-flash-lite-latest',
   'gemini-3.5-flash',
   'gemini-3.6-flash',
-  'gemini-3-flash-preview',
-  'gemini-3.8-flash',
   'gemini-3.7-flash',
+  'gemini-3.8-flash',
   'gemini-flash-latest',
 ];
 
@@ -103,6 +247,22 @@ export async function POST(request) {
         return NextResponse.json({ error: 'No fileUrl or verificationUrl provided' }, { status: 400 });
       }
 
+      // 1. Specialized instant resolver for Parchment & Badgr Open Badges
+      if (
+        urlToInspect.includes('badges.parchment.com') ||
+        urlToInspect.includes('badgr.com') ||
+        urlToInspect.includes('badgr.io')
+      ) {
+        console.log('[extract-certificate] Resolving Open Badge from Parchment / Badgr:', urlToInspect);
+        const badgeData = await extractParchmentBadge(urlToInspect.trim());
+        if (badgeData) {
+          return NextResponse.json({
+            success: true,
+            data: badgeData,
+          });
+        }
+      }
+
       // Check if it's explicitly a verification URL or webpage (e.g. Credly, Coursera, Udemy, etc.)
       const isHtmlPage =
         Boolean(verificationUrl) ||
@@ -135,6 +295,43 @@ export async function POST(request) {
         }
 
         const html = await fetchRes.text();
+
+        // 2. Specialized resolver for Credly digital badges
+        if (targetVerificationUrl.includes('credly.com')) {
+          const ogTitle =
+            html.match(/property=["']og:title["']\s+content=["']([^"']+)["']/i)?.[1] ||
+            html.match(/content=["']([^"']+)["']\s+property=["']og:title["']/i)?.[1] ||
+            html.match(/<title>([^<]+)<\/title>/i)?.[1] || '';
+          const ogImg =
+            html.match(/property=["']og:image["']\s+content=["']([^"']+)["']/i)?.[1] ||
+            html.match(/content=["']([^"']+)["']\s+property=["']og:image["']/i)?.[1] || '';
+          const ogDesc =
+            html.match(/property=["']og:description["']\s+content=["']([^"']+)["']/i)?.[1] ||
+            html.match(/content=["']([^"']+)["']\s+property=["']og:description["']/i)?.[1] || '';
+
+          if (ogImg) {
+            console.log('[extract-certificate] Resolving Credly Badge:', targetVerificationUrl);
+            const hostedBadgeImg = (await uploadUrlToCloudinary(ogImg)) || ogImg;
+            const credMatch = targetVerificationUrl.match(/badges\/([a-zA-Z0-9_\-]+)/i);
+            const titleClean = ogTitle ? ogTitle.replace(/\s*\|\s*Credly.*$/i, '').trim() : 'Verified Digital Badge';
+
+            return NextResponse.json({
+              success: true,
+              data: {
+                title: titleClean,
+                issuer: 'Credly',
+                category: 'General',
+                issuedDate: '',
+                expiryDate: '',
+                credentialId: credMatch ? credMatch[1] : '',
+                credentialUrl: targetVerificationUrl,
+                imageUrl: hostedBadgeImg,
+                description: ogDesc || 'Verified digital badge credential issued via Credly.',
+                isBadge: true,
+              },
+            });
+          }
+        }
 
         // Extract OpenGraph / Meta tags
         const ogTitle =
@@ -335,6 +532,7 @@ IMPORTANT: Output ONLY the raw JSON object. Do not include markdown codeblocks (
         credentialUrl: resultJson.credentialUrl || targetVerificationUrl || '',
         imageUrl: resultJson.imageUrl || '',
         description: resultJson.description || '',
+        isBadge: Boolean(resultJson.isBadge || resultJson.category === 'Digital Badge'),
       },
     });
   } catch (error) {

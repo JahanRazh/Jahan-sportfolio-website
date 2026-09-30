@@ -28,6 +28,7 @@ const CATEGORIES = [
   'UI/UX Design',
   'Data Science',
   'Database',
+  'Digital Badge',
   'Other',
 ];
 
@@ -55,6 +56,7 @@ export default function CertificateFormModal({
     filePath: '',
     fileType: 'image',
     thumbnailUrl: '',
+    isBadge: false,
     featured: false,
     published: true,
     order: 1,
@@ -87,6 +89,9 @@ export default function CertificateFormModal({
         filePath: initialCertificate.filePath || '',
         fileType: initialCertificate.fileType || 'image',
         thumbnailUrl: initialCertificate.thumbnailUrl || '',
+        isBadge: initialCertificate.isBadge !== undefined
+          ? Boolean(initialCertificate.isBadge)
+          : (initialCertificate.category === 'Digital Badge' && initialCertificate.fileType !== 'pdf'),
         featured: Boolean(initialCertificate.featured),
         published: initialCertificate.published !== undefined ? Boolean(initialCertificate.published) : true,
         order: initialCertificate.order !== undefined ? Number(initialCertificate.order) : 1,
@@ -239,13 +244,22 @@ export default function CertificateFormModal({
           credentialUrl,
           imageUrl,
           description,
+          isBadge,
         } = result.data;
+
+        const badgeDetected = Boolean(
+          isBadge ||
+          result.data.category === 'Digital Badge' ||
+          cleanUrl.includes('parchment.com') ||
+          cleanUrl.includes('badgr.') ||
+          cleanUrl.includes('credly.com')
+        );
 
         setFormData((prev) => ({
           ...prev,
           title: title || prev.title,
           issuer: issuer || prev.issuer,
-          category: category || prev.category,
+          category: category || (badgeDetected ? 'Digital Badge' : prev.category),
           issuedDate: issuedDate || prev.issuedDate,
           expiryDate: expiryDate || prev.expiryDate,
           credentialId: credentialId || prev.credentialId,
@@ -254,6 +268,7 @@ export default function CertificateFormModal({
           fileUrl: (imageUrl && !prev.filePath && !selectedFile) ? imageUrl : prev.fileUrl,
           thumbnailUrl: (imageUrl && !prev.filePath && !selectedFile) ? imageUrl : prev.thumbnailUrl,
           fileType: (imageUrl && !prev.filePath && !selectedFile) ? 'image' : prev.fileType,
+          isBadge: badgeDetected,
         }));
 
         if (imageUrl && !selectedFile) {
@@ -261,7 +276,12 @@ export default function CertificateFormModal({
         }
 
         setVerificationUrlInput(cleanUrl);
-        addToast('✨ Certificate details & badge auto-filled from link!', 'success');
+        addToast(
+          badgeDetected
+            ? '✨ Digital Badge icon & details extracted successfully!'
+            : '✨ Certificate details & document auto-filled from link!',
+          'success'
+        );
       } else {
         addToast(result.error || 'Could not extract details from this verification link', 'warning');
       }
@@ -463,6 +483,56 @@ export default function CertificateFormModal({
               </div>
             </div>
           )}
+
+          {/* Credential Format Selector: Certificate vs Digital Badge */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80">
+            <div>
+              <p className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                {formData.isBadge ? (
+                  <Sparkles className="w-4 h-4 text-cyan-400" />
+                ) : (
+                  <Award className="w-4 h-4 text-amber-400" />
+                )}
+                <span>Credential Format</span>
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {formData.isBadge
+                  ? 'Digital badge with verified icon, badge assertion ID & link'
+                  : 'Document / Diploma certificate with PDF or image preview'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-700/70">
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, isBadge: false }))}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  !formData.isBadge
+                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Award className="w-3.5 h-3.5" />
+                <span>Certificate</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({
+                  ...prev,
+                  isBadge: true,
+                  category: prev.category === 'General' ? 'Digital Badge' : prev.category,
+                }))}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  formData.isBadge
+                    ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow-md shadow-cyan-500/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Digital Badge</span>
+              </button>
+            </div>
+          </div>
 
           {/* Title & Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -730,8 +800,8 @@ export default function CertificateFormModal({
                 {/* Platforms supported badge chips */}
                 <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-slate-400 pt-1">
                   <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Supported:</span>
-                  {['Credly', 'Coursera', 'Udemy', 'Microsoft Learn', 'LinkedIn', 'HackerRank', 'Any Public Credential'].map((item) => (
-                    <span key={item} className="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700/80 text-slate-300">
+                  {['Parchment / Badgr', 'Credly', 'Coursera', 'Udemy', 'Microsoft Learn', 'LinkedIn', 'HackerRank', 'Any Public Assertion'].map((item) => (
+                    <span key={item} className={`px-2 py-0.5 rounded-md border text-xs ${item.includes('Parchment') ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300 font-semibold' : 'bg-slate-800 border-slate-700/80 text-slate-300'}`}>
                       {item}
                     </span>
                   ))}
@@ -739,17 +809,33 @@ export default function CertificateFormModal({
 
                 {/* If badge preview image exists */}
                 {filePreview && (
-                  <div className="mt-3 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center gap-3.5">
-                    <div className="w-16 h-16 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
-                      <img src={filePreview} alt="Extracted Badge" className="w-full h-full object-contain p-1" />
+                  <div className={`mt-3 p-4 rounded-2xl border flex items-center gap-4 transition-all ${formData.isBadge ? 'bg-gradient-to-r from-cyan-950/40 via-slate-900 to-slate-950 border-cyan-500/30 shadow-lg shadow-cyan-500/5' : 'bg-slate-950/80 border-slate-800'}`}>
+                    <div className={`relative w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 ${formData.isBadge ? 'bg-slate-900/90 border border-cyan-500/40 shadow-inner' : 'bg-slate-900 border border-slate-700'}`}>
+                      <img src={filePreview} alt="Extracted Badge" className="w-full h-full object-contain p-1.5" />
+                      {formData.isBadge && (
+                        <div className="absolute inset-0 bg-cyan-400/5 pointer-events-none" />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Badge Image Attached</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${formData.isBadge ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}`}>
+                          <Check className="w-3 h-3 text-emerald-400" />
+                          <span>{formData.isBadge ? 'Digital Badge Icon Identified' : 'Image Attached'}</span>
+                        </span>
                       </div>
-                      <p className="text-xs text-white truncate font-medium mt-0.5">{formData.title || 'Certificate Badge'}</p>
-                      <p className="text-[11px] text-slate-400 truncate">{formData.issuer || 'Issuing Organization'}</p>
+                      <p className="text-sm text-white truncate font-bold mt-1">{formData.title || 'Digital Badge'}</p>
+                      <p className="text-xs text-slate-400 truncate mt-0.5">{formData.issuer || 'Issuing Organization'}</p>
+                      {formData.credentialUrl && (
+                        <a
+                          href={formData.credentialUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 hover:underline mt-1 truncate max-w-full font-medium"
+                        >
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                          <span className="truncate">View Public Assertion</span>
+                        </a>
+                      )}
                     </div>
                   </div>
                 )}

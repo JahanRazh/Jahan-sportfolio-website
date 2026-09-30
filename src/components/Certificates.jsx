@@ -19,6 +19,11 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
+  Sparkles,
+  Copy,
+  Check,
+  CheckCircle2,
+  Shield,
 } from 'lucide-react';
 import { subscribeToPublishedCertificates } from '../lib/firestore';
 import { getDirectDownloadUrl, downloadPdfDirectly } from '../lib/downloadHelper';
@@ -34,6 +39,7 @@ const CATEGORY_BADGE_STYLES = {
   'UI/UX Design':          { bg: 'from-fuchsia-500/20 to-pink-500/20',  border: 'border-fuchsia-500/30', text: 'text-fuchsia-300' },
   'Data Science':          { bg: 'from-emerald-500/20 to-green-500/20', border: 'border-emerald-500/30', text: 'text-emerald-300' },
   'Database':              { bg: 'from-teal-500/20 to-cyan-500/20',     border: 'border-teal-500/30',    text: 'text-teal-300'    },
+  'Digital Badge':         { bg: 'from-amber-500/20 to-orange-500/20',  border: 'border-amber-500/30',   text: 'text-amber-300'   },
   'General':               { bg: 'from-amber-500/20 to-yellow-500/20',  border: 'border-amber-500/30',   text: 'text-amber-300'   },
   'Other':                 { bg: 'from-slate-500/20 to-slate-400/20',   border: 'border-slate-500/30',   text: 'text-slate-300'   },
 };
@@ -322,6 +328,278 @@ function CertificateViewerModal({ cert, onClose }) {
   );
 }
 
+// ─── Digital Badge Viewer Modal ────────────────────────────────────────────
+
+function BadgeViewerModal({ badge, onClose }) {
+  const [copied, setCopied] = useState(false);
+  const badgeImg = badge.thumbnailUrl || badge.fileUrl;
+  const issuedFormatted = formatDate(badge.issuedDate);
+  const expiryFormatted = formatDate(badge.expiryDate);
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const handleCopyId = () => {
+    if (!badge.credentialId) return;
+    navigator.clipboard.writeText(badge.credentialId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] flex flex-col justify-center items-center p-3 sm:p-6">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
+
+      {/* Modal Container */}
+      <div className="relative flex flex-col w-full max-w-xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden z-10">
+        
+        {/* Top Header */}
+        <div className="flex items-center justify-between px-5 py-4 bg-slate-900/95 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400">
+              <Sparkles className="w-4 h-4" />
+            </span>
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-300">
+              Digital Badge Assertion
+            </span>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Badge Hero Section */}
+        <div className="p-6 sm:p-8 flex flex-col items-center text-center relative overflow-hidden bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950">
+          {/* Subtle Ambient Light */}
+          <div className="absolute top-1/4 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Badge Icon Frame */}
+          <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-3xl bg-slate-900/90 border border-amber-500/30 p-4 flex items-center justify-center shadow-2xl shadow-amber-500/10 mb-5 group">
+            {badgeImg ? (
+              <img
+                src={badgeImg}
+                alt={badge.title}
+                className="w-full h-full object-contain filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.8)]"
+              />
+            ) : (
+              <Award className="w-20 h-20 text-amber-400" />
+            )}
+          </div>
+
+          {/* Verified Badge Tag */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold mb-3">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Verified Micro-Credential</span>
+          </div>
+
+          {/* Badge Title */}
+          <h3 className="text-xl sm:text-2xl font-black text-white leading-snug mb-2">
+            {badge.title}
+          </h3>
+
+          {/* Issuer info */}
+          <div className="flex items-center gap-2 text-sm text-amber-300 font-semibold mb-3">
+            <ShieldCheck className="w-4 h-4 text-amber-400" />
+            <span>{badge.issuer}</span>
+          </div>
+
+          {/* Dates */}
+          <div className="flex items-center gap-3 text-xs text-slate-400 mb-4">
+            {issuedFormatted && (
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                Issued {issuedFormatted}
+              </span>
+            )}
+            {expiryFormatted && (
+              <>
+                <span className="text-slate-600">·</span>
+                <span className="text-amber-400/80">Expires {expiryFormatted}</span>
+              </>
+            )}
+          </div>
+
+          {/* Description */}
+          {badge.description && (
+            <p className="text-xs sm:text-sm text-slate-300/90 leading-relaxed max-w-md bg-slate-900/70 p-4 rounded-xl border border-slate-800 text-left mb-4">
+              {badge.description}
+            </p>
+          )}
+
+          {/* Credential ID */}
+          {badge.credentialId && (
+            <div className="w-full max-w-md flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 mb-4 text-left">
+              <div className="min-w-0 pr-2">
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                  Assertion / Credential ID
+                </p>
+                <p className="text-xs font-mono text-slate-200 truncate">
+                  {badge.credentialId}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyId}
+                className="p-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white transition shrink-0"
+                title="Copy Credential ID"
+              >
+                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="w-full max-w-md flex flex-col sm:flex-row items-center gap-2.5">
+            {badge.credentialUrl && (
+              <a
+                href={badge.credentialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/25 transition"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Verify on Official Registry</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+
+            {badgeImg && (
+              <a
+                href={badgeImg}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition flex items-center justify-center gap-1.5"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Badge Image</span>
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Digital Badge Card Component ──────────────────────────────────────────
+
+function DigitalBadgeCard({ badge, index, onViewBadge }) {
+  const badgeImg = badge.thumbnailUrl || badge.fileUrl;
+  const issuedFormatted = formatDate(badge.issuedDate);
+
+  return (
+    <div
+      className="group relative rounded-2xl overflow-hidden border border-slate-800/90 bg-gradient-to-b from-slate-900/90 via-slate-900/70 to-slate-950 p-6 flex flex-col justify-between hover:border-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-1"
+      style={{ animationDelay: `${index * 80}ms` }}
+    >
+      {/* Background glow behind badge icon */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-colors pointer-events-none" />
+
+      {/* Top tag bar */}
+      <div className="flex items-center justify-between gap-2 mb-3 relative z-10">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-400">
+          <Sparkles className="w-3 h-3 text-amber-400" />
+          Digital Badge
+        </span>
+        {badge.featured && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950">
+            <Star className="w-3 h-3 fill-current" />
+            Featured
+          </span>
+        )}
+      </div>
+
+      {/* Badge Icon Display */}
+      <div
+        onClick={() => onViewBadge(badge)}
+        className="relative my-3 flex flex-col items-center justify-center cursor-pointer group/icon"
+      >
+        <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-2xl flex items-center justify-center p-3 bg-slate-950/70 border border-slate-800 group-hover/icon:border-amber-500/40 shadow-inner transition-all duration-300">
+          {badgeImg ? (
+            <img
+              src={badgeImg}
+              alt={badge.title}
+              loading="lazy"
+              className="w-full h-full object-contain filter drop-shadow-[0_10px_15px_rgba(0,0,0,0.6)] group-hover/icon:scale-110 transition-transform duration-300"
+            />
+          ) : (
+            <Award className="w-16 h-16 text-amber-400/80" />
+          )}
+        </div>
+        <span className="mt-2 text-[11px] text-slate-400 group-hover/icon:text-amber-300 font-medium flex items-center gap-1 transition">
+          <Eye className="w-3 h-3" />
+          Inspect badge
+        </span>
+      </div>
+
+      {/* Title & Issuer */}
+      <div className="relative z-10 text-center my-2">
+        <h3 className="font-bold text-white text-base leading-snug group-hover:text-amber-200 transition-colors line-clamp-2">
+          {badge.title}
+        </h3>
+        <p className="text-xs text-amber-400/90 font-medium mt-1.5 flex items-center justify-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+          <span>{badge.issuer}</span>
+        </p>
+
+        {badge.description && (
+          <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+            {badge.description}
+          </p>
+        )}
+
+        {issuedFormatted && (
+          <p className="text-[11px] text-slate-500 mt-2 flex items-center justify-center gap-1">
+            <Calendar className="w-3 h-3 text-slate-600" />
+            <span>Issued {issuedFormatted}</span>
+          </p>
+        )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-800/80 relative z-10">
+        <button
+          onClick={() => onViewBadge(badge)}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition"
+        >
+          <Eye className="w-3.5 h-3.5 text-amber-400" />
+          <span>Details</span>
+        </button>
+
+        {badge.credentialUrl && (
+          <a
+            href={badge.credentialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 hover:border-amber-500/50 transition"
+          >
+            <span>Verify</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Traditional Certificate Card ──────────────────────────────────────────
+
 function CertificateCard({ cert, index, onViewFile }) {
   const style = getStyle(cert.category);
   const issuedFormatted = formatDate(cert.issuedDate);
@@ -488,6 +766,7 @@ export default function Certificates() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
   const [viewingCert, setViewingCert] = useState(null); // cert object being viewed
+  const [viewingBadge, setViewingBadge] = useState(null); // badge object being viewed
 
   useEffect(() => {
     const unsub = subscribeToPublishedCertificates((certs) => {
@@ -505,18 +784,38 @@ export default function Certificates() {
     setViewingCert(null);
   }, []);
 
+  const handleCloseBadgeViewer = useCallback(() => {
+    setViewingBadge(null);
+  }, []);
+
+  // Separate Digital Badges and Traditional Certificates
+  // An item is a badge ONLY if explicitly marked isBadge: true, or category is Digital Badge.
+  // When an admin chooses Certificate (isBadge: false) or uploads a PDF document, it stays in Certificates!
+  const isBadgeItem = (c) => {
+    if (c.isBadge === true) return true;
+    if (c.isBadge === false) return false;
+    if (c.category === 'Digital Badge') return true;
+    if (c.fileType === 'pdf' || c.fileUrl?.match(/\.pdf($|\?)/i)) return false;
+    return Boolean(
+      c.credentialUrl && (c.credentialUrl.includes('badges.parchment.com') || c.credentialUrl.includes('badgr.com'))
+    );
+  };
+
+  const allBadges = certificates.filter(isBadgeItem);
+  const allCertificates = certificates.filter((c) => !isBadgeItem(c));
+
   const existingCategories = [
     'All',
-    ...Array.from(new Set(certificates.map((c) => c.category || 'General'))),
+    ...Array.from(new Set(allCertificates.map((c) => c.category || 'General'))),
   ];
 
-  const filtered =
+  const filteredCertificates =
     activeFilter === 'All'
-      ? certificates
-      : certificates.filter((c) => (c.category || 'General') === activeFilter);
+      ? allCertificates
+      : allCertificates.filter((c) => (c.category || 'General') === activeFilter);
 
-  const featuredCerts = filtered.filter((c) => c.featured);
-  const regularCerts = filtered.filter((c) => !c.featured);
+  const featuredCerts = filteredCertificates.filter((c) => c.featured);
+  const regularCerts = filteredCertificates.filter((c) => !c.featured);
 
   if (loading) {
     return (
@@ -537,6 +836,11 @@ export default function Certificates() {
         <CertificateViewerModal cert={viewingCert} onClose={handleCloseViewer} />
       )}
 
+      {/* Digital Badge Viewer Modal */}
+      {viewingBadge && (
+        <BadgeViewerModal badge={viewingBadge} onClose={handleCloseBadgeViewer} />
+      )}
+
       <section id="certificates" className="py-24 px-6 sm:px-10 relative overflow-hidden">
         {/* Background decorations */}
         <div className="absolute inset-0 pointer-events-none">
@@ -550,7 +854,7 @@ export default function Certificates() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold uppercase tracking-widest mb-4">
                 <Award className="w-3.5 h-3.5" />
-                Certifications
+                Certifications &amp; Credentials
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">
                 Credentials &amp;{' '}
@@ -562,12 +866,22 @@ export default function Certificates() {
                 Professional certifications and industry credentials earned by Ramesh Jahan Jayalath validating expertise in software engineering, development, and IT solutions.
               </p>
             </div>
-            <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold self-start sm:self-auto">
-              {certificates.length} Certificate{certificates.length !== 1 ? 's' : ''}
-            </span>
+            
+            <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+              {allCertificates.length > 0 && (
+                <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                  {allCertificates.length} Certificate{allCertificates.length !== 1 ? 's' : ''}
+                </span>
+              )}
+              {allBadges.length > 0 && (
+                <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                  {allBadges.length} Badge{allBadges.length !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Category filter tabs */}
+          {/* Category filter tabs for certificates */}
           {existingCategories.length > 2 && (
             <div className="flex flex-wrap gap-2 mb-10">
               {existingCategories.map((cat) => {
@@ -592,7 +906,7 @@ export default function Certificates() {
             </div>
           )}
 
-          {/* Featured */}
+          {/* Featured Certificates */}
           {featuredCerts.length > 0 && (
             <div className="mb-10">
               <p className="text-xs font-bold uppercase tracking-wider text-amber-400/70 mb-4 flex items-center gap-1.5">
@@ -607,7 +921,7 @@ export default function Certificates() {
             </div>
           )}
 
-          {/* Regular */}
+          {/* Regular Certificates */}
           {regularCerts.length > 0 && (
             <div>
               {featuredCerts.length > 0 && (
@@ -623,9 +937,50 @@ export default function Certificates() {
             </div>
           )}
 
-          {filtered.length === 0 && (
+          {filteredCertificates.length === 0 && allCertificates.length > 0 && (
             <div className="text-center py-16 text-slate-500 text-sm">
               No certificates in this category yet.
+            </div>
+          )}
+
+          {/* ─── DIGITAL BADGES SECTION BELOW CERTIFICATES ─────────────── */}
+          {allBadges.length > 0 && (
+            <div id="digital-badges" className="mt-20 pt-16 border-t border-slate-800/80 relative">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold uppercase tracking-widest mb-3">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Verified Micro-Credentials
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
+                    Digital{' '}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200">
+                      Badges
+                    </span>
+                  </h3>
+                  <p className="mt-2 text-slate-400 text-xs sm:text-sm max-w-xl">
+                    Verifiable Open Badges and industry micro-credentials recognizing specialized technical achievements and hands-on skill proficiency.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                    {allBadges.length} Verified Badge{allBadges.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </div>
+
+              {/* Badges Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {allBadges.map((badge, idx) => (
+                  <DigitalBadgeCard
+                    key={badge.id || idx}
+                    badge={badge}
+                    index={idx}
+                    onViewBadge={setViewingBadge}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -633,3 +988,4 @@ export default function Certificates() {
     </>
   );
 }
+
