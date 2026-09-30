@@ -2,14 +2,22 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
+import {
+  subscribeToPortfolioTheme,
+  getCachedPortfolioTheme,
+  applyThemeToDom,
+  DEFAULT_PORTFOLIO_THEME,
+} from '../lib/firestore';
 
 const ThemeContext = createContext({
   theme: 'dark',
   toggleTheme: () => {},
+  portfolioTheme: DEFAULT_PORTFOLIO_THEME,
 });
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState('dark');
+  const [portfolioTheme, setPortfolioTheme] = useState(getCachedPortfolioTheme);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -18,13 +26,22 @@ export function ThemeProvider({ children }) {
       setTheme(savedTheme);
       document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     } else {
-      // Default to dark as requested by original visual style
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const initialTheme = prefersDark ? 'dark' : 'dark';
       setTheme(initialTheme);
       document.documentElement.classList.toggle('dark', initialTheme === 'dark');
     }
+
+    // Subscribe to portfolio dynamic color theme
+    const unsubTheme = subscribeToPortfolioTheme((t) => {
+      if (t) {
+        setPortfolioTheme(t);
+        applyThemeToDom(t);
+      }
+    });
+
     setMounted(true);
+    return () => unsubTheme();
   }, []);
 
   const toggleTheme = () => {
@@ -35,7 +52,7 @@ export function ThemeProvider({ children }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, mounted }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, portfolioTheme, mounted }}>
       {children}
     </ThemeContext.Provider>
   );

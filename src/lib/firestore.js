@@ -2197,6 +2197,281 @@ export async function resetSectionSettings() {
   return resetData;
 }
 
+// ─── PORTFOLIO THEME MANAGEMENT ──────────────────────────────────────────────
+
+export const PORTFOLIO_THEME_COLLECTION = 'settings';
+export const PORTFOLIO_THEME_DOC_ID = 'portfolio_theme';
+
+export const CURATED_THEMES = [
+  {
+    id: 'cyber_cyan',
+    name: 'Cyber Cyan & Electric Indigo',
+    category: 'Cyberpunk & Tech',
+    primaryColor: '#12f7ff',
+    secondaryColor: '#6e57e0',
+    accentColor: '#00c9ff',
+    description: 'The iconic high-tech cyberpunk palette with electric cyan glows and deep purple accents.',
+    gradient: 'from-[#12f7ff] to-[#6e57e0]',
+  },
+  {
+    id: 'emerald_matrix',
+    name: 'Emerald Matrix & Teal Mint',
+    category: 'Hacker & Innovation',
+    primaryColor: '#10b981',
+    secondaryColor: '#06b6d4',
+    accentColor: '#34d399',
+    description: 'Terminal-inspired clean green matrix with shimmering cyan teal highlights.',
+    gradient: 'from-[#10b981] to-[#06b6d4]',
+  },
+  {
+    id: 'neon_purple',
+    name: 'Neon Violet & Synth Pink',
+    category: 'Creative AI & Synthwave',
+    primaryColor: '#c084fc',
+    secondaryColor: '#ec4899',
+    accentColor: '#a855f7',
+    description: 'Vibrant neon purple with electric magenta highlights, giving a creative generative AI feel.',
+    gradient: 'from-[#c084fc] to-[#ec4899]',
+  },
+  {
+    id: 'amber_sunset',
+    name: 'Amber Solar & Crimson Fire',
+    category: 'Warm & High Energy',
+    primaryColor: '#f59e0b',
+    secondaryColor: '#ef4444',
+    accentColor: '#f97316',
+    description: 'Blazing sunset radiance with warm amber golds and intense crimson glows.',
+    gradient: 'from-[#f59e0b] to-[#ef4444]',
+  },
+  {
+    id: 'sapphire_ocean',
+    name: 'Sapphire Ocean & Sky Blue',
+    category: 'Corporate & Deep Sea',
+    primaryColor: '#38bdf8',
+    secondaryColor: '#3b82f6',
+    accentColor: '#60a5fa',
+    description: 'Polished enterprise tech blue with deep sapphire depths and crystal sky azure.',
+    gradient: 'from-[#38bdf8] to-[#3b82f6]',
+  },
+  {
+    id: 'rose_luxury',
+    name: 'Rose Quartz & Velvet Crimson',
+    category: 'Vibrant & Modern Luxury',
+    primaryColor: '#fb7185',
+    secondaryColor: '#f43f5e',
+    accentColor: '#fda4af',
+    description: 'Refined modern rose with elegant crimson glow and luxurious modern accents.',
+    gradient: 'from-[#fb7185] to-[#f43f5e]',
+  },
+  {
+    id: 'monochrome_titanium',
+    name: 'Titanium Slate & Silver Mist',
+    category: 'Minimalist & Apple Pro',
+    primaryColor: '#e2e8f0',
+    secondaryColor: '#64748b',
+    accentColor: '#94a3b8',
+    description: 'Sleek monochromatic titanium with clean silver gradients and stealth dark finishes.',
+    gradient: 'from-[#e2e8f0] to-[#64748b]',
+  },
+  {
+    id: 'cosmic_nebula',
+    name: 'Cosmic Nebula & Deep Space',
+    category: 'Futuristic & Sci-Fi',
+    primaryColor: '#818cf8',
+    secondaryColor: '#d946ef',
+    accentColor: '#06b6d4',
+    description: 'Multidimensional space nebula blending starlight indigo, magenta, and cyan hyperdrive.',
+    gradient: 'from-[#818cf8] via-[#d946ef] to-[#06b6d4]',
+  },
+];
+
+export const DEFAULT_PORTFOLIO_THEME = {
+  themeId: 'cyber_cyan',
+  themeName: 'Cyber Cyan & Electric Indigo',
+  primaryColor: '#12f7ff',
+  secondaryColor: '#6e57e0',
+  accentColor: '#00c9ff',
+  customEnabled: false,
+};
+
+const PORTFOLIO_THEME_CACHE_KEY = 'jahan_portfolio_theme_cache';
+
+export function normalizePortfolioTheme(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return { ...DEFAULT_PORTFOLIO_THEME };
+  }
+  return {
+    themeId: raw.themeId || DEFAULT_PORTFOLIO_THEME.themeId,
+    themeName: raw.themeName || DEFAULT_PORTFOLIO_THEME.themeName,
+    primaryColor: raw.primaryColor || DEFAULT_PORTFOLIO_THEME.primaryColor,
+    secondaryColor: raw.secondaryColor || DEFAULT_PORTFOLIO_THEME.secondaryColor,
+    accentColor: raw.accentColor || DEFAULT_PORTFOLIO_THEME.accentColor,
+    customEnabled: Boolean(raw.customEnabled),
+  };
+}
+
+export function getCachedPortfolioTheme() {
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem(PORTFOLIO_THEME_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') {
+          return normalizePortfolioTheme(parsed);
+        }
+      }
+    } catch {}
+  }
+  return { ...DEFAULT_PORTFOLIO_THEME };
+}
+
+export function saveCachedPortfolioTheme(data) {
+  if (typeof window === 'undefined' || !data) return;
+  try {
+    const normalized = normalizePortfolioTheme(data);
+    localStorage.setItem(PORTFOLIO_THEME_CACHE_KEY, JSON.stringify(normalized));
+    window.dispatchEvent(new CustomEvent('jahan_theme_updated', { detail: normalized }));
+    applyThemeToDom(normalized);
+  } catch {}
+}
+
+export function applyThemeToDom(theme) {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  const primary = theme.primaryColor || '#12f7ff';
+  const secondary = theme.secondaryColor || '#6e57e0';
+  const accent = theme.accentColor || '#00c9ff';
+
+  root.style.setProperty('--theme-primary', primary);
+  root.style.setProperty('--theme-secondary', secondary);
+  root.style.setProperty('--theme-accent', accent);
+  root.style.setProperty('--first-color', secondary);
+  root.style.setProperty('--second-color', accent);
+  root.style.setProperty('--neon-cyan', primary);
+  root.style.setProperty('--theme-glow', `${primary}55`);
+  root.setAttribute('data-portfolio-theme', theme.themeId || 'cyber_cyan');
+}
+
+export async function getPortfolioTheme() {
+  if (!isFirebaseConfigured || !db) {
+    return getCachedPortfolioTheme();
+  }
+
+  try {
+    const docRef = doc(db, PORTFOLIO_THEME_COLLECTION, PORTFOLIO_THEME_DOC_ID);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) {
+      return getCachedPortfolioTheme();
+    }
+    const data = normalizePortfolioTheme(snap.data());
+    saveCachedPortfolioTheme(data);
+    return data;
+  } catch (error) {
+    console.warn('Portfolio theme fetch fallback:', error.message);
+    return getCachedPortfolioTheme();
+  }
+}
+
+export function subscribeToPortfolioTheme(callback) {
+  const initial = getCachedPortfolioTheme();
+  applyThemeToDom(initial);
+  callback(initial);
+
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
+  const handleStorageChange = (e) => {
+    if (e.key === PORTFOLIO_THEME_CACHE_KEY && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        const normalized = normalizePortfolioTheme(parsed);
+        applyThemeToDom(normalized);
+        callback(normalized);
+      } catch {}
+    }
+  };
+  window.addEventListener('storage', handleStorageChange);
+
+  const handleCustomUpdate = (e) => {
+    if (e.detail) {
+      const normalized = normalizePortfolioTheme(e.detail);
+      applyThemeToDom(normalized);
+      callback(normalized);
+    }
+  };
+  window.addEventListener('jahan_theme_updated', handleCustomUpdate);
+
+  if (!isFirebaseConfigured || !db) {
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jahan_theme_updated', handleCustomUpdate);
+    };
+  }
+
+  try {
+    const docRef = doc(db, PORTFOLIO_THEME_COLLECTION, PORTFOLIO_THEME_DOC_ID);
+
+    getDoc(docRef).then((snap) => {
+      if (snap && snap.exists()) {
+        const data = normalizePortfolioTheme(snap.data());
+        saveCachedPortfolioTheme(data);
+        applyThemeToDom(data);
+        callback(data);
+      }
+    }).catch(() => {});
+
+    const unsubscribe = onSnapshot(
+      docRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = normalizePortfolioTheme(snapshot.data());
+          saveCachedPortfolioTheme(data);
+          applyThemeToDom(data);
+          callback(data);
+        }
+      },
+      (error) => {
+        console.warn('Portfolio theme snapshot error:', error.message);
+      }
+    );
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jahan_theme_updated', handleCustomUpdate);
+      unsubscribe();
+    };
+  } catch {
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jahan_theme_updated', handleCustomUpdate);
+    };
+  }
+}
+
+export async function updatePortfolioTheme(themeData) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, PORTFOLIO_THEME_COLLECTION, PORTFOLIO_THEME_DOC_ID);
+
+  const normalized = normalizePortfolioTheme(themeData);
+  saveCachedPortfolioTheme(normalized);
+
+  await setDoc(docRef, { ...normalized, updatedAt: serverTimestamp() }, { merge: true });
+  return normalized;
+}
+
+export async function resetPortfolioTheme() {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, PORTFOLIO_THEME_COLLECTION, PORTFOLIO_THEME_DOC_ID);
+
+  const resetData = { ...DEFAULT_PORTFOLIO_THEME };
+  saveCachedPortfolioTheme(resetData);
+
+  await setDoc(docRef, { ...resetData, updatedAt: serverTimestamp() }, { merge: true });
+  return resetData;
+}
+
+
 
 
 

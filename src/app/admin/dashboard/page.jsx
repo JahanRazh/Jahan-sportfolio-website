@@ -23,6 +23,7 @@ import BulkCertificateUploadModal from '../../../components/admin/BulkCertificat
 import ExperienceEducationManager from '../../../components/admin/ExperienceEducationManager';
 import PublicationsManager from '../../../components/admin/PublicationsManager';
 import SectionVisibilityManager from '../../../components/admin/SectionVisibilityManager';
+import ThemeManager from '../../../components/admin/ThemeManager';
 import SkillsManager from '../../../components/admin/SkillsManager';
 import AboutCvManager from '../../../components/admin/AboutCvManager';
 import VisitorAnalyticsCard from '../../../components/admin/VisitorAnalyticsCard';
@@ -560,6 +561,13 @@ export default function AdminDashboardPage() {
                 )}
               </section>
             </>
+          )}
+
+          {/* ── CUSTOM THEME STUDIO TAB ─────────────────────────────────── */}
+          {activeTab === 'theme' && (
+            <section>
+              <ThemeManager />
+            </section>
           )}
 
           {/* ── SECTION VISIBILITY TAB ─────────────────────────────────── */}

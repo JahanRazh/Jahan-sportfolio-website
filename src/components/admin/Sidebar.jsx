@@ -2,12 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { 
-  LayoutDashboard, 
-  FolderGit2, 
-  PlusCircle, 
-  Globe, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  FolderGit2,
+  PlusCircle,
+  Globe,
+  LogOut,
   DatabaseBackup,
   Award,
   Sliders,
@@ -16,7 +16,8 @@ import {
   Briefcase,
   BookOpen,
   Eye,
-  X 
+  Palette,
+  X
 } from 'lucide-react';
 import { INITIAL_PROFILE } from '../../lib/firestore';
 
@@ -33,7 +34,8 @@ export default function Sidebar({
 }) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'sections', label: 'Section Visibility', icon: Eye },
+    { id: 'theme', label: 'Custom Theme Studio', icon: Palette },
+    { id: 'sections', label: 'Section Visibility & Order', icon: Eye },
     { id: 'projects', label: 'Projects Management', icon: FolderGit2 },
     { id: 'experience', label: 'Experience & Education', icon: Briefcase },
     { id: 'publications', label: 'Research & Publications', icon: BookOpen },
@@ -115,11 +117,10 @@ export default function Sidebar({
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                  isActive
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
                     ? 'bg-indigo-600/20 text-cyan-300 border border-indigo-500/30 font-semibold'
                     : 'text-slate-400 hover:bg-slate-800/70 hover:text-slate-200'
-                }`}
+                  }`}
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
                 <span>{item.label}</span>

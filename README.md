@@ -27,7 +27,8 @@
   - [11. Visitor Analytics & Tracking](#11-visitor-analytics--tracking)
 - [🛡️ Private Admin CMS Dashboard](#️-private-admin-cms-dashboard)
   - [Authentication & Security](#authentication--security)
-  - [Section Visibility Manager (Show / Hide Any Section)](#section-visibility-manager-show--hide-any-section)
+  - [🎨 Custom Theme Studio (Portfolio-Wide Themes)](#-custom-theme-studio-portfolio-wide-themes)
+  - [Section Visibility & Order Manager (Show, Hide & Rearrange Sections)](#section-visibility--order-manager-show-hide--rearrange-sections)
   - [Project Management & GitHub AI Auto-Fill](#project-management--github-ai-auto-fill)
   - [Experience & Education CMS](#experience--education-cms)
   - [Research & Publications CMS](#research--publications-cms)
@@ -157,6 +158,22 @@ Access the secured dashboard at `/admin/dashboard` (login portal at `/admin/logi
 - Guarded by Firebase Authentication.
 - All non-authenticated attempts to access `/admin/dashboard` are automatically intercepted and redirected to `/admin/login`.
 - No public registration: admin accounts are created securely inside the Firebase Console.
+
+### 🎨 Custom Theme Studio (Portfolio-Wide Themes)
+- **Instant Portfolio-Wide Reskinning**: Customize the color aesthetic of the entire public portfolio and admin console directly from the admin panel (`/admin/dashboard` ➔ **🎨 Custom Theme Studio**).
+- **8 Curated Theme Presets**:
+  - 🔷 **Cyber Cyan & Electric Indigo**: High-tech cyberpunk with electric cyan glows (`#12f7ff`) and deep purple accents (`#6e57e0`).
+  - 🟢 **Emerald Matrix & Teal Mint**: Terminal-inspired hacker green (`#10b981`) with cyan teal highlights (`#06b6d4`).
+  - 🟣 **Neon Violet & Synth Pink**: Vibrant neon purple (`#c084fc`) with electric magenta (`#ec4899`) for creative AI.
+  - 🌅 **Amber Solar & Crimson Fire**: Blazing energy with solar amber golds (`#f59e0b`) and crimson fire (`#ef4444`).
+  - 💎 **Sapphire Ocean & Sky Blue**: Polished enterprise corporate tech blue (`#38bdf8`) with deep sapphire (`#3b82f6`).
+  - 🌸 **Rose Quartz & Velvet Crimson**: Modern vibrant luxury with rose quartz (`#fb7185`) and velvet crimson (`#f43f5e`).
+  - 🖤 **Titanium Slate & Silver Mist**: Sleek minimalist Apple Pro monochromatic titanium (`#e2e8f0` and `#64748b`).
+  - 🌌 **Cosmic Nebula & Deep Space**: Multidimensional sci-fi starlight indigo (`#818cf8`) and cosmic magenta (`#d946ef`).
+- **Live Component Preview Box**: Shows how headings, typewriter gradients, primary buttons, glassmorphic download CV buttons, and badges will look before or as you select.
+- **Custom Color Studio**: Interactive color pickers and hex inputs to fine-tune exact Primary, Secondary, and Accent brand colors.
+- **1-Click Reset to Default**: Instantly restores the original Cyber Cyan & Electric Indigo theme.
+- **Real-Time Cloud Synchronization**: Injects CSS variables directly onto `document.documentElement` with Firestore persistence and local storage fallback for instant, flash-free rendering.
 
 ### Section Visibility & Order Manager (Show, Hide & Rearrange Sections)
 - **Granular 1-Click Page Control**: Completely show or hide any specific section of the live portfolio directly from the admin panel (`/admin/dashboard` ➔ **Section Visibility**).
@@ -311,6 +328,8 @@ All media assets are optimized through Cloudinary:
 │   │       ├── DashboardStats.jsx            # Metrics overview cards
 │   │       ├── ProjectTable.jsx              # Projects management table
 │   │       ├── ProjectFormModal.jsx          # Project editor with AI autofill
+│   │       ├── SectionManager.jsx            # Section visibility & drag/drop order CMS
+│   │       ├── ThemeManager.jsx              # 🎨 Custom Theme Studio (presets & brand colors)
 │   │       ├── ExperienceEducationManager.jsx# Work & Education CMS with CRUD
 │   │       ├── PublicationsManager.jsx       # Research & Papers CMS with CRUD
 │   │       ├── CertificateTable.jsx          # Certificates/Badges list with filters

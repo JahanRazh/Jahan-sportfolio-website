@@ -87,31 +87,44 @@ export default function Navbar({ initialVisibility }) {
           : 'h-24 bg-transparent'
         }`}
     >
-      <div className="max-w-7xl mx-auto h-full px-6 sm:px-10 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 lg:gap-6">
         {/* Logo */}
-        <Link href="#home" className="group flex items-baseline select-none">
-          <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1e9fab] dark:text-[#12f7ff] transition-all group-hover:scale-105">
+        <Link href="#home" className="group flex items-baseline select-none shrink-0">
+          <span
+            className="text-2xl sm:text-3xl font-extrabold tracking-tight transition-all group-hover:scale-105"
+            style={{ color: 'var(--theme-primary, #12f7ff)' }}
+          >
             Razh
           </span>
-          <span className="text-3xl font-black text-[#6e57e0] dark:text-[#6e57e0]">.</span>
+          <span
+            className="text-3xl font-black transition-colors"
+            style={{ color: 'var(--theme-secondary, #6e57e0)' }}
+          >
+            .
+          </span>
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1.5">
           {navLinks.map((link) => {
             const isActive = activeSection === link.id;
             return (
               <a
                 key={link.id}
                 href={link.href}
-                className={`relative px-4 py-2 text-sm lg:text-base font-medium rounded-full transition-all duration-300 ${isActive
-                    ? 'text-[#6e57e0] dark:text-[#12f7ff] font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-[#6e57e0] dark:hover:text-[#12f7ff]'
-                  }`}
+                style={isActive ? { color: 'var(--theme-primary, #12f7ff)' } : {}}
+                className={`relative px-2.5 py-1.5 xl:px-3.5 xl:py-2 text-xs xl:text-sm font-medium whitespace-nowrap rounded-full transition-all duration-300 ${
+                  isActive
+                    ? 'font-semibold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-white'
+                }`}
               >
                 {link.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#6e57e0] dark:bg-[#12f7ff]" />
+                  <span
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full transition-colors"
+                    style={{ backgroundColor: 'var(--theme-primary, #12f7ff)' }}
+                  />
                 )}
               </a>
             );
@@ -119,7 +132,7 @@ export default function Navbar({ initialVisibility }) {
         </nav>
 
         {/* Desktop Right Actions */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-3 shrink-0">
           <a
             href={getDirectDownloadUrl(cvDownloadUrl, cvDownloadName)}
             download={cvDownloadName}
@@ -128,47 +141,77 @@ export default function Navbar({ initialVisibility }) {
               downloadPdfDirectly(cvDownloadUrl, cvDownloadName);
             }}
             id="nav-download-cv-btn"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-[#00c9ff] hover:text-white dark:hover:bg-[#00c9ff] dark:hover:text-slate-900 shadow-sm hover:shadow-[0_0_15px_rgba(0,201,255,0.4)] cursor-pointer"
+            title="Download Jahan Jayalath CV (PDF)"
+            className="inline-flex items-center gap-2 px-4 py-2 xl:px-5 xl:py-2.5 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap shrink-0 transition-all duration-300 bg-slate-100 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 hover:text-white border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-[0_0_20px_rgba(18,247,255,0.35)] hover:-translate-y-0.5 cursor-pointer group"
+            style={{
+              borderColor: 'var(--theme-primary, #12f7ff)40',
+            }}
           >
             <span>Download CV</span>
-            <FileText className="w-4 h-4" />
+            <FileText className="w-3.5 h-3.5 xl:w-4 xl:h-4 group-hover:-translate-y-0.5 transition-transform" />
           </a>
           <ThemeToggle />
         </div>
 
-        {/* Mobile Hamburger & Theme Toggle */}
-        <div className="flex md:hidden items-center gap-2">
+        {/* Mobile & Tablet Hamburger, Compact CV Button & Theme Toggle */}
+        <div className="flex lg:hidden items-center gap-2 shrink-0">
+          <a
+            href={getDirectDownloadUrl(cvDownloadUrl, cvDownloadName)}
+            download={cvDownloadName}
+            onClick={(e) => {
+              e.preventDefault();
+              downloadPdfDirectly(cvDownloadUrl, cvDownloadName);
+            }}
+            id="nav-download-cv-btn-mobile"
+            title="Download Jahan Jayalath CV (PDF)"
+            aria-label="Download CV"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-semibold text-xs whitespace-nowrap shrink-0 transition-all border shadow-sm cursor-pointer hover:text-white"
+            style={{
+              background: 'var(--theme-primary, #12f7ff)15',
+              color: 'var(--theme-primary, #12f7ff)',
+              borderColor: 'var(--theme-primary, #12f7ff)40',
+            }}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">CV</span>
+          </a>
           <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle navigation menu"
             className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed top-20 left-0 right-0 bottom-0 bg-white/95 dark:bg-[#0a0e17]/95 backdrop-blur-xl border-t border-slate-200/60 dark:border-slate-800/80 p-6 flex flex-col justify-between z-40 animate-in slide-in-from-top duration-300">
-          <div className="flex flex-col gap-3">
+        <div className="lg:hidden fixed top-20 left-0 right-0 bottom-0 bg-white/95 dark:bg-[#0a0e17]/95 backdrop-blur-xl border-t border-slate-200/60 dark:border-slate-800/80 p-6 flex flex-col justify-between z-40 animate-in slide-in-from-top duration-300">
+          <div className="flex flex-col gap-2 overflow-y-auto">
             {navLinks.map((link) => (
               <a
                 key={link.id}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`py-3 px-4 rounded-xl text-lg font-medium transition ${activeSection === link.id
-                    ? 'bg-[#6e57e0]/10 text-[#6e57e0] dark:text-[#12f7ff] font-semibold'
+                className={`py-3 px-4 rounded-xl text-base font-medium transition ${
+                  activeSection === link.id
+                    ? 'font-semibold bg-slate-800/70'
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'
-                  }`}
+                }`}
+                style={
+                  activeSection === link.id
+                    ? { color: 'var(--theme-primary, #12f7ff)' }
+                    : {}
+                }
               >
                 {link.label}
               </a>
             ))}
           </div>
 
-          <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
             <a
               href={getDirectDownloadUrl(cvDownloadUrl, cvDownloadName)}
               download={cvDownloadName}
@@ -177,7 +220,10 @@ export default function Navbar({ initialVisibility }) {
                 setMobileMenuOpen(false);
                 downloadPdfDirectly(cvDownloadUrl, cvDownloadName);
               }}
-              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-medium text-base bg-[#6e57e0] text-white hover:bg-[#285bd4] transition shadow-lg shadow-indigo-500/25 cursor-pointer"
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-base whitespace-nowrap text-white hover:opacity-95 transition shadow-lg cursor-pointer"
+              style={{
+                background: 'linear-gradient(135deg, var(--theme-primary, #12f7ff), var(--theme-secondary, #6e57e0))',
+              }}
             >
               <FileText className="w-5 h-5" />
               <span>Download CV</span>

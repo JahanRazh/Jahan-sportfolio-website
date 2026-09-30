@@ -17,6 +17,10 @@
   --second-color: #00c9ff;
   --third-color: #c0a631;
   --neon-cyan: #12f7ff;
+  --theme-primary: #12f7ff;
+  --theme-secondary: #6e57e0;
+  --theme-accent: #00c9ff;
+  --theme-glow: rgba(18, 247, 255, 0.35);
 }
 
 .dark {
