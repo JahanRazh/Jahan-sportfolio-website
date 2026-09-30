@@ -128,7 +128,7 @@ export default function Hero({ initialProfile = null }) {
                   e.preventDefault();
                   downloadPdfDirectly(cvDownloadUrl, cvDownloadName);
                 }}
-                className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-base text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:bg-[#00c9ff] hover:text-white dark:hover:bg-[#00c9ff] dark:hover:text-slate-900 transition-all duration-300 shadow-sm hover:shadow-[0_0_20px_rgba(0,201,255,0.4)] hover:-translate-y-0.5 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-base whitespace-nowrap shrink-0 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:bg-[#00c9ff] hover:text-white dark:hover:bg-[#00c9ff] dark:hover:text-slate-900 transition-all duration-300 shadow-sm hover:shadow-[0_0_20px_rgba(0,201,255,0.4)] hover:-translate-y-0.5 cursor-pointer"
               >
                 <span>Download CV</span>
                 <FileText className="w-4 h-4" />

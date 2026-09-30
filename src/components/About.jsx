@@ -80,7 +80,7 @@ export default function About({ initialProfile = null }) {
                 e.preventDefault();
                 downloadPdfDirectly(cvDownloadUrl, cvDownloadName);
               }}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm text-white bg-[#6e57e0] hover:bg-[#285bd4] transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm whitespace-nowrap shrink-0 text-white bg-[#6e57e0] hover:bg-[#285bd4] transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:-translate-y-0.5 cursor-pointer"
             >
               <span>Download CV</span>
               <Download className="w-4 h-4" />

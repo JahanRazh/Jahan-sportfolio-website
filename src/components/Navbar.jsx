@@ -4,14 +4,24 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, FileText } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
-import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
+import {
+  subscribeToProfile,
+  getCachedProfile,
+  INITIAL_PROFILE,
+  subscribeToSectionVisibility,
+  getCachedSectionVisibility,
+  DEFAULT_SECTION_VISIBILITY,
+} from '../lib/firestore';
 import { getDirectDownloadUrl, downloadPdfDirectly } from '../lib/downloadHelper';
 
-export default function Navbar() {
+export default function Navbar({ initialVisibility }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [profile, setProfile] = useState(getCachedProfile);
+  const [visibility, setVisibility] = useState(
+    initialVisibility || getCachedSectionVisibility() || DEFAULT_SECTION_VISIBILITY
+  );
 
   useEffect(() => {
     const unsub = subscribeToProfile((data) => {
@@ -20,15 +30,36 @@ export default function Navbar() {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    const unsub = subscribeToSectionVisibility((data) => {
+      if (data) setVisibility(data);
+    });
+    return () => unsub();
+  }, []);
+
   const cvDownloadUrl = profile.cvUrl || '/assets/cv/Jahan_Jayalath-CV.pdf';
   const cvDownloadName = profile.cvFileName || 'Jahan_Jayalath_CV.pdf';
+
+  const allNavLinks = [
+    { label: 'Home', href: '#home', id: 'home', sectionKey: 'hero' },
+    { label: 'About', href: '#about', id: 'about', sectionKey: 'about' },
+    { label: 'Services', href: '#services', id: 'services', sectionKey: 'services' },
+    { label: 'Projects', href: '#projects', id: 'projects', sectionKey: 'projects' },
+    { label: 'Skills', href: '#skills', id: 'skills', sectionKey: 'skills' },
+    { label: 'Experience', href: '#experience', id: 'experience', sectionKey: 'experience' },
+    { label: 'Research', href: '#publications', id: 'publications', sectionKey: 'publications' },
+    { label: 'Certificates', href: '#certificates', id: 'certificates', sectionKey: 'certificates' },
+    { label: 'Contact', href: '#contact', id: 'contact', sectionKey: 'contact' },
+  ];
+
+  const navLinks = allNavLinks.filter((link) => visibility[link.sectionKey] !== false);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 40);
 
-      const sections = ['home', 'about', 'services', 'projects', 'skills', 'experience', 'certificates', 'contact'];
-      for (const sectionId of sections) {
+      const activeIds = navLinks.map((l) => l.id);
+      for (const sectionId of activeIds) {
         const el = document.getElementById(sectionId);
         if (el) {
           const rect = el.getBoundingClientRect();
@@ -42,27 +73,15 @@ export default function Navbar() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const navLinks = [
-    { label: 'Home', href: '#home', id: 'home' },
-    { label: 'About', href: '#about', id: 'about' },
-    { label: 'Services', href: '#services', id: 'services' },
-    { label: 'Projects', href: '#projects', id: 'projects' },
-    { label: 'Skills', href: '#skills', id: 'skills' },
-    { label: 'Experience', href: '#experience', id: 'experience' },
-    { label: 'Certificates', href: '#certificates', id: 'certificates' },
-    { label: 'Contact', href: '#contact', id: 'contact' },
-  ];
+  }, [navLinks]);
 
   return (
     <header
       id="header"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
           ? 'h-20 bg-white/80 dark:bg-[#0a0e17]/85 backdrop-blur-md shadow-lg shadow-black/5 dark:shadow-cyan-950/20 border-b border-slate-200/50 dark:border-slate-800/60'
           : 'h-24 bg-transparent'
-      }`}
+        }`}
     >
       <div className="max-w-7xl mx-auto h-full px-6 sm:px-10 flex items-center justify-between">
         {/* Logo */}
@@ -81,11 +100,10 @@ export default function Navbar() {
               <a
                 key={link.id}
                 href={link.href}
-                className={`relative px-4 py-2 text-sm lg:text-base font-medium rounded-full transition-all duration-300 ${
-                  isActive
+                className={`relative px-4 py-2 text-sm lg:text-base font-medium rounded-full transition-all duration-300 ${isActive
                     ? 'text-[#6e57e0] dark:text-[#12f7ff] font-semibold'
                     : 'text-slate-600 dark:text-slate-300 hover:text-[#6e57e0] dark:hover:text-[#12f7ff]'
-                }`}
+                  }`}
               >
                 {link.label}
                 {isActive && (
@@ -136,11 +154,10 @@ export default function Navbar() {
                 key={link.id}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`py-3 px-4 rounded-xl text-lg font-medium transition ${
-                  activeSection === link.id
+                className={`py-3 px-4 rounded-xl text-lg font-medium transition ${activeSection === link.id
                     ? 'bg-[#6e57e0]/10 text-[#6e57e0] dark:text-[#12f7ff] font-semibold'
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'
-                }`}
+                  }`}
               >
                 {link.label}
               </a>

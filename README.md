@@ -19,13 +19,18 @@
   - [3. Services](#3-services)
   - [4. Dynamic Projects Showcase](#4-dynamic-projects-showcase)
   - [5. Technical & Professional Skills](#5-technical--professional-skills)
-  - [6. Certifications & Credentials](#6-certifications--credentials)
-  - [7. Verified Digital Badges & Micro-Credentials](#7-verified-digital-badges--micro-credentials)
-  - [8. Contact & Social Ecosystem](#8-contact--social-ecosystem)
-  - [9. Visitor Analytics & Tracking](#9-visitor-analytics--tracking)
+  - [6. Experience & Education Timeline](#6-experience--education-timeline)
+  - [7. Research & Publications](#7-research--publications)
+  - [8. Certifications & Credentials](#8-certifications--credentials)
+  - [9. Verified Digital Badges & Micro-Credentials](#9-verified-digital-badges--micro-credentials)
+  - [10. Contact & Social Ecosystem](#10-contact--social-ecosystem)
+  - [11. Visitor Analytics & Tracking](#11-visitor-analytics--tracking)
 - [🛡️ Private Admin CMS Dashboard](#️-private-admin-cms-dashboard)
   - [Authentication & Security](#authentication--security)
+  - [Section Visibility Manager (Show / Hide Any Section)](#section-visibility-manager-show--hide-any-section)
   - [Project Management & GitHub AI Auto-Fill](#project-management--github-ai-auto-fill)
+  - [Experience & Education CMS](#experience--education-cms)
+  - [Research & Publications CMS](#research--publications-cms)
   - [Certificate & Digital Badge CMS](#certificate--digital-badge-cms)
   - [Automatic Badge Icon Identification](#automatic-badge-icon-identification)
   - [Bulk Certificate Upload](#bulk-certificate-upload)
@@ -94,7 +99,24 @@ The purpose of this portfolio is to provide a **living, dynamic personal platfor
   - Degree title, university/institution, graduation period, and enrollment status badge.
   - GPA/Grade status pill, academic specialization, and student activities / societies.
 
-### 7. Certifications & Credentials
+### 7. Research & Publications
+- **Academic & Industry Research Showcase**: Real-time display of academic papers, conference proceedings (IEEE, etc.), symposium presentations, and research technical reports.
+- **Dynamic Type Classification & Badge Styling**:
+  - `Conference Paper`: Cyan glow badge
+  - `Journal Article`: Emerald green badge
+  - `Research Report`: Indigo badge
+  - `Preprint`: Amber badge
+- **Author Highlighting**: Automatically parses author lists and dynamically highlights **Ramesh Jahan Jayalath** with distinct bold styling and cyan underlines.
+- **Venue & Year Metadata**: Clean visual badges displaying the conference/journal venue, symposium date, and year.
+- **Expandable Abstract Viewer**: Smart line clamp showing an abstract preview with seamless "Read Full Abstract" / "Show Less" expandable toggle.
+- **Domain Keyword Tags**: Subject tags for rapid indexing (e.g. *Generative AI*, *Microservices*, *Cloud Security*, *Zero Trust*).
+- **Interactive Action Buttons**:
+  - **Read Paper**: Direct link to full PDF or publication repository (ArXiv, IEEE Xplore, ResearchGate).
+  - **DOI Link**: Official Digital Object Identifier persistent link.
+  - **1-Click Cite / Citation Copy**: Generates formatted academic citation and copies it to clipboard with instant checkmark feedback.
+- **Type Filter Bar**: Instant client-side filtering between *All*, *Conference Paper*, *Journal Article*, *Research Report*, etc.
+
+### 8. Certifications & Credentials
 - **Document Previews**: Renders certificate documents uploaded as PDF or images (auto-converted to crisp JPGs via Cloudinary).
 - **Category Navigation**: Filter certificates by domain (*Web Development*, *Cloud & DevOps*, *AI / ML*, *Cybersecurity*, *UI/UX*, *Data Science*, *Database*).
 - **Certificate Viewer Modal**:
@@ -104,7 +126,7 @@ The purpose of this portfolio is to provide a **living, dynamic personal platfor
   - Direct 1-click download with proper file naming.
   - Credential ID display and external verification button.
 
-### 8. Verified Digital Badges & Micro-Credentials
+### 9. Verified Digital Badges & Micro-Credentials
 - **Dedicated Section**: Positioned directly below traditional certificates to highlight modern micro-credentials.
 - **Open Badges Display**:
   - Badge cards featuring a circular glowing pedestal framing the official badge icon.
@@ -116,12 +138,12 @@ The purpose of this portfolio is to provide a **living, dynamic personal platfor
   - 1-click copy for Assertion / Credential IDs with visual "Copied!" feedback.
   - Direct verification button navigating to the official registry (Parchment, Credly, Badgr).
 
-### 9. Contact & Social Ecosystem
+### 10. Contact & Social Ecosystem
 - **Interactive Contact Form**: Integrated with EmailJS for direct inbox message delivery.
 - Input validation, loading indicators, and toast notification alerts.
 - Direct contact cards (email, phone, location, availability status).
 
-### 10. Visitor Analytics & Tracking
+### 11. Visitor Analytics & Tracking
 - **Automatic Background Tracker**: Logs page visits, country, device type (Desktop, Mobile, Tablet), browser, and operating system without slowing down client page loads.
 - Data stored directly in Firestore for analysis in the admin dashboard.
 
@@ -135,6 +157,24 @@ Access the secured dashboard at `/admin/dashboard` (login portal at `/admin/logi
 - Guarded by Firebase Authentication.
 - All non-authenticated attempts to access `/admin/dashboard` are automatically intercepted and redirected to `/admin/login`.
 - No public registration: admin accounts are created securely inside the Firebase Console.
+
+### Section Visibility Manager (Show / Hide Any Section)
+- **Granular 1-Click Page Control**: Completely show or hide any specific section of the live portfolio directly from the admin panel (`/admin/dashboard` ➔ **Section Visibility**).
+- **Supported Sections**:
+  - `Hero & Intro Banner` (`#home`)
+  - `About Me & Bio` (`#about`)
+  - `Services Showcase` (`#services`)
+  - `Projects Showcase` (`#projects`)
+  - `Technical & Professional Skills` (`#skills`)
+  - `Experience & Education Timeline` (`#experience`)
+  - `Research & Publications` (`#publications`)
+  - `Certificates & Digital Badges` (`#certificates`)
+  - `Contact & Inquiry Form` (`#contact`)
+- **Complete DOM & Navigation Removal**:
+  - When a section is switched off, it is removed from the DOM on the live homepage.
+  - The section link in the desktop Navbar, mobile drawer menu, and scroll spy tracker is automatically removed so visitors never see broken links or empty gaps.
+- **Batch Actions**: 1-click **"Show All"** and **"Reset Defaults"** buttons.
+- **Real-Time Persistence**: Synchronizes instantly via Firestore with client-side cache fallback for zero layout shift on page loads.
 
 ### Project Management & GitHub AI Auto-Fill
 - **Create & Edit Projects**: Title, category, summary, description, tech stack tags, demo link, GitHub link, display order, and featured toggle.
@@ -150,6 +190,22 @@ Access the secured dashboard at `/admin/dashboard` (login portal at `/admin/logi
 - **Academic Qualifications**: Degree, institution (SLIIT), study period, grade/GPA, major coursework, and student society activities.
 - **Live Status Toggle**: Publish or draft any item with one click.
 - **1-Click Seed Button**: Seed initial default SLIIT education and sample experiences anytime.
+
+### Research & Publications CMS
+- **Dedicated Dashboard View**: Accessible directly via the sidebar tab with book icon (`/admin/dashboard` ➔ Research & Publications).
+- **Publication Metadata Management**:
+  - Paper title, author list, conference/journal venue, publication year.
+  - Type classification: *Conference Paper*, *Journal Article*, *Research Report*, *Preprint*, *Other*.
+  - External references: Digital Object Identifier (DOI) and paper/PDF URL.
+  - Abstract text field with support for comprehensive multi-paragraph abstracts.
+  - Dynamic comma-separated research keywords/tags.
+- **Full CRUD Lifecycle**:
+  - Add new publications with rich modal form.
+  - Real-time updates with instantaneous Firestore synchronization.
+  - Delete safety with dedicated confirmation modal.
+  - Reordering via explicit display order number.
+- **Live Visibility Toggle**: Publish or unpublish papers with a single click.
+- **1-Click Starter Seed**: Pre-loads IEEE ICAIC 2024 and SLIIT research papers directly to Firestore.
 
 ### Certificate & Digital Badge CMS
 - **Format Toggle**: Explicitly select between:
@@ -236,6 +292,8 @@ All media assets are optimized through Cloudinary:
 │   │   ├── Projects.jsx          # Projects grid with category tabs
 │   │   ├── ProjectCard.jsx       # Individual project card with action buttons
 │   │   ├── Skills.jsx            # Progress bars & circular indicators
+│   │   ├── ExperienceEducation.jsx # Split/tabbed work experience & SLIIT education timeline
+│   │   ├── ResearchPublications.jsx# Research papers, conference proceedings & APA citations
 │   │   ├── Certificates.jsx      # Certificates + Verified Digital Badges
 │   │   ├── Contact.jsx           # Contact form powered by EmailJS
 │   │   ├── Footer.jsx            # Footer links & copyright
@@ -247,6 +305,8 @@ All media assets are optimized through Cloudinary:
 │   │       ├── DashboardStats.jsx            # Metrics overview cards
 │   │       ├── ProjectTable.jsx              # Projects management table
 │   │       ├── ProjectFormModal.jsx          # Project editor with AI autofill
+│   │       ├── ExperienceEducationManager.jsx# Work & Education CMS with CRUD
+│   │       ├── PublicationsManager.jsx       # Research & Papers CMS with CRUD
 │   │       ├── CertificateTable.jsx          # Certificates/Badges list with filters
 │   │       ├── CertificateFormModal.jsx      # Certificate editor with badge preview
 │   │       ├── BulkCertificateUploadModal.jsx# Multi-file batch uploader

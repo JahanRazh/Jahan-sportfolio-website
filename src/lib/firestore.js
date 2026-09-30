@@ -1949,4 +1949,167 @@ export async function seedInitialPublications() {
   }
 }
 
+// ─── SECTION VISIBILITY MANAGEMENT ──────────────────────────────────────────
+
+export const SECTION_VISIBILITY_COLLECTION = 'settings';
+export const SECTION_VISIBILITY_DOC_ID = 'section_visibility';
+
+export const DEFAULT_SECTION_VISIBILITY = {
+  hero: true,
+  about: true,
+  services: true,
+  projects: true,
+  skills: true,
+  experience: true,
+  publications: true,
+  certificates: true,
+  contact: true,
+};
+
+const SECTION_VISIBILITY_CACHE_KEY = 'jahan_section_visibility_cache';
+
+export function getCachedSectionVisibility() {
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem(SECTION_VISIBILITY_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') {
+          return { ...DEFAULT_SECTION_VISIBILITY, ...parsed };
+        }
+      }
+    } catch {}
+  }
+  return DEFAULT_SECTION_VISIBILITY;
+}
+
+export function saveCachedSectionVisibility(data) {
+  if (typeof window === 'undefined' || !data) return;
+  try {
+    localStorage.setItem(SECTION_VISIBILITY_CACHE_KEY, JSON.stringify(data));
+    window.dispatchEvent(new CustomEvent('jahan_visibility_updated', { detail: data }));
+  } catch {}
+}
+
+export async function getSectionVisibility() {
+  if (!isFirebaseConfigured || !db) {
+    return getCachedSectionVisibility();
+  }
+
+  try {
+    const docRef = doc(db, SECTION_VISIBILITY_COLLECTION, SECTION_VISIBILITY_DOC_ID);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) {
+      return getCachedSectionVisibility();
+    }
+    const data = { ...DEFAULT_SECTION_VISIBILITY, ...snap.data() };
+    saveCachedSectionVisibility(data);
+    return data;
+  } catch (error) {
+    console.warn('Section visibility fetch fallback:', error.message);
+    return getCachedSectionVisibility();
+  }
+}
+
+export function subscribeToSectionVisibility(callback) {
+  const initial = getCachedSectionVisibility();
+  callback(initial);
+
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
+  const handleStorageChange = (e) => {
+    if (e.key === SECTION_VISIBILITY_CACHE_KEY && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        callback({ ...DEFAULT_SECTION_VISIBILITY, ...parsed });
+      } catch {}
+    }
+  };
+  window.addEventListener('storage', handleStorageChange);
+
+  const handleCustomUpdate = (e) => {
+    if (e.detail) {
+      callback({ ...DEFAULT_SECTION_VISIBILITY, ...e.detail });
+    }
+  };
+  window.addEventListener('jahan_visibility_updated', handleCustomUpdate);
+
+  if (!isFirebaseConfigured || !db) {
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jahan_visibility_updated', handleCustomUpdate);
+    };
+  }
+
+  try {
+    const docRef = doc(db, SECTION_VISIBILITY_COLLECTION, SECTION_VISIBILITY_DOC_ID);
+
+    getDoc(docRef).then((snap) => {
+      if (snap && snap.exists()) {
+        const data = { ...DEFAULT_SECTION_VISIBILITY, ...snap.data() };
+        saveCachedSectionVisibility(data);
+        callback(data);
+      }
+    }).catch(() => {});
+
+    const unsubscribe = onSnapshot(
+      docRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = { ...DEFAULT_SECTION_VISIBILITY, ...snapshot.data() };
+          saveCachedSectionVisibility(data);
+          callback(data);
+        }
+      },
+      (error) => {
+        console.warn('Section visibility snapshot error:', error.message);
+      }
+    );
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jahan_visibility_updated', handleCustomUpdate);
+      unsubscribe();
+    };
+  } catch {
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jahan_visibility_updated', handleCustomUpdate);
+    };
+  }
+}
+
+export async function updateSectionVisibility(sectionId, isVisible) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SECTION_VISIBILITY_COLLECTION, SECTION_VISIBILITY_DOC_ID);
+
+  const current = getCachedSectionVisibility();
+  const updated = {
+    ...current,
+    [sectionId]: Boolean(isVisible),
+  };
+
+  saveCachedSectionVisibility(updated);
+  await setDoc(docRef, { [sectionId]: Boolean(isVisible), updatedAt: serverTimestamp() }, { merge: true });
+  return updated;
+}
+
+export async function updateAllSectionsVisibility(visibilityObject) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SECTION_VISIBILITY_COLLECTION, SECTION_VISIBILITY_DOC_ID);
+
+  const updated = {
+    ...DEFAULT_SECTION_VISIBILITY,
+    ...visibilityObject,
+  };
+
+  saveCachedSectionVisibility(updated);
+  const toSave = { ...updated, updatedAt: serverTimestamp() };
+  await setDoc(docRef, toSave, { merge: true });
+  return updated;
+}
+
+
 

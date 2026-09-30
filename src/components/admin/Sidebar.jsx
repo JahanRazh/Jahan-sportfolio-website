@@ -14,6 +14,8 @@ import {
   User,
   Share2,
   Briefcase,
+  BookOpen,
+  Eye,
   X 
 } from 'lucide-react';
 import { INITIAL_PROFILE } from '../../lib/firestore';
@@ -31,8 +33,10 @@ export default function Sidebar({
 }) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'sections', label: 'Section Visibility', icon: Eye },
     { id: 'projects', label: 'Projects Management', icon: FolderGit2 },
     { id: 'experience', label: 'Experience & Education', icon: Briefcase },
+    { id: 'publications', label: 'Research & Publications', icon: BookOpen },
     { id: 'certificates', label: 'Certificates & Badges', icon: Award },
     { id: 'skills', label: 'Skills (Tech & Pro)', icon: Sliders },
     { id: 'about', label: 'Profile, Bio & Contact', icon: User },
