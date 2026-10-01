@@ -45,38 +45,51 @@ export default function Sidebar({
     { id: 'social', label: 'Social Media Links', icon: Share2 },
   ];
 
+  // Lock body scroll when mobile sidebar drawer is open
+  React.useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
   const handleNavClick = (tabId) => {
     setActiveTab(tabId);
     if (setMobileOpen) setMobileOpen(false);
   };
 
   const content = (
-    <div className="h-full flex flex-col justify-between bg-slate-900 border-r border-slate-800 text-slate-300 p-5">
-      <div>
-        {/* Brand header */}
-        <div className="flex items-center justify-between pb-6 mb-6 border-b border-slate-800">
-          <div className="flex items-baseline select-none">
-            <span className="text-2xl font-black text-cyan-400">Razh</span>
-            <span className="text-2xl font-black text-indigo-500">.</span>
-            <span className="ml-2 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              CMS
-            </span>
-          </div>
-          {setMobileOpen && (
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
-              aria-label="Close sidebar"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+    <div className="h-full flex flex-col bg-slate-900 border-r border-slate-800 text-slate-300 overflow-hidden">
+      {/* Brand header */}
+      <div className="p-5 pb-4 flex items-center justify-between border-b border-slate-800 shrink-0">
+        <div className="flex items-baseline select-none">
+          <span className="text-2xl font-black text-cyan-400">Razh</span>
+          <span className="text-2xl font-black text-indigo-500">.</span>
+          <span className="ml-2 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            CMS
+          </span>
         </div>
+        {setMobileOpen && (
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+      </div>
 
+      {/* Scrollable Navigation & Menu Section */}
+      <div className="flex-1 overflow-y-auto p-5 py-4 space-y-5 overscroll-contain">
         {/* User Card with Real Profile Picture */}
         <button
           onClick={() => handleNavClick('about')}
-          className="w-full mb-6 p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-indigo-500/40 flex items-center gap-3 transition group text-left"
+          className="w-full p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-indigo-500/40 flex items-center gap-3 transition group text-left"
           title="Click to edit profile picture & details"
         >
           <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-500/50 group-hover:border-cyan-400 shrink-0 bg-slate-950 transition">
@@ -102,14 +115,14 @@ export default function Sidebar({
             onOpenAddModal();
             if (setMobileOpen) setMobileOpen(false);
           }}
-          className="w-full mb-6 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 shadow-lg shadow-indigo-600/30 transition duration-200"
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 shadow-lg shadow-indigo-600/30 transition duration-200"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Add Project</span>
         </button>
 
         {/* Navigation Links */}
-        <nav className="space-y-1.5">
+        <nav className="space-y-1.5 pb-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -117,10 +130,11 @@ export default function Sidebar({
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                  isActive
                     ? 'bg-indigo-600/20 text-cyan-300 border border-indigo-500/30 font-semibold'
                     : 'text-slate-400 hover:bg-slate-800/70 hover:text-slate-200'
-                  }`}
+                }`}
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
                 <span>{item.label}</span>
@@ -142,8 +156,8 @@ export default function Sidebar({
         </nav>
       </div>
 
-      {/* Bottom actions */}
-      <div className="pt-6 border-t border-slate-800 space-y-2">
+      {/* Bottom actions pinned at bottom */}
+      <div className="p-5 pt-3 border-t border-slate-800 space-y-2 shrink-0 bg-slate-900/95 backdrop-blur-sm">
         <Link
           href="/"
           target="_blank"
@@ -178,7 +192,7 @@ export default function Sidebar({
             className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative w-72 max-w-[80vw] h-full z-10 animate-in slide-in-from-left duration-200">
+          <div className="relative w-80 max-w-[85vw] h-full z-10 animate-in slide-in-from-left duration-200 shadow-2xl flex flex-col">
             {content}
           </div>
         </div>
