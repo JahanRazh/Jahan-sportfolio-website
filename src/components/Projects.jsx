@@ -32,11 +32,11 @@ export default function Projects() {
   const otherProjects = filteredProjects.filter((p) => !p.featured);
 
   return (
-    <section id="projects" className="py-24 relative overflow-hidden bg-slate-50/50 dark:bg-[#0c121e]/50">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10">
+    <section id="projects" className="py-16 sm:py-24 relative overflow-hidden bg-slate-50/50 dark:bg-[#0c121e]/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
         {/* Header */}
-        <div className="text-center mb-12">
-          <p className="text-sm font-semibold tracking-wider uppercase text-[#1e9fab] dark:text-[#12f7ff] mb-2">
+        <div className="text-center mb-10 sm:mb-12">
+          <p className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-[#1e9fab] dark:text-[#12f7ff] mb-2">
             Ramesh Jahan Jayalath Portfolio
           </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -46,12 +46,12 @@ export default function Projects() {
         </div>
 
         {/* Category Filters */}
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-14">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 mb-10 sm:mb-14">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
                 selectedCategory === cat
                   ? 'bg-[#6e57e0] text-white shadow-lg shadow-indigo-500/25 scale-105'
                   : 'bg-white dark:bg-[#161f30] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-[#6e57e0]'

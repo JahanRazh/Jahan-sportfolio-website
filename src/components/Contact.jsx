@@ -103,30 +103,30 @@ export default function Contact({ initialProfile = null }) {
   };
 
   return (
-    <section id="contact" className="py-24 relative overflow-hidden bg-slate-50/50 dark:bg-[#0c121e]/50">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10">
-        <div className="text-center mb-16">
+    <section id="contact" className="py-16 sm:py-24 relative overflow-hidden bg-slate-50/50 dark:bg-[#0c121e]/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+        <div className="text-center mb-10 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Get In <span className="text-[#6e57e0] dark:text-[#12f7ff]">Touch</span>
           </h2>
-          <p className="mt-2 text-sm sm:text-base text-slate-500 dark:text-slate-400">
+          <p className="mt-2 text-xs sm:text-base text-slate-500 dark:text-slate-400">
             Do you have a project in mind? Contact me here
           </p>
           <div className="w-16 h-1 bg-[#6e57e0] dark:bg-[#12f7ff] rounded-full mx-auto mt-3" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 items-stretch">
           {/* Left Column: Contact Info Card */}
-          <div className="lg:col-span-5 bg-gradient-to-br from-[#00c9ff] to-[#6e57e0] rounded-3xl p-8 sm:p-10 text-white flex flex-col justify-between shadow-xl shadow-cyan-500/10">
+          <div className="lg:col-span-5 bg-gradient-to-br from-[#00c9ff] to-[#6e57e0] rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 text-white flex flex-col justify-between shadow-xl shadow-cyan-500/10">
             <div>
-              <div className="inline-flex items-center gap-2 text-white/90 text-sm font-semibold tracking-wider uppercase mb-2">
+              <div className="inline-flex items-center gap-2 text-white/90 text-xs sm:text-sm font-semibold tracking-wider uppercase mb-2">
                 <span>Find Me</span>
                 <ArrowDownRight className="w-4 h-4" />
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-6" suppressHydrationWarning>
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6" suppressHydrationWarning>
                 {findMeTitle}
               </h3>
-              <p className="text-white/85 text-sm sm:text-base leading-relaxed mb-8" suppressHydrationWarning>
+              <p className="text-white/85 text-xs sm:text-base leading-relaxed mb-6 sm:mb-8" suppressHydrationWarning>
                 {findMeText}
               </p>
             </div>
@@ -200,8 +200,8 @@ export default function Contact({ initialProfile = null }) {
           </div>
 
           {/* Right Column: Contact Form */}
-          <div className="lg:col-span-7 bg-white dark:bg-[#161f30] rounded-3xl p-8 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/40">
-            <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
+          <div className="lg:col-span-7 bg-white dark:bg-[#161f30] rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/40">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">

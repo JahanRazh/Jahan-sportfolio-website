@@ -819,7 +819,7 @@ export default function Certificates() {
 
   if (loading) {
     return (
-      <section id="certificates" className="py-24 px-6 sm:px-10">
+      <section id="certificates" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-10">
         <div className="max-w-7xl mx-auto flex items-center justify-center py-20">
           <div className="w-8 h-8 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
         </div>
@@ -841,18 +841,18 @@ export default function Certificates() {
         <BadgeViewerModal badge={viewingBadge} onClose={handleCloseBadgeViewer} />
       )}
 
-      <section id="certificates" className="py-24 px-6 sm:px-10 relative overflow-hidden">
+      <section id="certificates" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-10 relative overflow-hidden">
         {/* Background decorations */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-32 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl" />
+          <div className="absolute top-32 left-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-amber-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-1/4 w-72 sm:w-80 h-72 sm:h-80 bg-indigo-500/5 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto relative">
           {/* Section header */}
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10 sm:mb-12">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold uppercase tracking-widest mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold uppercase tracking-widest mb-3 sm:mb-4">
                 <Award className="w-3.5 h-3.5" />
                 Certifications &amp; Credentials
               </div>
@@ -862,7 +862,7 @@ export default function Certificates() {
                   Certifications
                 </span>
               </h2>
-              <p className="mt-3 text-slate-400 text-sm sm:text-base max-w-xl">
+              <p className="mt-3 text-slate-400 text-xs sm:text-base max-w-xl">
                 Professional certifications and industry credentials earned by Ramesh Jahan Jayalath validating expertise in software engineering, development, and IT solutions.
               </p>
             </div>

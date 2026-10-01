@@ -85,23 +85,23 @@ export default function Hero({ initialProfile = null }) {
   return (
     <section
       id="home"
-      className="relative min-h-screen pt-28 pb-16 flex items-center justify-center overflow-hidden"
+      className="relative min-h-[90vh] sm:min-h-screen pt-20 sm:pt-28 pb-12 sm:pb-16 flex items-center justify-center overflow-hidden"
     >
       {/* Background glow orbs */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#6e57e0]/15 dark:bg-[#6e57e0]/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#00c9ff]/15 dark:bg-[#12f7ff]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 bg-[#6e57e0]/15 dark:bg-[#6e57e0]/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-[#00c9ff]/15 dark:bg-[#12f7ff]/15 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 w-full">
-        <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-12 lg:gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 w-full">
+        <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-8 sm:gap-12 lg:gap-8">
           {/* Left Text Content */}
           <div className="w-full lg:w-7/12 flex flex-col items-start text-left z-10">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#c0a631]/15 border border-[#c0a631]/40 text-[#c0a631] font-semibold text-xs sm:text-sm mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-[#c0a631]/15 border border-[#c0a631]/40 text-[#c0a631] font-semibold text-xs sm:text-sm mb-3 sm:mb-4">
               <span suppressHydrationWarning>{profile.heroBadge || INITIAL_PROFILE.heroBadge}</span>
             </div>
 
             {/* Title with typewriter */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight min-h-[75px] sm:min-h-[90px]">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight min-h-[50px] sm:min-h-[80px]">
               I&apos;m{' '}
               <span className="text-[#1e9fab] dark:text-[#12f7ff] border-r-2 border-[#12f7ff] pr-1 animate-pulse">
                 {currentText}
@@ -109,15 +109,15 @@ export default function Hero({ initialProfile = null }) {
             </h1>
 
             {/* Description */}
-            <p suppressHydrationWarning className="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl whitespace-pre-line">
+            <p suppressHydrationWarning className="mt-4 sm:mt-5 text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl whitespace-pre-line">
               {profile.heroIntro || INITIAL_PROFILE.heroIntro}
             </p>
 
             {/* CTA Buttons */}
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
               <a
                 href="#contact"
-                className="px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-base text-white bg-[#6e57e0] hover:bg-[#285bd4] transition-all duration-300 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5"
+                className="px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-semibold text-xs sm:text-base text-white bg-[#6e57e0] hover:bg-[#285bd4] transition-all duration-300 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5"
               >
                 Hire Me
               </a>
@@ -128,7 +128,7 @@ export default function Hero({ initialProfile = null }) {
                   e.preventDefault();
                   downloadPdfDirectly(cvDownloadUrl, cvDownloadName);
                 }}
-                className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-base whitespace-nowrap shrink-0 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:bg-[#00c9ff] hover:text-white dark:hover:bg-[#00c9ff] dark:hover:text-slate-900 transition-all duration-300 shadow-sm hover:shadow-[0_0_20px_rgba(0,201,255,0.4)] hover:-translate-y-0.5 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-semibold text-xs sm:text-base whitespace-nowrap shrink-0 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:bg-[#00c9ff] hover:text-white dark:hover:bg-[#00c9ff] dark:hover:text-slate-900 transition-all duration-300 shadow-sm hover:shadow-[0_0_20px_rgba(0,201,255,0.4)] hover:-translate-y-0.5 cursor-pointer"
               >
                 <span>Download CV</span>
                 <FileText className="w-4 h-4" />
@@ -136,7 +136,7 @@ export default function Hero({ initialProfile = null }) {
             </div>
 
             {/* Social Icons Bar */}
-            <div className="mt-12 flex flex-wrap items-center gap-3.5">
+            <div className="mt-8 sm:mt-12 flex flex-wrap items-center gap-2.5 sm:gap-3.5">
               {socialLinks.map((social) => (
                 <a
                   key={social.id || social.name}
@@ -144,14 +144,14 @@ export default function Hero({ initialProfile = null }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.name}
-                  className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-[#12f7ff] dark:hover:border-[#12f7ff] hover:scale-110 transition-all duration-200"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-[#12f7ff] dark:hover:border-[#12f7ff] hover:scale-110 transition-all duration-200"
                 >
                   <img
                     src={social.icon}
                     alt={social.name}
-                    width={22}
-                    height={22}
-                    className="w-5 h-5 object-contain"
+                    width={20}
+                    height={20}
+                    className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
                   />
                 </a>
               ))}
@@ -164,7 +164,7 @@ export default function Hero({ initialProfile = null }) {
               {/* Outer decorative ring */}
               <div className="absolute -inset-2 bg-gradient-to-r from-[#6e57e0] via-[#00c9ff] to-[#12f7ff] rounded-[55%_45%_55%_45%] opacity-70 blur-lg group-hover:opacity-100 transition duration-700 animate-pulse" />
               
-              <div className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-[55%_45%_55%_45%] overflow-hidden border-4 border-white/60 dark:border-slate-700/60 shadow-2xl animate-imgFloat bg-slate-900">
+              <div className="relative w-60 h-60 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-[55%_45%_55%_45%] overflow-hidden border-4 border-white/60 dark:border-slate-700/60 shadow-2xl animate-imgFloat bg-slate-900">
                 <img
                   src={profile.profileImageUrl || INITIAL_PROFILE.profileImageUrl}
                   alt="Jahan Ramesh - Software Engineer"
@@ -177,7 +177,7 @@ export default function Hero({ initialProfile = null }) {
         </div>
 
         {/* Scroll Indicator */}
-        <div className="mt-16 flex justify-center">
+        <div className="mt-12 sm:mt-16 flex justify-center">
           <a
             href="#about"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:shadow-md hover:text-[#6e57e0] dark:hover:text-[#12f7ff] transition group"

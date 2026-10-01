@@ -50,26 +50,26 @@ export default function About({ initialProfile = null }) {
   const cvDownloadName = profile.cvFileName || 'Jahan_Jayalath_CV.pdf';
 
   return (
-    <section id="about" className="py-24 relative overflow-hidden bg-slate-50/50 dark:bg-[#0c121e]/50">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10">
+    <section id="about" className="py-16 sm:py-24 relative overflow-hidden bg-slate-50/50 dark:bg-[#0c121e]/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             About <span className="text-[#6e57e0] dark:text-[#12f7ff]">Me</span>
           </h2>
           <div className="w-16 h-1 bg-[#6e57e0] dark:bg-[#12f7ff] rounded-full mx-auto mt-3" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 items-start">
           {/* Left Column: Intro Card */}
-          <div className="lg:col-span-6 bg-white dark:bg-[#161f30] rounded-3xl p-8 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/40 relative">
+          <div className="lg:col-span-6 bg-white dark:bg-[#161f30] rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/40 relative">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#6e57e0]/10 text-[#6e57e0] dark:bg-[#12f7ff]/10 dark:text-[#12f7ff] text-xs font-semibold uppercase tracking-wider mb-3">
               <span suppressHydrationWarning>{profile.aboutBadge || INITIAL_PROFILE.aboutBadge}</span>
             </div>
-            <h3 suppressHydrationWarning className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+            <h3 suppressHydrationWarning className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3 sm:mb-4">
               {profile.title || 'About Ramesh Jahan Jayalath'}
             </h3>
-            <p suppressHydrationWarning className="text-slate-600 dark:text-slate-300 leading-relaxed text-base sm:text-lg mb-8 whitespace-pre-line">
+            <p suppressHydrationWarning className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm sm:text-base lg:text-lg mb-6 sm:mb-8 whitespace-pre-line">
               {profile.bio || INITIAL_PROFILE.bio}
             </p>
 
@@ -80,7 +80,7 @@ export default function About({ initialProfile = null }) {
                 e.preventDefault();
                 downloadPdfDirectly(cvDownloadUrl, cvDownloadName);
               }}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm whitespace-nowrap shrink-0 text-white bg-[#6e57e0] hover:bg-[#285bd4] transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-semibold text-xs sm:text-sm whitespace-nowrap shrink-0 text-white bg-[#6e57e0] hover:bg-[#285bd4] transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:-translate-y-0.5 cursor-pointer"
             >
               <span>Download CV</span>
               <Download className="w-4 h-4" />
@@ -88,28 +88,28 @@ export default function About({ initialProfile = null }) {
           </div>
 
           {/* Right Column: Skill Stacks */}
-          <div className="lg:col-span-6 flex flex-col gap-6">
+          <div className="lg:col-span-6 flex flex-col gap-4 sm:gap-6">
             {skillCategories.map((cat, idx) => {
               const Icon = getCategoryIcon(cat.title);
               return (
                 <div
                   key={cat.title || idx}
-                  className="bg-white dark:bg-[#161f30] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-md shadow-slate-200/40 dark:shadow-black/20 hover:border-[#6e57e0]/50 dark:hover:border-[#12f7ff]/40 transition duration-300"
+                  className="bg-white dark:bg-[#161f30] rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-md shadow-slate-200/40 dark:shadow-black/20 hover:border-[#6e57e0]/50 dark:hover:border-[#12f7ff]/40 transition duration-300"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#6e57e0]/10 text-[#6e57e0] dark:bg-[#12f7ff]/10 dark:text-[#12f7ff]">
-                      <Icon className="w-5 h-5" />
+                  <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center bg-[#6e57e0]/10 text-[#6e57e0] dark:bg-[#12f7ff]/10 dark:text-[#12f7ff]">
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+                    <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       {cat.title}
                     </h4>
                   </div>
 
-                  <div className="flex flex-wrap gap-2.5">
+                  <div className="flex flex-wrap gap-2 sm:gap-2.5">
                     {cat.skills?.map((skill) => (
                       <span
                         key={skill}
-                        className="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-[#6e57e0]/10 dark:bg-[#6e57e0]/20 text-[#6e57e0] dark:text-[#c4b5fd] border border-[#6e57e0]/20 dark:border-[#6e57e0]/30 hover:bg-[#6e57e0] hover:text-white dark:hover:bg-[#12f7ff] dark:hover:text-slate-900 transition-colors"
+                        className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-[#6e57e0]/10 dark:bg-[#6e57e0]/20 text-[#6e57e0] dark:text-[#c4b5fd] border border-[#6e57e0]/20 dark:border-[#6e57e0]/30 hover:bg-[#6e57e0] hover:text-white dark:hover:bg-[#12f7ff] dark:hover:text-slate-900 transition-colors"
                       >
                         {skill}
                       </span>

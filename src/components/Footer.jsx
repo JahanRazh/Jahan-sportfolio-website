@@ -36,10 +36,10 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="py-16 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0a0e17] transition-colors">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 flex flex-col items-center justify-center text-center">
+    <footer className="py-12 sm:py-16 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0a0e17] transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 flex flex-col items-center justify-center text-center">
         {/* Brand Name */}
-        <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-1">
+        <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-1">
           Ramesh Jahan Jayalath
         </h3>
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
@@ -47,7 +47,7 @@ export default function Footer() {
         </p>
 
         {/* Menu */}
-        <ul className="flex flex-wrap justify-center items-center gap-6 sm:gap-8 mb-8">
+        <ul className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 mb-6 sm:mb-8">
           {footerLinks.map((item) => (
             <li key={item.label}>
               <a

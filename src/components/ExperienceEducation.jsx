@@ -47,17 +47,17 @@ export default function ExperienceEducation() {
   const showEdu = activeTab === 'all' || activeTab === 'education';
 
   return (
-    <section id="experience" className="py-24 px-6 sm:px-10 relative overflow-hidden bg-slate-900/30">
+    <section id="experience" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-10 relative overflow-hidden bg-slate-900/30">
       {/* Ambient background glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-24 left-10 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-24 left-10 w-72 sm:w-96 h-72 sm:h-96 bg-indigo-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-72 sm:w-96 h-72 sm:h-96 bg-cyan-500/5 rounded-full blur-3xl" />
       </div>
 
       <div className="max-w-7xl mx-auto relative">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-3 sm:mb-4">
             <Briefcase className="w-3.5 h-3.5" />
             <span>Career &amp; Academic Journey</span>
           </div>
@@ -69,15 +69,15 @@ export default function ExperienceEducation() {
             </span>
           </h2>
 
-          <p className="mt-4 text-slate-400 text-sm sm:text-base leading-relaxed">
+          <p className="mt-3 sm:mt-4 text-slate-400 text-xs sm:text-base leading-relaxed">
             A comprehensive timeline of my professional software engineering experience, corporate projects, and academic background at SLIIT University.
           </p>
 
           {/* Filter Pills */}
-          <div className="flex items-center justify-center gap-2 mt-8 flex-wrap">
+          <div className="flex items-center justify-center gap-2 mt-6 sm:mt-8 flex-wrap">
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 sm:gap-2 ${
                 activeTab === 'all'
                   ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg shadow-indigo-600/25 border border-indigo-500/40'
                   : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/60'
@@ -91,7 +91,7 @@ export default function ExperienceEducation() {
 
             <button
               onClick={() => setActiveTab('experience')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 sm:gap-2 ${
                 activeTab === 'experience'
                   ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-600/25 border border-cyan-500/40'
                   : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/60'
@@ -106,7 +106,7 @@ export default function ExperienceEducation() {
 
             <button
               onClick={() => setActiveTab('education')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 sm:gap-2 ${
                 activeTab === 'education'
                   ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/25 border border-purple-500/40'
                   : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/60'
@@ -122,38 +122,38 @@ export default function ExperienceEducation() {
         </div>
 
         {/* Content Layout */}
-        <div className={`grid gap-10 ${activeTab === 'all' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-4xl mx-auto'}`}>
+        <div className={`grid gap-8 sm:gap-10 ${activeTab === 'all' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-4xl mx-auto'}`}>
           
           {/* ─── WORK EXPERIENCE COLUMN ─────────────────────────── */}
           {showExp && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                  <Briefcase className="w-5 h-5" />
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Work Experience</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-white">Work Experience</h3>
                   <p className="text-xs text-slate-400">Engineering roles, internships &amp; professional projects</p>
                 </div>
               </div>
 
               {experiences.length === 0 ? (
-                <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 text-center text-slate-500 text-sm">
+                <div className="p-6 sm:p-8 rounded-2xl bg-slate-900/40 border border-slate-800 text-center text-slate-500 text-sm">
                   No experience entries added yet.
                 </div>
               ) : (
-                <div className="relative pl-6 border-l-2 border-slate-800 space-y-8">
+                <div className="relative pl-5 sm:pl-6 border-l-2 border-slate-800 space-y-6 sm:space-y-8">
                   {experiences.map((exp, idx) => (
                     <div key={exp.id || idx} className="relative group">
                       {/* Timeline dot */}
-                      <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 transition-all duration-300 ${
+                      <div className={`absolute -left-[27px] sm:-left-[31px] top-1.5 w-4 h-4 rounded-full border-2 transition-all duration-300 ${
                         exp.isCurrent
                           ? 'bg-cyan-500 border-cyan-300 ring-4 ring-cyan-500/20'
                           : 'bg-slate-900 border-slate-700 group-hover:border-cyan-400 group-hover:bg-cyan-950'
                       }`} />
 
                       {/* Experience Card */}
-                      <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 shadow-lg hover:shadow-cyan-500/5 transition-all duration-300 hover:-translate-y-0.5">
+                      <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 shadow-lg hover:shadow-cyan-500/5 transition-all duration-300 hover:-translate-y-0.5">
                         {/* Top Metadata */}
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                           <span className="text-xs font-semibold text-cyan-400 flex items-center gap-1.5">
@@ -231,32 +231,32 @@ export default function ExperienceEducation() {
           {showEdu && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                  <GraduationCap className="w-5 h-5" />
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                  <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Education &amp; Academics</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-white">Education &amp; Academics</h3>
                   <p className="text-xs text-slate-400">Degrees, formal qualifications &amp; academic programs</p>
                 </div>
               </div>
 
               {education.length === 0 ? (
-                <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 text-center text-slate-500 text-sm">
+                <div className="p-6 sm:p-8 rounded-2xl bg-slate-900/40 border border-slate-800 text-center text-slate-500 text-sm">
                   No education entries added yet.
                 </div>
               ) : (
-                <div className="relative pl-6 border-l-2 border-slate-800 space-y-8">
+                <div className="relative pl-5 sm:pl-6 border-l-2 border-slate-800 space-y-6 sm:space-y-8">
                   {education.map((edu, idx) => (
                     <div key={edu.id || idx} className="relative group">
                       {/* Timeline dot */}
-                      <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 transition-all duration-300 ${
+                      <div className={`absolute -left-[27px] sm:-left-[31px] top-1.5 w-4 h-4 rounded-full border-2 transition-all duration-300 ${
                         edu.isCurrent
                           ? 'bg-purple-500 border-purple-300 ring-4 ring-purple-500/20'
                           : 'bg-slate-900 border-slate-700 group-hover:border-purple-400 group-hover:bg-purple-950'
                       }`} />
 
                       {/* Education Card */}
-                      <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 shadow-lg hover:shadow-purple-500/5 transition-all duration-300 hover:-translate-y-0.5">
+                      <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 shadow-lg hover:shadow-purple-500/5 transition-all duration-300 hover:-translate-y-0.5">
                         {/* Top Metadata */}
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                           <span className="text-xs font-semibold text-purple-400 flex items-center gap-1.5">

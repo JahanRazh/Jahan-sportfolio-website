@@ -70,7 +70,7 @@ function PublicationCard({ pub, index }) {
 
   return (
     <div
-      className={`group relative rounded-3xl overflow-hidden border border-slate-800/90 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-950 p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 ${style.border} hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/5`}
+      className={`group relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-800/90 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-950 p-5 sm:p-7 lg:p-8 flex flex-col justify-between transition-all duration-300 ${style.border} hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/5`}
       style={{ animationDelay: `${index * 80}ms` }}
     >
       {/* Ambient background light */}
@@ -222,18 +222,18 @@ export default function ResearchPublications() {
   if (!loading && publications.length === 0) return null;
 
   return (
-    <section id="publications" className="py-24 px-6 sm:px-10 relative overflow-hidden bg-slate-950/60">
+    <section id="publications" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-10 relative overflow-hidden bg-slate-950/60">
       {/* Ambient background decorations */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-20 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-cyan-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-indigo-500/5 rounded-full blur-3xl" />
       </div>
 
       <div className="max-w-7xl mx-auto relative">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10 sm:mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-3 sm:mb-4">
               <BookOpen className="w-3.5 h-3.5" />
               <span>Research &amp; Publications</span>
             </div>
@@ -245,7 +245,7 @@ export default function ResearchPublications() {
               </span>
             </h2>
 
-            <p className="mt-3 text-slate-400 text-sm sm:text-base max-w-xl">
+            <p className="mt-3 text-slate-400 text-xs sm:text-base max-w-xl">
               Peer-reviewed research, academic conference papers, and technical reports focusing on cloud infrastructure, distributed microservices, and AI system optimization.
             </p>
           </div>

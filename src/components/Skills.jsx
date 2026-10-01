@@ -30,10 +30,10 @@ export default function Skills() {
   const professionalSkills = proFiltered.length > 0 ? proFiltered : INITIAL_PROFESSIONAL_SKILLS;
 
   return (
-    <section id="skills" className="py-24 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10">
-        <div className="text-center mb-16">
-          <p className="text-sm font-semibold tracking-wider uppercase text-[#1e9fab] dark:text-[#12f7ff] mb-2">
+    <section id="skills" className="py-16 sm:py-24 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+        <div className="text-center mb-12 sm:mb-16">
+          <p className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-[#1e9fab] dark:text-[#12f7ff] mb-2">
             Technical & Professional
           </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -42,21 +42,21 @@ export default function Skills() {
           <div className="w-16 h-1 bg-[#6e57e0] dark:bg-[#12f7ff] rounded-full mx-auto mt-3" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 lg:gap-12 items-start">
           {/* Technical Skills - Progress Bars */}
-          <div className="lg:col-span-6 bg-white dark:bg-[#161f30] rounded-3xl p-8 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/40">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center sm:text-left">
+          <div className="lg:col-span-6 bg-white dark:bg-[#161f30] rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/40">
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-6 sm:mb-8 text-center sm:text-left">
               Technical Skills
             </h3>
 
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               {technicalSkills.map((skill) => (
                 <div key={skill.name}>
-                  <div className="flex justify-between items-center text-sm font-medium mb-2 text-slate-700 dark:text-slate-200">
+                  <div className="flex justify-between items-center text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 text-slate-700 dark:text-slate-200">
                     <span>{skill.name}</span>
                     <span className="text-[#6e57e0] dark:text-[#12f7ff] font-bold">{skill.percent}%</span>
                   </div>
-                  <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5">
+                  <div className="w-full h-2.5 sm:h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5">
                     <div
                       className="h-full bg-gradient-to-r from-[#6e57e0] to-[#00c9ff] dark:to-[#12f7ff] rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(18,247,255,0.4)]"
                       style={{ width: `${skill.percent}%` }}
@@ -68,12 +68,12 @@ export default function Skills() {
           </div>
 
           {/* Professional Skills - Circular Progress Indicators */}
-          <div className="lg:col-span-6 bg-white dark:bg-[#161f30] rounded-3xl p-8 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/40">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center sm:text-left">
+          <div className="lg:col-span-6 bg-white dark:bg-[#161f30] rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/40">
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-6 sm:mb-8 text-center sm:text-left">
               Professional Skills
             </h3>
 
-            <div className="grid grid-cols-2 gap-6 sm:gap-8">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8">
               {professionalSkills.map((skill) => {
                 const radius = 42;
                 const circumference = 2 * Math.PI * radius;
@@ -82,9 +82,9 @@ export default function Skills() {
                 return (
                   <div
                     key={skill.name}
-                    className="flex flex-col items-center text-center p-4 rounded-2xl bg-slate-50 dark:bg-[#0c121e]/60 border border-slate-100 dark:border-slate-800/80"
+                    className="flex flex-col items-center text-center p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-[#0c121e]/60 border border-slate-100 dark:border-slate-800/80"
                   >
-                    <div className="relative w-28 h-28 flex items-center justify-center">
+                    <div className="relative w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center">
                       <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
                         {/* Background circle */}
                         <circle
@@ -114,12 +114,12 @@ export default function Skills() {
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xl font-bold text-slate-900 dark:text-white">
+                        <span className="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
                           {skill.percent}%
                         </span>
                       </div>
                     </div>
-                    <span className="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="mt-2 sm:mt-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
                       {skill.name}
                     </span>
                   </div>
