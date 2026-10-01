@@ -452,104 +452,165 @@ export default function SubscribersManager() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-slate-800/60 text-xs uppercase text-slate-400 font-semibold border-b border-slate-800 tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">Subscriber</th>
-                  <th className="px-6 py-4">Source</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Date Subscribed</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {filteredSubscribers.map((sub) => {
-                  const isActive = sub.status === 'active';
-                  return (
-                    <tr
-                      key={sub.id}
-                      className="hover:bg-slate-800/30 transition group"
-                    >
-                      {/* Email & Name */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 text-cyan-400 flex items-center justify-center font-bold text-xs uppercase">
-                            {sub.email ? sub.email.slice(0, 2) : 'EM'}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-white flex items-center gap-2">
-                              {sub.email}
+          <div>
+            {/* Mobile Cards View (< sm) */}
+            <div className="block sm:hidden divide-y divide-slate-800/80">
+              {filteredSubscribers.map((sub) => {
+                const isActive = sub.status === 'active';
+                return (
+                  <div key={sub.id} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-cyan-400 flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                          {sub.email ? sub.email.slice(0, 2) : 'EM'}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-white text-xs sm:text-sm truncate">
+                            {sub.email}
+                          </p>
+                          {sub.name && (
+                            <p className="text-[11px] text-slate-400 truncate">{sub.name}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${
+                          isActive
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-slate-800 text-slate-400 border border-slate-700'
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                        {isActive ? 'Active' : 'Unsubscribed'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                      <span>Source: <strong className="text-slate-300 capitalize">{sub.source || 'portfolio'}</strong></span>
+                      <span>{formatDate(sub.createdAt || sub.subscribedAt)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-800/50">
+                      <button
+                        onClick={() => handleToggleStatus(sub)}
+                        className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
+                      >
+                        {isActive ? 'Pause' : 'Activate'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSubscriber(sub.id, sub.email)}
+                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition"
+                        title="Delete Subscriber"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View (>= sm) */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-300 min-w-[640px]">
+                <thead className="bg-slate-800/60 text-xs uppercase text-slate-400 font-semibold border-b border-slate-800 tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">Subscriber</th>
+                    <th className="px-6 py-4">Source</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Date Subscribed</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {filteredSubscribers.map((sub) => {
+                    const isActive = sub.status === 'active';
+                    return (
+                      <tr
+                        key={sub.id}
+                        className="hover:bg-slate-800/30 transition group"
+                      >
+                        {/* Email & Name */}
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 text-cyan-400 flex items-center justify-center font-bold text-xs uppercase">
+                              {sub.email ? sub.email.slice(0, 2) : 'EM'}
                             </div>
-                            {sub.name && (
-                              <div className="text-xs text-slate-400">{sub.name}</div>
-                            )}
+                            <div>
+                              <div className="font-semibold text-white flex items-center gap-2">
+                                {sub.email}
+                              </div>
+                              {sub.name && (
+                                <div className="text-xs text-slate-400">{sub.name}</div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Source */}
-                      <td className="px-6 py-4 text-xs text-slate-400">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 capitalize">
-                          {sub.source || 'portfolio'}
-                        </span>
-                      </td>
+                        {/* Source */}
+                        <td className="px-6 py-4 text-xs text-slate-400">
+                          <span className="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 capitalize">
+                            {sub.source || 'portfolio'}
+                          </span>
+                        </td>
 
-                      {/* Status */}
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            isActive
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                              : 'bg-slate-800 text-slate-400 border border-slate-700'
-                          }`}
-                        >
+                        {/* Status */}
+                        <td className="px-6 py-4">
                           <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isActive ? 'bg-emerald-400' : 'bg-slate-500'
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              isActive
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-slate-800 text-slate-400 border border-slate-700'
                             }`}
-                          />
-                          {isActive ? 'Active' : 'Unsubscribed'}
-                        </span>
-                      </td>
-
-                      {/* Date */}
-                      <td className="px-6 py-4 text-xs text-slate-400">
-                        {formatDate(sub.createdAt || sub.subscribedAt)}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleToggleStatus(sub)}
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs"
-                            title={isActive ? 'Mark Unsubscribed' : 'Reactivate'}
                           >
-                            {isActive ? 'Pause' : 'Activate'}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSubscriber(sub.id, sub.email)}
-                            className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition"
-                            title="Delete Subscriber"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                isActive ? 'bg-emerald-400' : 'bg-slate-500'
+                              }`}
+                            />
+                            {isActive ? 'Active' : 'Unsubscribed'}
+                          </span>
+                        </td>
+
+                        {/* Date */}
+                        <td className="px-6 py-4 text-xs text-slate-400">
+                          {formatDate(sub.createdAt || sub.subscribedAt)}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleToggleStatus(sub)}
+                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs"
+                              title={isActive ? 'Mark Unsubscribed' : 'Reactivate'}
+                            >
+                              {isActive ? 'Pause' : 'Activate'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSubscriber(sub.id, sub.email)}
+                              className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition"
+                              title="Delete Subscriber"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
 
       {/* ── BROADCAST PROJECT MODAL ───────────────────────────────────────── */}
       {isBroadcastModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl space-y-5 sm:space-y-6">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -693,8 +754,8 @@ export default function SubscribersManager() {
 
       {/* ── EMAIL SETUP GUIDE MODAL ───────────────────────────────────────── */}
       {showConfigGuide && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20">

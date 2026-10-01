@@ -998,19 +998,19 @@ export default function ProjectFormModal({
             </div>
 
             {/* Email Notification to Subscribers Toggle */}
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 sm:col-span-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <div className="flex items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 sm:col-span-3">
+              <div className="flex items-start sm:items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
                   <Mail className="w-4 h-4" />
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white flex flex-wrap items-center gap-1.5">
                     Notify Subscribers via Email
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-semibold uppercase">
                       Automated
                     </span>
                   </p>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-400 leading-snug pt-0.5">
                     Send a stylish HTML project announcement to all registered visitors when this project is created
                   </p>
                 </div>
@@ -1020,7 +1020,7 @@ export default function ProjectFormModal({
                 name="notifySubscribers"
                 checked={formData.notifySubscribers}
                 onChange={handleInputChange}
-                className="w-5 h-5 rounded accent-cyan-400 cursor-pointer shrink-0"
+                className="w-5 h-5 rounded accent-cyan-400 cursor-pointer shrink-0 mt-1 sm:mt-0"
               />
             </div>
           </div>
