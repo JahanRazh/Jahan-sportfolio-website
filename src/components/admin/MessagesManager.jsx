@@ -535,27 +535,27 @@ export default function MessagesManager() {
                 />
               </div>
 
-              <div className="flex items-center justify-between gap-3 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => handleDeleteMessage(null, selectedMessage.id)}
-                  className="px-3.5 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 text-xs font-medium transition flex items-center gap-1.5"
+                  className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl text-rose-400 hover:bg-rose-500/10 text-xs font-medium transition flex items-center justify-center gap-1.5"
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Delete Message
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setSelectedMessage(null)}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition text-center"
                   >
                     Close
                   </button>
                   <button
                     type="submit"
                     disabled={isSendingReply}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition disabled:opacity-50"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50 text-center"
                   >
                     {isSendingReply ? (
                       <>

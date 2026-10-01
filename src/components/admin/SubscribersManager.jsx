@@ -609,25 +609,28 @@ export default function SubscribersManager() {
 
       {/* ── BROADCAST PROJECT MODAL ───────────────────────────────────────── */}
       {isBroadcastModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl space-y-5 sm:space-y-6">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-7 md:p-8 shadow-2xl space-y-4 sm:space-y-6">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-                  <Send className="w-5 h-5" />
+            <div className="flex items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3 sm:pb-4">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20 shrink-0">
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Broadcast Project Launch</h3>
-                  <p className="text-xs text-slate-400">
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-bold text-white truncate">
+                    Broadcast Project Launch
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-slate-400 truncate">
                     Notify {activeSubscribersCount} active subscribers about a project
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsBroadcastModalOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0"
+                aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -635,13 +638,13 @@ export default function SubscribersManager() {
 
             {/* Select Project to broadcast */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              <label className="block text-[11px] sm:text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 sm:mb-2">
                 1. Select Project to Announce
               </label>
               <select
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400 transition"
+                className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition"
               >
                 {projects.map((proj) => (
                   <option key={proj.id} value={proj.id}>
@@ -653,19 +656,21 @@ export default function SubscribersManager() {
 
             {/* Project Preview Card */}
             {selectedProject && (
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
-                <div className="flex items-center justify-between text-xs">
+              <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2 sm:space-y-3">
+                <div className="flex items-center justify-between text-[11px] sm:text-xs">
                   <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold uppercase">
                     {selectedProject.category || 'Web Application'}
                   </span>
-                  <span className="text-slate-500">Live Preview</span>
+                  <span className="text-slate-500 text-[10px] sm:text-xs">Live Preview</span>
                 </div>
-                <h4 className="text-base font-bold text-white">{selectedProject.name}</h4>
-                <p className="text-xs text-slate-400 line-clamp-2">
+                <h4 className="text-sm sm:text-base font-bold text-white leading-snug">
+                  {selectedProject.name}
+                </h4>
+                <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
                   {selectedProject.shortDescription || selectedProject.description || 'No description provided.'}
                 </p>
-                {Array.isArray(selectedProject.technologies) && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
+                {Array.isArray(selectedProject.technologies) && selectedProject.technologies.length > 0 && (
+                  <div className="flex flex-wrap gap-1 sm:gap-1.5 pt-0.5">
                     {selectedProject.technologies.slice(0, 5).map((t, idx) => (
                       <span key={idx} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-cyan-300 border border-slate-700">
                         {t}
@@ -679,7 +684,7 @@ export default function SubscribersManager() {
             {/* Delivery Status / Feedback */}
             {broadcastResult && (
               <div
-                className={`p-4 rounded-2xl text-xs flex items-center gap-2.5 ${
+                className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl text-xs flex items-center gap-2.5 ${
                   broadcastResult.type === 'success'
                     ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
                     : 'bg-red-500/10 text-red-300 border border-red-500/30'
@@ -690,27 +695,28 @@ export default function SubscribersManager() {
                 ) : (
                   <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
                 )}
-                <span>{broadcastResult.text}</span>
+                <span className="leading-snug">{broadcastResult.text}</span>
               </div>
             )}
 
             {/* 2. Test Email Delivery Section */}
-            <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-800 space-y-3">
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-800/40 border border-slate-800 space-y-2.5 sm:space-y-3">
+              <label className="block text-[11px] sm:text-xs font-semibold text-slate-300 uppercase tracking-wider">
                 2. Test Email Delivery (Recommended First)
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="email"
                   value={testEmail}
                   onChange={(e) => setTestEmail(e.target.value)}
-                  placeholder="Enter your email to receive a test preview..."
-                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                  placeholder="Enter your email for test preview..."
+                  className="w-full sm:flex-1 px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition"
                 />
                 <button
+                  type="button"
                   onClick={handleSendTestEmail}
                   disabled={isSendingTest}
-                  className="px-4 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs transition flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shrink-0 disabled:opacity-50"
                 >
                   {isSendingTest ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
                   <span>Send Test</span>
@@ -718,12 +724,12 @@ export default function SubscribersManager() {
               </div>
             </div>
 
-            {/* 3. Broadcast to All Active Subscribers */}
-            <div className="pt-2 flex items-center justify-between gap-4">
+            {/* 3. Broadcast to All Active Subscribers (Responsive Actions Bar) */}
+            <div className="pt-2 sm:pt-3 border-t border-slate-800 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4">
               <button
                 type="button"
                 onClick={() => setIsBroadcastModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-semibold transition text-center"
               >
                 Close
               </button>
@@ -732,7 +738,7 @@ export default function SubscribersManager() {
                 type="button"
                 onClick={handleBroadcastAll}
                 disabled={isBroadcasting || activeSubscribersCount === 0}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-95 text-white text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition disabled:opacity-50"
+                className="w-full sm:w-auto px-5 sm:px-6 py-3 sm:py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50 text-center"
               >
                 {isBroadcasting ? (
                   <>
@@ -742,7 +748,7 @@ export default function SubscribersManager() {
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Broadcast to All {activeSubscribersCount} Subscribers</span>
+                    <span>Broadcast to All ({activeSubscribersCount}) Subscribers</span>
                   </>
                 )}
               </button>
