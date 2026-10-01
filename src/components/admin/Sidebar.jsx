@@ -17,6 +17,7 @@ import {
   BookOpen,
   Eye,
   Palette,
+  Mail,
   X
 } from 'lucide-react';
 import { INITIAL_PROFILE } from '../../lib/firestore';
@@ -37,6 +38,7 @@ export default function Sidebar({
     { id: 'theme', label: 'Custom Theme Studio', icon: Palette },
     { id: 'sections', label: 'Section Visibility & Order', icon: Eye },
     { id: 'projects', label: 'Projects Management', icon: FolderGit2 },
+    { id: 'subscribers', label: 'Newsletter Subscribers', icon: Mail },
     { id: 'experience', label: 'Experience & Education', icon: Briefcase },
     { id: 'publications', label: 'Research & Publications', icon: BookOpen },
     { id: 'certificates', label: 'Certificates & Badges', icon: Award },

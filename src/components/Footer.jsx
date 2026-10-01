@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Users, Eye } from 'lucide-react';
 import { subscribeToVisitorStats, subscribeToSocialLinks, INITIAL_SOCIAL_LINKS } from '../lib/firestore';
+import ProjectSubscription from './ProjectSubscription';
 
 export default function Footer() {
   const [visitorStats, setVisitorStats] = useState({ totalViews: 0, uniqueVisitors: 0 });
@@ -59,6 +60,20 @@ export default function Footer() {
             </li>
           ))}
         </ul>
+
+        {/* Project Updates Email Subscription */}
+        <div className="w-full max-w-lg mb-8 pb-8 border-b border-slate-200/80 dark:border-slate-800/80 text-center">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 dark:bg-cyan-500/10 border border-indigo-500/20 dark:border-cyan-500/20 text-[11px] font-semibold text-indigo-600 dark:text-cyan-400 mb-2">
+            <span>🔔 Project Launch Alerts</span>
+          </div>
+          <h4 className="text-sm sm:text-base font-bold text-slate-800 dark:text-white mb-1">
+            Subscribe to My Project Updates
+          </h4>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
+            Get an instant email whenever I launch a new full-stack project or technical work.
+          </p>
+          <ProjectSubscription compact={true} />
+        </div>
 
         {/* Social Icons */}
         <div className="flex items-center gap-4 mb-8">

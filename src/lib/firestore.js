@@ -2616,6 +2616,197 @@ export async function resetPortfolioTheme() {
   return resetData;
 }
 
+// ── Subscribers & Project Notification Operations ────────────────────────────
+
+export const SUBSCRIBERS_COLLECTION = 'subscribers';
+
+/**
+ * Subscribe a visitor's email for new project notifications
+ */
+export async function subscribeVisitorEmail({ email, name = '', source = 'portfolio' }) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const cleanEmail = (email || '').trim().toLowerCase();
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+    throw new Error('Please provide a valid email address.');
+  }
+
+  try {
+    const q = query(
+      collection(db, SUBSCRIBERS_COLLECTION),
+      where('email', '==', cleanEmail)
+    );
+    const snap = await getDocs(q);
+
+    if (!snap.empty) {
+      const existingDoc = snap.docs[0];
+      const data = existingDoc.data();
+
+      if (data.status === 'active') {
+        return {
+          id: existingDoc.id,
+          alreadySubscribed: true,
+          message: 'You are already subscribed to project updates!',
+        };
+      }
+
+      // Reactivate unsubscribed email
+      await updateDoc(doc(db, SUBSCRIBERS_COLLECTION, existingDoc.id), {
+        status: 'active',
+        name: name ? name.trim() : (data.name || ''),
+        source: source || data.source || 'portfolio',
+        resubscribedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      return {
+        id: existingDoc.id,
+        reactivated: true,
+        message: 'Welcome back! Your subscription has been reactivated.',
+      };
+    }
+
+    // Create new subscriber
+    const newDoc = await addDoc(collection(db, SUBSCRIBERS_COLLECTION), {
+      email: cleanEmail,
+      name: name ? name.trim() : '',
+      source: source || 'portfolio',
+      status: 'active',
+      createdAt: serverTimestamp(),
+      subscribedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return {
+      id: newDoc.id,
+      isNew: true,
+      message: 'Thank you for subscribing! You will receive updates on new projects.',
+    };
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Please check Firestore rules.');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Unsubscribe a visitor's email
+ */
+export async function unsubscribeVisitorEmail(email) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (!cleanEmail) throw new Error('Email is required.');
+
+  try {
+    const q = query(
+      collection(db, SUBSCRIBERS_COLLECTION),
+      where('email', '==', cleanEmail)
+    );
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      return { success: false, message: 'Subscriber not found.' };
+    }
+
+    const docId = snap.docs[0].id;
+    await updateDoc(doc(db, SUBSCRIBERS_COLLECTION, docId), {
+      status: 'unsubscribed',
+      unsubscribedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return { success: true, message: 'You have been unsubscribed from notifications.' };
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Real-time subscription to all subscribers for Admin Dashboard
+ */
+export function subscribeToAllSubscribers(callback, onError) {
+  if (!isFirebaseConfigured || !db) {
+    callback([]);
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(db, SUBSCRIBERS_COLLECTION));
+    return onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        // Sort newest first
+        list.sort((a, b) => {
+          const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.subscribedAt?.toMillis ? a.subscribedAt.toMillis() : 0);
+          const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.subscribedAt?.toMillis ? b.subscribedAt.toMillis() : 0);
+          return tB - tA;
+        });
+        callback(list);
+      },
+      (error) => {
+        console.warn('Realtime subscribers listener error:', error);
+        if (onError) onError(error);
+        callback([]);
+      }
+    );
+  } catch (err) {
+    console.error('Failed to set up subscribers realtime listener:', err);
+    callback([]);
+    return () => {};
+  }
+}
+
+/**
+ * Get all active subscribers for sending project announcements
+ */
+export async function getAllActiveSubscribers() {
+  if (!db) return [];
+  try {
+    const q = query(
+      collection(db, SUBSCRIBERS_COLLECTION),
+      where('status', '==', 'active')
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+  } catch (error) {
+    console.error('Error fetching active subscribers:', error);
+    return [];
+  }
+}
+
+/**
+ * Delete a subscriber document (Admin action)
+ */
+export async function deleteSubscriberDoc(id) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SUBSCRIBERS_COLLECTION, id);
+  await deleteDoc(docRef);
+  return id;
+}
+
+/**
+ * Update subscriber status (Admin action)
+ */
+export async function updateSubscriberStatus(id, newStatus) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, SUBSCRIBERS_COLLECTION, id);
+  await updateDoc(docRef, {
+    status: newStatus,
+    updatedAt: serverTimestamp(),
+  });
+  return { id, status: newStatus };
+}
+
+
 
 
 

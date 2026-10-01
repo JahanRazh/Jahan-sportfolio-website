@@ -28,6 +28,7 @@ import SkillsManager from '../../../components/admin/SkillsManager';
 import AboutCvManager from '../../../components/admin/AboutCvManager';
 import VisitorAnalyticsCard from '../../../components/admin/VisitorAnalyticsCard';
 import SocialMediaManager from '../../../components/admin/SocialMediaManager';
+import SubscribersManager from '../../../components/admin/SubscribersManager';
 import ThemeToggle from '../../../components/ThemeToggle';
 import { useToast } from '../../../components/Toast';
 import { 
@@ -51,6 +52,7 @@ import {
   INITIAL_PROFILE,
   subscribeToVisitorStats,
   subscribeToSocialLinks,
+  subscribeToAllSubscribers,
 } from '../../../lib/firestore';
 import { deleteProjectImage, extractCloudinaryPublicId } from '../../../lib/storage';
 import { deleteCertificateFile } from '../../../lib/certificateStorage';
@@ -101,6 +103,9 @@ export default function AdminDashboardPage() {
     lastVisitedAt: null,
     dailyViews: {},
   });
+
+  // ── Subscribers ───────────────────────────────────────────────
+  const [subscribersCount, setSubscribersCount] = useState(0);
 
   // ── Social Links ──────────────────────────────────────────────
   const [socialLinks, setSocialLinks] = useState([]);
@@ -172,6 +177,16 @@ export default function AdminDashboardPage() {
     return () => unsubscribe();
   }, [currentUser]);
 
+  // ── Realtime subscribers ─────────────────────────────────────
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsubscribe = subscribeToAllSubscribers((data) => {
+      const active = (data || []).filter((s) => s.status === 'active').length;
+      setSubscribersCount(active);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+
   // ── Realtime social links ─────────────────────────────────────
   useEffect(() => {
     if (!currentUser) return;
@@ -206,14 +221,37 @@ export default function AdminDashboardPage() {
 
   const handleSaveProject = async (projectData) => {
     try {
+      let createdDoc = null;
       if (selectedProjectForEdit && selectedProjectForEdit.id) {
         await updateProject(selectedProjectForEdit.id, projectData);
         addToast('Project updated successfully!', 'success');
       } else {
-        await createProject(projectData);
+        createdDoc = await createProject(projectData);
         addToast('Project created successfully!', 'success');
       }
       setIsFormModalOpen(false);
+
+      // Automated Project Launch Notification to Subscribers
+      if (projectData.notifySubscribers && (!selectedProjectForEdit || !selectedProjectForEdit.id)) {
+        try {
+          const notifyRes = await fetch('/api/newsletter/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              project: createdDoc || projectData,
+              sendToAll: true,
+            }),
+          });
+          const notifyData = await notifyRes.json();
+          if (notifyRes.ok && notifyData.success) {
+            addToast(`🚀 Notification sent to ${notifyData.sentCount} subscribers!`, 'info');
+          } else if (notifyData.reason === 'smtp_not_configured') {
+            addToast('Note: Add SMTP_USER & SMTP_PASS in .env to email subscribers automatically.', 'warning');
+          }
+        } catch (notifyErr) {
+          console.warn('Subscribers notification skipped/failed:', notifyErr);
+        }
+      }
     } catch (error) {
       addToast(error.message || 'Error saving project', 'error');
       throw error;
@@ -442,7 +480,7 @@ export default function AdminDashboardPage() {
               <VisitorAnalyticsCard visitorStats={visitorStats} />
 
               {/* Quick Jump Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <button
                   onClick={() => setActiveTab('projects')}
                   className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-500/40 text-left transition group"
@@ -450,6 +488,15 @@ export default function AdminDashboardPage() {
                   <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">Projects</p>
                   <h3 className="text-lg font-bold text-white group-hover:text-indigo-200">{projects.length} Total</h3>
                   <p className="text-xs text-slate-400 mt-2">Manage live portfolio projects & tags</p>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('subscribers')}
+                  className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-left transition group"
+                >
+                  <p className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-1">Subscribers</p>
+                  <h3 className="text-lg font-bold text-white group-hover:text-cyan-200">{subscribersCount} Active</h3>
+                  <p className="text-xs text-slate-400 mt-2">New project launch email alerts</p>
                 </button>
 
                 <button
@@ -561,6 +608,11 @@ export default function AdminDashboardPage() {
                 )}
               </section>
             </>
+          )}
+
+          {/* ── SUBSCRIBERS TAB ──────────────────────────────────────── */}
+          {activeTab === 'subscribers' && (
+            <SubscribersManager />
           )}
 
           {/* ── CUSTOM THEME STUDIO TAB ─────────────────────────────────── */}

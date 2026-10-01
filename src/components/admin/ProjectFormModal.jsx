@@ -16,6 +16,7 @@ import {
   RefreshCw,
   FolderGit2,
   Star,
+  Mail,
 } from 'lucide-react';
 import { uploadProjectImage } from '../../lib/storage';
 import { useToast } from '../Toast';
@@ -42,6 +43,7 @@ export default function ProjectFormModal({
     imageAlt: '',
     featured: false,
     published: true,
+    notifySubscribers: true,
     order: 1,
   });
 
@@ -241,6 +243,7 @@ export default function ProjectFormModal({
         imageAlt: initialProject.imageAlt || '',
         featured: Boolean(initialProject.featured),
         published: initialProject.published !== undefined ? Boolean(initialProject.published) : true,
+        notifySubscribers: false,
         order: initialProject.order !== undefined ? Number(initialProject.order) : 1,
       });
       setImagePreview(initialProject.imageUrl || '');
@@ -259,6 +262,7 @@ export default function ProjectFormModal({
         imageAlt: '',
         featured: false,
         published: true,
+        notifySubscribers: true,
         order: 1,
       });
       setImagePreview('');
@@ -990,6 +994,33 @@ export default function ProjectFormModal({
                 checked={formData.published}
                 onChange={handleInputChange}
                 className="w-5 h-5 rounded accent-emerald-500 cursor-pointer"
+              />
+            </div>
+
+            {/* Email Notification to Subscribers Toggle */}
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 sm:col-span-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                    Notify Subscribers via Email
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-semibold uppercase">
+                      Automated
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    Send a stylish HTML project announcement to all registered visitors when this project is created
+                  </p>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                name="notifySubscribers"
+                checked={formData.notifySubscribers}
+                onChange={handleInputChange}
+                className="w-5 h-5 rounded accent-cyan-400 cursor-pointer shrink-0"
               />
             </div>
           </div>

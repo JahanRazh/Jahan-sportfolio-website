@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import ProjectCard from './ProjectCard';
+import ProjectSubscription from './ProjectSubscription';
 import { subscribeToPublishedProjects } from '../lib/firestore';
 import { Sparkles, Layers } from 'lucide-react';
 
@@ -126,7 +127,13 @@ export default function Projects() {
             )}
           </div>
         )}
+
+        {/* Project Launch Updates & Newsletter Callout */}
+        <div className="mt-16 sm:mt-20">
+          <ProjectSubscription />
+        </div>
       </div>
     </section>
   );
 }
+
