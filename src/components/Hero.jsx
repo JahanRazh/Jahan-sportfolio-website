@@ -103,7 +103,7 @@ export default function Hero({ initialProfile = null }) {
             {/* Title with typewriter */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight min-h-[50px] sm:min-h-[80px]">
               I&apos;m{' '}
-              <span className="text-[#1e9fab] dark:text-[#12f7ff] border-r-2 border-[#12f7ff] pr-1 animate-pulse">
+              <span className="text-[#0284c7] dark:text-[#12f7ff] border-r-2 border-[#0284c7] dark:border-[#12f7ff] pr-1 animate-pulse">
                 {currentText}
               </span>
             </h1>

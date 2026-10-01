@@ -101,7 +101,7 @@ export default function Skills() {
                           cx="50"
                           cy="50"
                           r={radius}
-                          className="text-[#12f7ff]"
+                          className="text-[#0284c7] dark:text-[#12f7ff]"
                           strokeWidth="8"
                           strokeDasharray={circumference}
                           strokeDashoffset={strokeDashoffset}

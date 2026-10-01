@@ -130,7 +130,7 @@ export default function Navbar({ initialVisibility }) {
                   className={`relative px-2.5 py-1.5 xl:px-3.5 xl:py-2 text-xs xl:text-sm font-medium whitespace-nowrap rounded-full transition-all duration-300 ${
                     isActive
                       ? 'font-semibold'
-                      : 'text-slate-600 dark:text-slate-300 hover:text-white'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-transparent'
                   }`}
                 >
                   {link.label}
@@ -156,7 +156,7 @@ export default function Navbar({ initialVisibility }) {
               }}
               id="nav-download-cv-btn"
               title="Download Jahan Jayalath CV (PDF)"
-              className="inline-flex items-center gap-2 px-4 py-2 xl:px-5 xl:py-2.5 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap shrink-0 transition-all duration-300 bg-slate-100 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 hover:text-white border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-[0_0_20px_rgba(18,247,255,0.35)] hover:-translate-y-0.5 cursor-pointer group"
+              className="inline-flex items-center gap-2 px-4 py-2 xl:px-5 xl:py-2.5 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap shrink-0 transition-all duration-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-800 text-slate-800 hover:text-slate-950 dark:text-slate-100 dark:hover:text-white border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md dark:hover:shadow-[0_0_20px_rgba(18,247,255,0.35)] hover:-translate-y-0.5 cursor-pointer group"
               style={{
                 borderColor: 'var(--theme-primary, #12f7ff)40',
               }}

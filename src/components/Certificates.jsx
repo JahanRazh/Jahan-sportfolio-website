@@ -505,7 +505,7 @@ function DigitalBadgeCard({ badge, index, onViewBadge }) {
 
   return (
     <div
-      className="group relative rounded-2xl overflow-hidden border border-slate-800/90 bg-gradient-to-b from-slate-900/90 via-slate-900/70 to-slate-950 p-6 flex flex-col justify-between hover:border-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-1"
+      className="group relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-950 p-6 flex flex-col justify-between hover:border-amber-500/50 dark:hover:border-amber-500/40 shadow-md shadow-slate-200/50 dark:shadow-none hover:shadow-xl dark:hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-1"
       style={{ animationDelay: `${index * 80}ms` }}
     >
       {/* Background glow behind badge icon */}
@@ -513,12 +513,12 @@ function DigitalBadgeCard({ badge, index, onViewBadge }) {
 
       {/* Top tag bar */}
       <div className="flex items-center justify-between gap-2 mb-3 relative z-10">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-400">
-          <Sparkles className="w-3 h-3 text-amber-400" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400">
+          <Sparkles className="w-3 h-3 text-amber-500 dark:text-amber-400" />
           Digital Badge
         </span>
         {badge.featured && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 shadow-sm">
             <Star className="w-3 h-3 fill-current" />
             Featured
           </span>
@@ -530,19 +530,19 @@ function DigitalBadgeCard({ badge, index, onViewBadge }) {
         onClick={() => onViewBadge(badge)}
         className="relative my-3 flex flex-col items-center justify-center cursor-pointer group/icon"
       >
-        <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-2xl flex items-center justify-center p-3 bg-slate-950/70 border border-slate-800 group-hover/icon:border-amber-500/40 shadow-inner transition-all duration-300">
+        <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-2xl flex items-center justify-center p-3 bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 group-hover/icon:border-amber-500/40 shadow-inner transition-all duration-300">
           {badgeImg ? (
             <img
               src={badgeImg}
               alt={badge.title}
               loading="lazy"
-              className="w-full h-full object-contain filter drop-shadow-[0_10px_15px_rgba(0,0,0,0.6)] group-hover/icon:scale-110 transition-transform duration-300"
+              className="w-full h-full object-contain filter drop-shadow-[0_6px_10px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_10px_15px_rgba(0,0,0,0.6)] group-hover/icon:scale-110 transition-transform duration-300"
             />
           ) : (
-            <Award className="w-16 h-16 text-amber-400/80" />
+            <Award className="w-16 h-16 text-amber-500 dark:text-amber-400/80" />
           )}
         </div>
-        <span className="mt-2 text-[11px] text-slate-400 group-hover/icon:text-amber-300 font-medium flex items-center gap-1 transition">
+        <span className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 group-hover/icon:text-amber-600 dark:group-hover/icon:text-amber-300 font-medium flex items-center gap-1 transition">
           <Eye className="w-3 h-3" />
           Inspect badge
         </span>
@@ -550,35 +550,35 @@ function DigitalBadgeCard({ badge, index, onViewBadge }) {
 
       {/* Title & Issuer */}
       <div className="relative z-10 text-center my-2">
-        <h3 className="font-bold text-white text-base leading-snug group-hover:text-amber-200 transition-colors line-clamp-2">
+        <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug group-hover:text-amber-600 dark:group-hover:text-amber-200 transition-colors line-clamp-2">
           {badge.title}
         </h3>
-        <p className="text-xs text-amber-400/90 font-medium mt-1.5 flex items-center justify-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+        <p className="text-xs text-amber-600 dark:text-amber-400/90 font-medium mt-1.5 flex items-center justify-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
           <span>{badge.issuer}</span>
         </p>
 
         {badge.description && (
-          <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed">
             {badge.description}
           </p>
         )}
 
         {issuedFormatted && (
-          <p className="text-[11px] text-slate-500 mt-2 flex items-center justify-center gap-1">
-            <Calendar className="w-3 h-3 text-slate-600" />
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2 flex items-center justify-center gap-1">
+            <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-600" />
             <span>Issued {issuedFormatted}</span>
           </p>
         )}
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-800/80 relative z-10">
+      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 relative z-10">
         <button
           onClick={() => onViewBadge(badge)}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white border border-slate-200 dark:border-slate-700 transition"
         >
-          <Eye className="w-3.5 h-3.5 text-amber-400" />
+          <Eye className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
           <span>Details</span>
         </button>
 
@@ -587,7 +587,7 @@ function DigitalBadgeCard({ badge, index, onViewBadge }) {
             href={badge.credentialUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 hover:border-amber-500/50 transition"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 dark:bg-amber-500/15 dark:hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:border-amber-500/50 transition"
           >
             <span>Verify</span>
             <ExternalLink className="w-3 h-3" />
@@ -609,11 +609,11 @@ function CertificateCard({ cert, index, onViewFile }) {
 
   return (
     <div
-      className="group relative rounded-2xl overflow-hidden border bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 hover:border-amber-500/40 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-900/20 flex flex-col justify-between"
-      style={{ borderColor: 'rgba(100,116,139,0.3)', animationDelay: `${index * 60}ms` }}
+      className="group relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 hover:border-amber-500/50 dark:hover:border-amber-500/40 transition-all duration-500 hover:-translate-y-1 shadow-md shadow-slate-200/50 dark:shadow-none hover:shadow-2xl dark:hover:shadow-amber-900/20 flex flex-col justify-between"
+      style={{ animationDelay: `${index * 60}ms` }}
     >
       {cert.featured && (
-        <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-amber-500/20 via-transparent to-transparent pointer-events-none z-10" />
+        <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-amber-500/10 dark:from-amber-500/20 via-transparent to-transparent pointer-events-none z-10" />
       )}
 
       {/* Top accent bar */}
@@ -622,11 +622,11 @@ function CertificateCard({ cert, index, onViewFile }) {
       {/* Certificate Picture / Preview Banner */}
       <div
         onClick={() => onViewFile(cert)}
-        className="relative w-full h-52 sm:h-56 bg-slate-950 overflow-hidden cursor-pointer group/pic border-b border-slate-800/80"
+        className="relative w-full h-52 sm:h-56 bg-slate-100 dark:bg-slate-950 overflow-hidden cursor-pointer group/pic border-b border-slate-200 dark:border-slate-800/80"
       >
         {previewImg ? (
-          <div className="relative w-full h-full bg-gradient-to-b from-slate-900 to-slate-950 flex items-center justify-center p-3.5">
-            <div className="relative max-h-full max-w-full rounded-md overflow-hidden shadow-xl shadow-black/70 border border-slate-700/60 bg-white/5">
+          <div className="relative w-full h-full bg-slate-50 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-3.5">
+            <div className="relative max-h-full max-w-full rounded-md overflow-hidden shadow-md dark:shadow-xl dark:shadow-black/70 border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-white/5">
               <img
                 src={previewImg}
                 alt={cert.title}
@@ -649,13 +649,13 @@ function CertificateCard({ cert, index, onViewFile }) {
             ) : (
               <Award className={`w-10 h-10 ${style.text}`} />
             )}
-            <span className="text-xs text-slate-400 font-medium">Certificate Document</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Certificate Document</span>
           </div>
         )}
 
         {/* Category Badge */}
         <div className="absolute top-3 left-3 z-10">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${style.border} ${style.text} bg-slate-900/90 backdrop-blur-md shadow-md`}>
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${style.border} ${style.text} bg-white/95 dark:bg-slate-900/90 backdrop-blur-md shadow-md`}>
             {cert.category || 'General'}
           </span>
         </div>
@@ -671,40 +671,40 @@ function CertificateCard({ cert, index, onViewFile }) {
 
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
-          <h3 className="font-bold text-white text-base leading-snug mb-1.5 group-hover:text-amber-200 transition-colors duration-300">
+          <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug mb-1.5 group-hover:text-amber-600 dark:group-hover:text-amber-200 transition-colors duration-300">
             {cert.title}
           </h3>
 
-          <p className="text-xs text-slate-400 font-medium mb-3 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-amber-400/80 shrink-0" />
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-3 flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400/80 shrink-0" />
             {cert.issuer}
           </p>
 
           {cert.description && (
-            <p className="text-xs text-slate-400/90 mb-4 leading-relaxed line-clamp-2">
+            <p className="text-xs text-slate-600 dark:text-slate-400/90 mb-4 leading-relaxed line-clamp-2">
               {cert.description}
             </p>
           )}
 
-          <div className="flex items-center gap-3 mb-4 text-xs text-slate-400">
+          <div className="flex items-center gap-3 mb-4 text-xs text-slate-500 dark:text-slate-400">
             {issuedFormatted && (
               <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-slate-500 shrink-0" />
+                <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                 {issuedFormatted}
               </span>
             )}
-            {expiryFormatted && <span className="text-slate-600">·</span>}
+            {expiryFormatted && <span className="text-slate-400 dark:text-slate-600">·</span>}
             {expiryFormatted && (
-              <span className="text-amber-400/80">Expires {expiryFormatted}</span>
+              <span className="text-amber-600 dark:text-amber-400/80">Expires {expiryFormatted}</span>
             )}
           </div>
 
           {cert.credentialId && (
-            <div className="px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700/60 mb-4">
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-0.5">
+            <div className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 mb-4">
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold mb-0.5">
                 Credential ID
               </p>
-              <p className="text-xs text-slate-300 font-mono truncate">{cert.credentialId}</p>
+              <p className="text-xs text-slate-700 dark:text-slate-300 font-mono truncate">{cert.credentialId}</p>
             </div>
           )}
         </div>
@@ -733,7 +733,7 @@ function CertificateCard({ cert, index, onViewFile }) {
                   downloadPdfDirectly(cert.fileUrl, `${cert.title || 'Certificate'}.${isPdf ? 'pdf' : 'jpg'}`);
                 }}
                 title={isPdf ? 'Download PDF directly' : 'Download certificate directly'}
-                className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 border border-slate-700 hover:border-amber-500/40 transition-all duration-200"
+                className="p-2.5 rounded-xl bg-slate-100 hover:bg-amber-50 dark:bg-slate-800/80 dark:hover:bg-amber-500/20 text-slate-600 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-300 border border-slate-200 dark:border-slate-700 hover:border-amber-400 dark:hover:border-amber-500/40 transition-all duration-200"
               >
                 <Download className="w-3.5 h-3.5" />
               </a>
@@ -746,7 +746,7 @@ function CertificateCard({ cert, index, onViewFile }) {
               target="_blank"
               rel="noopener noreferrer"
               title="Verify Credential"
-              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 bg-slate-800/60 border border-slate-700 hover:text-white hover:border-slate-600 transition-all duration-200"
+              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200"
             >
               <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">Verify</span>
@@ -852,29 +852,29 @@ export default function Certificates() {
           {/* Section header */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10 sm:mb-12">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold uppercase tracking-widest mb-3 sm:mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-semibold uppercase tracking-widest mb-3 sm:mb-4">
                 <Award className="w-3.5 h-3.5" />
                 Certifications &amp; Credentials
               </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white leading-tight">
                 Credentials &amp;{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-400 dark:to-orange-400">
                   Certifications
                 </span>
               </h2>
-              <p className="mt-3 text-slate-400 text-xs sm:text-base max-w-xl">
+              <p className="mt-3 text-slate-600 dark:text-slate-400 text-xs sm:text-base max-w-xl">
                 Professional certifications and industry credentials earned by Ramesh Jahan Jayalath validating expertise in software engineering, development, and IT solutions.
               </p>
             </div>
             
             <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
               {allCertificates.length > 0 && (
-                <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                <span className="px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/25 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-bold">
                   {allCertificates.length} Certificate{allCertificates.length !== 1 ? 's' : ''}
                 </span>
               )}
               {allBadges.length > 0 && (
-                <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                <span className="px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/25 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-bold">
                   {allBadges.length} Badge{allBadges.length !== 1 ? 's' : ''}
                 </span>
               )}
@@ -894,9 +894,9 @@ export default function Certificates() {
                     className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
                       isActive
                         ? cat === 'All'
-                          ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md shadow-amber-500/30'
-                          : `bg-gradient-to-r ${style.bg} ${style.border} ${style.text} shadow-md`
-                        : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+                          ? 'bg-amber-500 text-slate-950 font-bold border-amber-500 shadow-md shadow-amber-500/30'
+                          : `bg-gradient-to-r ${style.bg} ${style.border} ${style.text} shadow-md font-bold`
+                        : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-slate-300 shadow-sm'
                     }`}
                   >
                     {cat}
@@ -909,8 +909,8 @@ export default function Certificates() {
           {/* Featured Certificates */}
           {featuredCerts.length > 0 && (
             <div className="mb-10">
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-400/70 mb-4 flex items-center gap-1.5">
-                <Star className="w-3.5 h-3.5" fill="currentColor" />
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400/70 mb-4 flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 fill-current" />
                 Featured
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -925,7 +925,7 @@ export default function Certificates() {
           {regularCerts.length > 0 && (
             <div>
               {featuredCerts.length > 0 && (
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">
                   All Certificates
                 </p>
               )}
@@ -938,33 +938,33 @@ export default function Certificates() {
           )}
 
           {filteredCertificates.length === 0 && allCertificates.length > 0 && (
-            <div className="text-center py-16 text-slate-500 text-sm">
+            <div className="text-center py-16 text-slate-400 dark:text-slate-500 text-sm">
               No certificates in this category yet.
             </div>
           )}
 
           {/* ─── DIGITAL BADGES SECTION BELOW CERTIFICATES ─────────────── */}
           {allBadges.length > 0 && (
-            <div id="digital-badges" className="mt-20 pt-16 border-t border-slate-800/80 relative">
+            <div id="digital-badges" className="mt-20 pt-16 border-t border-slate-200 dark:border-slate-800/80 relative">
               <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
                 <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold uppercase tracking-widest mb-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-semibold uppercase tracking-widest mb-3">
                     <Sparkles className="w-3.5 h-3.5" />
                     Verified Micro-Credentials
                   </div>
-                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
+                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-tight">
                     Digital{' '}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 dark:from-amber-400 dark:via-orange-400 dark:to-amber-200">
                       Badges
                     </span>
                   </h3>
-                  <p className="mt-2 text-slate-400 text-xs sm:text-sm max-w-xl">
+                  <p className="mt-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-xl">
                     Verifiable Open Badges and industry micro-credentials recognizing specialized technical achievements and hands-on skill proficiency.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                  <span className="px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/25 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-bold">
                     {allBadges.length} Verified Badge{allBadges.length !== 1 ? 's' : ''}
                   </span>
                 </div>

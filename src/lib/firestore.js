@@ -2343,18 +2343,6 @@ export function applyThemeToDom(theme) {
   const accent = theme.accentColor || '#00c9ff';
   const themeId = theme.themeId || 'cyber_cyan';
 
-  // Set CSS variables (used by inline styles / var() references)
-  root.style.setProperty('--theme-primary', primary);
-  root.style.setProperty('--theme-secondary', secondary);
-  root.style.setProperty('--theme-accent', accent);
-  root.style.setProperty('--first-color', secondary);
-  root.style.setProperty('--second-color', accent);
-  root.style.setProperty('--neon-cyan', primary);
-  root.style.setProperty('--theme-glow', `${primary}55`);
-  root.setAttribute('data-portfolio-theme', themeId);
-
-  // Inject a dynamic <style> element to override hardcoded Tailwind arbitrary colors
-  // For the default cyber_cyan theme, inject nothing (preserving original design exactly)
   const styleId = 'portfolio-theme-override';
   let styleEl = document.getElementById(styleId);
   if (!styleEl) {
@@ -2364,10 +2352,28 @@ export function applyThemeToDom(theme) {
   }
 
   if (themeId === 'cyber_cyan') {
-    // Default theme: remove all overrides so the site looks exactly as designed
-    styleEl.textContent = '';
+    // Default theme: remove inline overrides so CSS :root and .dark rules match professionally
+    root.style.removeProperty('--theme-primary');
+    root.style.removeProperty('--theme-secondary');
+    root.style.removeProperty('--theme-accent');
+    root.style.removeProperty('--first-color');
+    root.style.removeProperty('--second-color');
+    root.style.removeProperty('--neon-cyan');
+    root.style.removeProperty('--theme-glow');
+    root.setAttribute('data-portfolio-theme', 'cyber_cyan');
+    if (styleEl) styleEl.textContent = '';
     return;
   }
+
+  // Set CSS variables (used by inline styles / var() references for custom themes)
+  root.style.setProperty('--theme-primary', primary);
+  root.style.setProperty('--theme-secondary', secondary);
+  root.style.setProperty('--theme-accent', accent);
+  root.style.setProperty('--first-color', secondary);
+  root.style.setProperty('--second-color', accent);
+  root.style.setProperty('--neon-cyan', primary);
+  root.style.setProperty('--theme-glow', `${primary}55`);
+  root.setAttribute('data-portfolio-theme', themeId);
 
   // Helper to parse hex to rgb string "r, g, b"
   function hexToRgb(hex) {

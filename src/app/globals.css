@@ -9,18 +9,18 @@
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-card: #ffffff;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
   --border-color: #e2e8f0;
-  --first-color: #6e57e0;
-  --first-color-hover: #285bd4;
-  --second-color: #00c9ff;
-  --third-color: #c0a631;
-  --neon-cyan: #12f7ff;
-  --theme-primary: #12f7ff;
-  --theme-secondary: #6e57e0;
-  --theme-accent: #00c9ff;
-  --theme-glow: rgba(18, 247, 255, 0.35);
+  --first-color: #6366f1;
+  --first-color-hover: #4f46e5;
+  --second-color: #0284c7;
+  --third-color: #d97706;
+  --neon-cyan: #0284c7;
+  --theme-primary: #0284c7;
+  --theme-secondary: #6366f1;
+  --theme-accent: #0ea5e9;
+  --theme-glow: rgba(2, 132, 199, 0.2);
 }
 
 .dark {
@@ -91,6 +91,9 @@ img, svg, video, canvas, audio, iframe, embed, object {
 
 /* Neon text & glow */
 .text-neon-cyan {
+  color: #0284c7;
+}
+.dark .text-neon-cyan {
   color: #12f7ff;
   text-shadow: 0 0 10px rgba(18, 247, 255, 0.4);
 }
