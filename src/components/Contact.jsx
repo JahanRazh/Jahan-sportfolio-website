@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import emailjs from '@emailjs/browser';
 import { Mail, Phone, Send, Loader2, ArrowDownRight, MessageSquare } from 'lucide-react';
 import { useToast } from './Toast';
-import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE } from '../lib/firestore';
+import { subscribeToProfile, getCachedProfile, INITIAL_PROFILE, saveContactMessage } from '../lib/firestore';
 
 export default function Contact({ initialProfile = null }) {
   const { addToast } = useToast();
@@ -66,35 +66,43 @@ export default function Contact({ initialProfile = null }) {
     const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
     const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
 
-    if (!publicKey || !serviceId || !templateId) {
-      addToast('EmailJS configuration missing in .env', 'error');
-      setLoading(false);
-      return;
-    }
-
     try {
-      if (formRef.current) {
-        // Sends form fields directly matching the name attributes (name, email, subject, message)
-        await emailjs.sendForm(serviceId, templateId, formRef.current, publicKey);
-      } else {
-        const templateParams = {
-          name: formData.name,
-          from_name: formData.name,
-          email: formData.email,
-          from_email: formData.email,
-          reply_to: formData.email,
-          subject: formData.subject,
-          message: formData.message,
-        };
-        await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      // 1. Save message directly into Firestore for Admin Panel Inbox
+      await saveContactMessage({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      });
+
+      // 2. Also send via EmailJS to forward to your personal inbox
+      if (publicKey && serviceId && templateId) {
+        try {
+          if (formRef.current) {
+            await emailjs.sendForm(serviceId, templateId, formRef.current, publicKey);
+          } else {
+            const templateParams = {
+              name: formData.name,
+              from_name: formData.name,
+              email: formData.email,
+              from_email: formData.email,
+              reply_to: formData.email,
+              subject: formData.subject,
+              message: formData.message,
+            };
+            await emailjs.send(serviceId, templateId, templateParams, publicKey);
+          }
+        } catch (emailErr) {
+          console.warn('EmailJS forwarding notice (message safely stored in database):', emailErr);
+        }
       }
 
-      addToast('Message sent successfully!', 'success');
+      addToast('Message sent successfully! I will reply to you soon.', 'success');
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
-      console.error('EmailJS send error:', error);
+      console.error('Contact submission error:', error);
       addToast(
-        error.text || error.message || 'Message failed to send. Please try again.',
+        error.message || 'Message failed to send. Please try again.',
         'error'
       );
     } finally {

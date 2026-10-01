@@ -438,6 +438,156 @@ export async function broadcastProjectNotification({
   };
 }
 
+/**
+ * Generate responsive HTML email for replying to a visitor's contact inquiry
+ */
+export function generateContactReplyHtml({
+  recipientName = '',
+  recipientEmail = '',
+  replyText = '',
+  originalSubject = '',
+  originalMessage = '',
+  siteUrl = 'https://jahanrazh.vercel.app',
+}) {
+  const cleanSiteUrl = siteUrl.replace(/\/+$/, '');
+  const greeting = recipientName ? `Hi ${recipientName},` : 'Hello,';
+  const paragraphs = (replyText || '')
+    .split('\n')
+    .filter((p) => p.trim())
+    .map((p) => `<p style="margin:0 0 14px 0;font-size:15px;line-height:1.7;color:#cbd5e1;">${escapeHtml(p)}</p>`)
+    .join('');
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Response to your message</title>
+</head>
+<body style="margin:0;padding:0;background-color:#070a13;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#e2e8f0;line-height:1.6;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#070a13;padding:30px 15px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width:600px;background-color:#0f172a;border-radius:24px;border:1px solid #1e293b;box-shadow:0 20px 40px rgba(0,0,0,0.6);overflow:hidden;" cellspacing="0" cellpadding="0">
+          
+          <!-- Top Accent Bar -->
+          <tr>
+            <td style="background:linear-gradient(90deg,#06b6d4 0%,#6366f1 100%);height:4px;"></td>
+          </tr>
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 36px 20px 36px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <span style="display:inline-block;padding:4px 12px;border-radius:9999px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+                      DIRECT MESSAGE REPLY
+                    </span>
+                    <h1 style="margin:12px 0 2px 0;font-size:22px;font-weight:800;color:#ffffff;">
+                      Ramesh Jahan Jayalath
+                    </h1>
+                    <p style="margin:0;font-size:13px;color:#94a3b8;">
+                      Software Developer &bull; IT Professional
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Main Reply Content -->
+          <tr>
+            <td style="padding:10px 36px 28px 36px;">
+              <p style="font-size:15px;color:#cbd5e1;font-weight:600;margin-bottom:16px;">
+                ${greeting}
+              </p>
+
+              <div style="margin-bottom:24px;">
+                ${paragraphs || '<p style="color:#cbd5e1;font-size:15px;">Thank you for getting in touch!</p>'}
+              </div>
+
+              <!-- Quoted Visitor Message Box -->
+              ${originalMessage ? `
+                <table role="presentation" width="100%" style="background-color:#162032;border-radius:14px;border-left:4px solid #06b6d4;border-top:1px solid #1e293b;border-right:1px solid #1e293b;border-bottom:1px solid #1e293b;padding:16px 20px;margin-bottom:24px;" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td>
+                      <div style="font-size:11px;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">
+                        Regarding your message${originalSubject ? `: "${escapeHtml(originalSubject)}"` : ''}
+                      </div>
+                      <div style="font-size:13px;color:#94a3b8;font-style:italic;line-height:1.6;">
+                        &ldquo;${escapeHtml(originalMessage)}&rdquo;
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              ` : ''}
+
+              <div style="padding-top:10px;border-top:1px solid #1e293b;margin-top:20px;">
+                <p style="margin:0 0 4px 0;font-size:14px;color:#94a3b8;">
+                  Best regards,
+                </p>
+                <p style="margin:0 0 2px 0;font-size:15px;font-weight:700;color:#ffffff;">
+                  Ramesh Jahan Jayalath (Jahan Razh)
+                </p>
+                <p style="margin:0;font-size:12px;color:#64748b;">
+                  Email: <a href="mailto:jahanrazh@gmail.com" style="color:#38bdf8;text-decoration:none;">jahanrazh@gmail.com</a> &bull; Web: <a href="${escapeHtml(cleanSiteUrl)}" style="color:#38bdf8;text-decoration:none;">jahanjayalath.com</a>
+                </p>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:18px 36px 24px 36px;background-color:#0b1120;border-top:1px solid #1e293b;text-align:center;">
+              <p style="margin:0;font-size:11px;color:#64748b;">
+                This email was sent in direct reply to an inquiry submitted on <a href="${escapeHtml(cleanSiteUrl)}" style="color:#64748b;text-decoration:underline;">jahanjayalath.com</a>.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Send an email reply to a visitor
+ */
+export async function sendContactReplyEmail({
+  to,
+  recipientName = '',
+  subject = '',
+  replyText = '',
+  originalSubject = '',
+  originalMessage = '',
+  siteUrl = 'https://jahanrazh.vercel.app',
+}) {
+  const html = generateContactReplyHtml({
+    recipientName,
+    recipientEmail: to,
+    replyText,
+    originalSubject,
+    originalMessage,
+    siteUrl,
+  });
+
+  const replySubject = subject || (originalSubject ? `Re: ${originalSubject}` : 'Re: Your inquiry on my portfolio');
+
+  return await sendEmailViaSmtp({
+    to,
+    subject: replySubject,
+    html,
+    text: `${replyText}\n\n---\nRegarding your message:\n${originalMessage}\n\nBest regards,\nRamesh Jahan Jayalath`,
+  });
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -447,3 +597,4 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+

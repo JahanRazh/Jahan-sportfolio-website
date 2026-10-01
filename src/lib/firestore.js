@@ -2806,6 +2806,127 @@ export async function updateSubscriberStatus(id, newStatus) {
   return { id, status: newStatus };
 }
 
+// ── Visitor Contact Messages & Inbox Operations ──────────────────────────────
+
+export const MESSAGES_COLLECTION = 'messages';
+
+/**
+ * Save incoming message from the Contact Me section into Firestore
+ */
+export async function saveContactMessage({ name = '', email, subject = '', message }) {
+  if (!db) throw new Error('Firestore is not initialized.');
+
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanMessage = (message || '').trim();
+
+  if (!cleanEmail || !cleanMessage) {
+    throw new Error('Email and message are required.');
+  }
+
+  try {
+    const docRef = await addDoc(collection(db, MESSAGES_COLLECTION), {
+      name: (name || '').trim(),
+      email: cleanEmail,
+      subject: (subject || '').trim() || 'Portfolio Inquiry',
+      message: cleanMessage,
+      status: 'unread', // 'unread' | 'read' | 'replied'
+      replied: false,
+      repliedAt: null,
+      replyText: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return { id: docRef.id, success: true };
+  } catch (error) {
+    console.error('Error saving contact message to Firestore:', error);
+    if (error.code === 'permission-denied') {
+      throw new Error('Firestore Permission Denied: Could not save message.');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Real-time listener for all incoming contact messages (Admin Dashboard)
+ */
+export function subscribeToAllMessages(callback, onError) {
+  if (!isFirebaseConfigured || !db) {
+    callback([]);
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(db, MESSAGES_COLLECTION));
+    return onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        // Sort newest messages first
+        list.sort((a, b) => {
+          const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return tB - tA;
+        });
+        callback(list);
+      },
+      (error) => {
+        console.warn('Realtime messages listener error:', error);
+        if (onError) onError(error);
+        callback([]);
+      }
+    );
+  } catch (err) {
+    console.error('Failed to set up messages listener:', err);
+    callback([]);
+    return () => {};
+  }
+}
+
+/**
+ * Mark a message as read or unread
+ */
+export async function markMessageAsRead(id, isRead = true) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, MESSAGES_COLLECTION, id);
+  await updateDoc(docRef, {
+    status: isRead ? 'read' : 'unread',
+    updatedAt: serverTimestamp(),
+  });
+  return { id, status: isRead ? 'read' : 'unread' };
+}
+
+/**
+ * Record an email reply sent by the admin to a visitor message
+ */
+export async function recordMessageReply(id, { replyText, replySubject }) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, MESSAGES_COLLECTION, id);
+  await updateDoc(docRef, {
+    replied: true,
+    status: 'replied',
+    replyText: replyText || '',
+    replySubject: replySubject || '',
+    repliedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return { id, replied: true };
+}
+
+/**
+ * Delete a message from Firestore
+ */
+export async function deleteMessageDoc(id) {
+  if (!db) throw new Error('Firestore is not initialized.');
+  const docRef = doc(db, MESSAGES_COLLECTION, id);
+  await deleteDoc(docRef);
+  return id;
+}
+
+
 
 
 

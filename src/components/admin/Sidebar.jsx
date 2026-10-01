@@ -18,6 +18,7 @@ import {
   Eye,
   Palette,
   Mail,
+  MessageSquare,
   X
 } from 'lucide-react';
 import { INITIAL_PROFILE } from '../../lib/firestore';
@@ -32,12 +33,14 @@ export default function Sidebar({
   setMobileOpen,
   userEmail,
   profileImageUrl,
+  unreadMessagesCount = 0,
 }) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'theme', label: 'Custom Theme Studio', icon: Palette },
     { id: 'sections', label: 'Section Visibility & Order', icon: Eye },
     { id: 'projects', label: 'Projects Management', icon: FolderGit2 },
+    { id: 'messages', label: 'Contact Inquiries', icon: MessageSquare },
     { id: 'subscribers', label: 'Newsletter Subscribers', icon: Mail },
     { id: 'experience', label: 'Experience & Education', icon: Briefcase },
     { id: 'publications', label: 'Research & Publications', icon: BookOpen },
@@ -138,8 +141,13 @@ export default function Sidebar({
                     : 'text-slate-400 hover:bg-slate-800/70 hover:text-slate-200'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
-                <span>{item.label}</span>
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.id === 'messages' && unreadMessagesCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shrink-0">
+                    {unreadMessagesCount}
+                  </span>
+                )}
               </button>
             );
           })}

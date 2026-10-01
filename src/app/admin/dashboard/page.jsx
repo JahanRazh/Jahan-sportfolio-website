@@ -29,6 +29,7 @@ import AboutCvManager from '../../../components/admin/AboutCvManager';
 import VisitorAnalyticsCard from '../../../components/admin/VisitorAnalyticsCard';
 import SocialMediaManager from '../../../components/admin/SocialMediaManager';
 import SubscribersManager from '../../../components/admin/SubscribersManager';
+import MessagesManager from '../../../components/admin/MessagesManager';
 import ThemeToggle from '../../../components/ThemeToggle';
 import { useToast } from '../../../components/Toast';
 import { 
@@ -53,6 +54,7 @@ import {
   subscribeToVisitorStats,
   subscribeToSocialLinks,
   subscribeToAllSubscribers,
+  subscribeToAllMessages,
 } from '../../../lib/firestore';
 import { deleteProjectImage, extractCloudinaryPublicId } from '../../../lib/storage';
 import { deleteCertificateFile } from '../../../lib/certificateStorage';
@@ -106,6 +108,10 @@ export default function AdminDashboardPage() {
 
   // ── Subscribers ───────────────────────────────────────────────
   const [subscribersCount, setSubscribersCount] = useState(0);
+
+  // ── Contact Messages ──────────────────────────────────────────
+  const [messages, setMessages] = useState([]);
+  const [loadingMessages, setLoadingMessages] = useState(true);
 
   // ── Social Links ──────────────────────────────────────────────
   const [socialLinks, setSocialLinks] = useState([]);
@@ -183,6 +189,17 @@ export default function AdminDashboardPage() {
     const unsubscribe = subscribeToAllSubscribers((data) => {
       const active = (data || []).filter((s) => s.status === 'active').length;
       setSubscribersCount(active);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  // ── Realtime contact messages ────────────────────────────────
+  useEffect(() => {
+    if (!currentUser) return;
+    setLoadingMessages(true);
+    const unsubscribe = subscribeToAllMessages((data) => {
+      setMessages(data || []);
+      setLoadingMessages(false);
     });
     return () => unsubscribe();
   }, [currentUser]);
@@ -373,6 +390,7 @@ export default function AdminDashboardPage() {
   }
 
   const isCertTab = activeTab === 'certificates';
+  const unreadMessagesCount = messages.filter((m) => m.status === 'unread').length;
 
   return (
     <div className="min-h-screen bg-[#0a0e17] text-slate-100 flex">
@@ -387,6 +405,7 @@ export default function AdminDashboardPage() {
         setMobileOpen={setMobileSidebarOpen}
         userEmail={currentUser?.email}
         profileImageUrl={profileData?.profileImageUrl}
+        unreadMessagesCount={unreadMessagesCount}
       />
 
       {/* Main Content Area */}
@@ -404,6 +423,10 @@ export default function AdminDashboardPage() {
             <h1 className="text-lg sm:text-xl font-bold text-white capitalize">
               {activeTab === 'dashboard'
                 ? 'Dashboard Overview'
+                : activeTab === 'messages'
+                ? 'Contact Messages & Replies'
+                : activeTab === 'subscribers'
+                ? 'Newsletter Subscribers'
                 : activeTab === 'certificates'
                 ? 'Certificates Management'
                 : activeTab === 'skills'
@@ -480,7 +503,7 @@ export default function AdminDashboardPage() {
               <VisitorAnalyticsCard visitorStats={visitorStats} />
 
               {/* Quick Jump Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 <button
                   onClick={() => setActiveTab('projects')}
                   className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-500/40 text-left transition group"
@@ -488,6 +511,22 @@ export default function AdminDashboardPage() {
                   <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">Projects</p>
                   <h3 className="text-lg font-bold text-white group-hover:text-indigo-200">{projects.length} Total</h3>
                   <p className="text-xs text-slate-400 mt-2">Manage live portfolio projects & tags</p>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('messages')}
+                  className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-rose-500/40 text-left transition group"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-bold text-rose-400 uppercase tracking-wider">Inquiries</p>
+                    {unreadMessagesCount > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-pulse">
+                        {unreadMessagesCount} new
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-lg font-bold text-white group-hover:text-rose-200">{messages.length} Total</h3>
+                  <p className="text-xs text-slate-400 mt-2">Visitor inbox & email reply</p>
                 </button>
 
                 <button
@@ -613,6 +652,11 @@ export default function AdminDashboardPage() {
           {/* ── SUBSCRIBERS TAB ──────────────────────────────────────── */}
           {activeTab === 'subscribers' && (
             <SubscribersManager />
+          )}
+
+          {/* ── CONTACT MESSAGES & INBOX TAB ──────────────────────────── */}
+          {activeTab === 'messages' && (
+            <MessagesManager />
           )}
 
           {/* ── CUSTOM THEME STUDIO TAB ─────────────────────────────────── */}
