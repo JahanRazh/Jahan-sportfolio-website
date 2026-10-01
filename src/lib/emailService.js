@@ -58,6 +58,47 @@ function createTransporter() {
 }
 
 /**
+ * Safely resolves a project image URL to an absolute, email-client-accessible URL.
+ * Handles relative paths (/assets/...), localhost rewriting, and fallbacks.
+ */
+export function resolveProjectImageUrl(rawImage, siteUrl = 'https://jahanrazh.vercel.app') {
+  if (!rawImage || typeof rawImage !== 'string') return '';
+  const trimmed = rawImage.trim();
+  if (!trimmed) return '';
+
+  const fallbackProductionUrl = 'https://jahanrazh.vercel.app';
+  const configuredSiteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes('localhost')
+      ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '')
+      : fallbackProductionUrl;
+
+  // 1. If absolute URL
+  if (/^https?:\/\//i.test(trimmed)) {
+    // If it points to localhost (e.g. during local testing), Gmail/Outlook cannot access localhost.
+    // Rewrite localhost origin to the public production URL so email clients can load the image!
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(trimmed)) {
+      const pathAndQuery = trimmed.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, '');
+      return `${configuredSiteUrl}${pathAndQuery.startsWith('/') ? '' : '/'}${pathAndQuery}`;
+    }
+    return trimmed;
+  }
+
+  // 2. If it's a data URI (e.g. data:image/...)
+  if (trimmed.startsWith('data:')) {
+    return trimmed;
+  }
+
+  // 3. If relative URL (e.g., '/assets/images/card1.gif' or 'assets/images/card1.gif')
+  let cleanBase = siteUrl ? siteUrl.replace(/\/+$/, '') : configuredSiteUrl;
+  if (/localhost|127\.0\.0\.1/i.test(cleanBase)) {
+    cleanBase = configuredSiteUrl;
+  }
+
+  const normalizedPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return `${cleanBase}${normalizedPath}`;
+}
+
+/**
  * Generate rich, responsive HTML email for a new project announcement
  */
 export function generateProjectNotificationHtml({
@@ -72,15 +113,26 @@ export function generateProjectNotificationHtml({
     shortDescription = '',
     description = '',
     technologies = [],
-    imageUrl = '',
     liveUrl = '',
     githubUrl = '',
   } = project || {};
 
-  const cleanSiteUrl = siteUrl.replace(/\/+$/, '');
-  const unsubUrl = `${cleanSiteUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}`;
+  // Extract raw image from any common project attribute
+  const rawImage =
+    (project && (project.imageUrl || project.image || project.thumbnailUrl || project.fileUrl || project.photoUrl)) || '';
+
+  const cleanSiteUrl = siteUrl ? siteUrl.replace(/\/+$/, '') : 'https://jahanrazh.vercel.app';
+  // Ensure public links in email don't point to unreachable localhost
+  const publicSiteUrl = (/localhost|127\.0\.0\.1/i.test(cleanSiteUrl))
+    ? ((process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes('localhost'))
+        ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '')
+        : 'https://jahanrazh.vercel.app')
+    : cleanSiteUrl;
+
+  const unsubUrl = `${publicSiteUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}`;
   const displayDesc = shortDescription || description || 'A new full-stack project has just been deployed to the portfolio!';
   const greeting = recipientName ? `Hello ${recipientName},` : 'Hello,';
+  const primaryLink = liveUrl || githubUrl || `${publicSiteUrl}#projects`;
 
   // Build tech badges HTML
   const techPillsHtml = Array.isArray(technologies) && technologies.length > 0
@@ -106,19 +158,54 @@ export function generateProjectNotificationHtml({
     `;
   }
   actionButtonsHtml += `
-    <a href="${escapeHtml(cleanSiteUrl)}#projects" target="_blank" style="display:inline-block;background-color:#1e293b;color:#94a3b8;text-decoration:none;font-weight:600;font-size:14px;padding:12px 20px;border-radius:10px;margin-bottom:10px;border:1px solid #334155;text-align:center;">
+    <a href="${escapeHtml(publicSiteUrl)}#projects" target="_blank" style="display:inline-block;background-color:#1e293b;color:#94a3b8;text-decoration:none;font-weight:600;font-size:14px;padding:12px 20px;border-radius:10px;margin-bottom:10px;border:1px solid #334155;text-align:center;">
       ✨ Explore Portfolio
     </a>
   `;
 
-  // Image section
-  const imageBannerHtml = imageUrl
-    ? `
-      <div style="border-radius:16px;overflow:hidden;margin-bottom:24px;background-color:#090d16;border:1px solid #1e293b;max-height:360px;">
-        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" style="width:100%;max-height:360px;object-fit:cover;display:block;" />
-      </div>
-    `
-    : '';
+  // Safe image resolution: handles relative paths (/assets/...), localhost rewriting, and fallbacks
+  const resolvedImageUrl = resolveProjectImageUrl(rawImage, siteUrl);
+
+  // Email client compatible photo banner: table-wrapped with width and inline styles for Outlook & Gmail
+  let imageBannerHtml = '';
+  if (resolvedImageUrl && !resolvedImageUrl.startsWith('data:')) {
+    imageBannerHtml = `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:22px;border-radius:16px;overflow:hidden;background-color:#090d16;border:1px solid #1e293b;">
+        <tr>
+          <td align="center" style="padding:0;line-height:0;background-color:#090d16;">
+            <a href="${escapeHtml(primaryLink)}" target="_blank" style="text-decoration:none;display:block;">
+              <img
+                src="${escapeHtml(resolvedImageUrl)}"
+                alt="${escapeHtml(name)}"
+                width="548"
+                border="0"
+                style="display:block;width:100%;max-width:100%;height:auto;max-height:360px;object-fit:cover;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;border-radius:14px;"
+              />
+            </a>
+          </td>
+        </tr>
+      </table>
+    `;
+  } else {
+    // Stylized high-impact fallback banner when no photo is provided
+    imageBannerHtml = `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:22px;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#090d16 0%,#1e1b4b 60%,#0f172a 100%);border:1px solid #1e293b;">
+        <tr>
+          <td align="center" style="padding:34px 20px;text-align:center;">
+            <div style="display:inline-block;width:54px;height:54px;line-height:54px;border-radius:16px;background:rgba(99,102,241,0.22);border:1px solid rgba(99,102,241,0.45);font-size:24px;font-weight:800;color:#22d3ee;text-align:center;margin-bottom:12px;">
+              ${escapeHtml((name || 'P').charAt(0).toUpperCase())}
+            </div>
+            <div style="font-size:18px;font-weight:800;color:#ffffff;margin-bottom:6px;">
+              ${escapeHtml(name)}
+            </div>
+            <span style="display:inline-block;padding:3px 12px;border-radius:9999px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);color:#38bdf8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">
+              ${escapeHtml(category || 'Featured Project')}
+            </span>
+          </td>
+        </tr>
+      </table>
+    `;
+  }
 
   return `
 <!DOCTYPE html>

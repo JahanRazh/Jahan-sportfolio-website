@@ -205,12 +205,17 @@ export default function SubscribersManager() {
     setIsSendingTest(true);
     setBroadcastResult(null);
 
+    const projectPayload = {
+      ...selectedProject,
+      imageUrl: selectedProject.imageUrl || selectedProject.image || selectedProject.thumbnailUrl || selectedProject.fileUrl || '',
+    };
+
     try {
       const res = await fetch('/api/newsletter/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          project: selectedProject,
+          project: projectPayload,
           targetEmail: testEmail.trim(),
         }),
       });
@@ -247,12 +252,17 @@ export default function SubscribersManager() {
     setIsBroadcasting(true);
     setBroadcastResult(null);
 
+    const projectPayload = {
+      ...selectedProject,
+      imageUrl: selectedProject.imageUrl || selectedProject.image || selectedProject.thumbnailUrl || selectedProject.fileUrl || '',
+    };
+
     try {
       const res = await fetch('/api/newsletter/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          project: selectedProject,
+          project: projectPayload,
           sendToAll: true,
         }),
       });
@@ -654,15 +664,46 @@ export default function SubscribersManager() {
               </select>
             </div>
 
-            {/* Project Preview Card */}
+            {/* Project Preview Card with Photo Banner */}
             {selectedProject && (
-              <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2 sm:space-y-3">
+              <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between text-[11px] sm:text-xs">
                   <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold uppercase">
                     {selectedProject.category || 'Web Application'}
                   </span>
-                  <span className="text-slate-500 text-[10px] sm:text-xs">Live Preview</span>
+                  <span className="text-slate-400 text-[10px] sm:text-xs flex items-center gap-1">
+                    <Eye className="w-3 h-3 text-cyan-400" />
+                    Subscriber Email Preview
+                  </span>
                 </div>
+
+                {/* Project Photo / Banner Preview */}
+                <div className="relative w-full h-36 sm:h-44 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
+                  {(selectedProject.imageUrl || selectedProject.image || selectedProject.thumbnailUrl) ? (
+                    <img
+                      src={selectedProject.imageUrl || selectedProject.image || selectedProject.thumbnailUrl}
+                      alt={selectedProject.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.parentElement?.querySelector('.img-preview-fallback');
+                        if (fallback) fallback.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`img-preview-fallback w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 p-4 text-center ${
+                      (selectedProject.imageUrl || selectedProject.image || selectedProject.thumbnailUrl) ? 'hidden' : 'flex'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-1">
+                      <span className="text-lg font-bold">{(selectedProject.name || 'P').charAt(0).toUpperCase()}</span>
+                    </div>
+                    <p className="text-xs text-slate-400">No custom photo attached</p>
+                    <p className="text-[10px] text-slate-500">Stylized banner will be included in email</p>
+                  </div>
+                </div>
+
                 <h4 className="text-sm sm:text-base font-bold text-white leading-snug">
                   {selectedProject.name}
                 </h4>

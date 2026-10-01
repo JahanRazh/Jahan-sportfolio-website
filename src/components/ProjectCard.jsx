@@ -13,6 +13,8 @@ export default function ProjectCard({ project }) {
     description,
     technologies = [],
     imageUrl,
+    image,
+    thumbnailUrl,
     imageAlt,
     githubUrl,
     liveUrl,
@@ -20,6 +22,7 @@ export default function ProjectCard({ project }) {
   } = project;
 
   const displayDescription = shortDescription || description || '';
+  const projectImage = imageUrl || image || thumbnailUrl || '';
 
   const [imageError, setImageError] = React.useState(false);
 
@@ -27,9 +30,9 @@ export default function ProjectCard({ project }) {
     <div className="group relative bg-white dark:bg-[#161f30] rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800/80 shadow-lg shadow-slate-200/50 dark:shadow-black/40 hover:shadow-2xl hover:border-[#6e57e0]/60 dark:hover:border-[#12f7ff]/50 transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5">
       {/* Top Image Preview Container */}
       <div className="relative w-full h-48 sm:h-56 bg-slate-900 overflow-hidden">
-        {imageUrl && !imageError ? (
+        {projectImage && !imageError ? (
           <img
-            src={imageUrl}
+            src={projectImage}
             alt={imageAlt || `${name} - Project by Ramesh Jahan Jayalath`}
             loading="lazy"
             onError={() => setImageError(true)}

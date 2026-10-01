@@ -19,10 +19,21 @@ export async function POST(request) {
       );
     }
 
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+    const proto = request.headers.get('x-forwarded-proto') || 'https';
+    const computedHostUrl = host ? `${proto}://${host}` : null;
+
     const origin =
       request.headers.get('origin') ||
+      computedHostUrl ||
       process.env.NEXT_PUBLIC_SITE_URL ||
       'https://jahanrazh.vercel.app';
+
+    // Normalize project data ensuring imageUrl is always populated from any image field
+    const normalizedProject = {
+      ...project,
+      imageUrl: project.imageUrl || project.image || project.thumbnailUrl || project.fileUrl || project.photoUrl || '',
+    };
 
     const status = getEmailServiceStatus();
 
@@ -41,7 +52,7 @@ export async function POST(request) {
     if (targetEmail) {
       const cleanTarget = targetEmail.trim().toLowerCase();
       const html = generateProjectNotificationHtml({
-        project,
+        project: normalizedProject,
         recipientEmail: cleanTarget,
         recipientName: 'Developer / Admin',
         siteUrl: origin,
@@ -49,9 +60,9 @@ export async function POST(request) {
 
       await sendEmailViaSmtp({
         to: cleanTarget,
-        subject: `[TEST] 🚀 New Project Launched: ${project.name}`,
+        subject: `[TEST] 🚀 New Project Launched: ${normalizedProject.name}`,
         html,
-        text: `New Project: ${project.name}\n${project.shortDescription || ''}\nView at: ${project.liveUrl || origin}`,
+        text: `New Project: ${normalizedProject.name}\n${normalizedProject.shortDescription || ''}\nView at: ${normalizedProject.liveUrl || origin}`,
       });
 
       return NextResponse.json({
@@ -76,7 +87,7 @@ export async function POST(request) {
       }
 
       const broadcastResult = await broadcastProjectNotification({
-        project,
+        project: normalizedProject,
         subscribers: activeSubscribers,
         siteUrl: origin,
       });
